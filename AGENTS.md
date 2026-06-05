@@ -24,3 +24,19 @@ Mainsail is a Vue 2.7 + TypeScript web interface for Klipper 3D printer firmware
 | Vuetify, icons, i18n              | [agent_docs/UI_I18N.md](agent_docs/UI_I18N.md)               |
 | Code review checklist             | [agent_docs/CODE_REVIEW.md](agent_docs/CODE_REVIEW.md)       |
 | Git workflow & PRs                | [agent_docs/CONTRIBUTING.md](agent_docs/CONTRIBUTING.md)     |
+
+## Agent skills
+
+E3CNC engineering-skill config (separate from the `agent_docs/` Mainsail guides above).
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues (via the `gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context — `CONTEXT.md` + `docs/adr/` at the repo root (created lazily by grill-with-docs when UI domain terms get resolved). See `docs/agents/domain.md`.
