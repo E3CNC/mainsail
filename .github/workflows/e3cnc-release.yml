@@ -1,0 +1,54 @@
+name: E3CNC Release
+
+# Builds the E3CNC Mainsail fork into a CI-produced mainsail.zip and attaches it
+# to a GitHub Release. This is the artifact the e3cnc-installer downloads
+# (ADR-0001: Mainsail is never built on the target). Unlike upstream's
+# release.yml, this uses the default GITHUB_TOKEN -- no PAT, no FTP/CDN deploy,
+# no semantic-release/version bumping -- so it runs on the fork as-is.
+#
+# Trigger: Actions -> "E3CNC Release" -> Run workflow, give a tag (e.g.
+# e3cnc-v0.1.0). The tag is created at the commit this runs on.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to create (e.g. e3cnc-v0.1.0)'
+        required: true
+        default: e3cnc-v0.1.0
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (produces dist/mainsail.zip)
+        run: npm run build
+
+      - name: Verify artifact
+        run: test -f dist/mainsail.zip && ls -l dist/mainsail.zip
+
+      - name: Create release and attach mainsail.zip
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: ${{ inputs.tag }}
+          body: |
+            E3CNC Mainsail build (CI-produced artifact, ADR-0001).
+
+            The e3cnc-installer's Stack Manifest pins `MAINSAIL_REF` to this tag
+            and downloads `mainsail.zip` from this release. Never built on target.
+          files: dist/mainsail.zip
