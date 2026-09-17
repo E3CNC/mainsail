@@ -43,14 +43,54 @@ const httpServer = http.createServer((req, res) => {
 })
 
 function routeHttp(req, res, url, body) {
+    if (url.pathname === '/server/info') {
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ result: { klippy_connected: true, klippy_state: 'ready', klippy_message: 'Printer is ready', components: [], failed_components: [], warnings: [], registered_directories: ['gcodes', 'config', 'logs'], websocket_count: 2, moonraker_version: 'v0.9.3-1', api_version: [1, 4, 0], api_version_string: '1.4.0' } }))
+        return
+    }
     if (url.pathname.startsWith('/server/history/totals')) {
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ result: { job_totals: { total: 0, failed: 0, cancelled: 0, completed: 0, queued: 0, active: 0 } } }))
         return
     }
+    if (url.pathname === '/server/database/list') {
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ result: { namespaces: Object.keys(db) } }))
+        return
+    }
+    if (url.pathname === '/server/database/item') {
+        const ns = url.searchParams.get('namespace') ?? 'mainsail'
+        const key = url.searchParams.get('key')
+        if (req.method === 'POST' && key) {
+            if (!db[ns]) db[ns] = {}
+            db[ns][key] = body
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ result: {} }))
+            return
+        }
+        if (req.method === 'DELETE' && key) {
+            if (db[ns]) delete db[ns][key]
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ result: {} }))
+            return
+        }
+        if (req.method === 'GET') {
+            if (key && db[ns]?.[key] !== undefined) {
+                res.writeHead(200, { 'Content-Type': 'application/json' })
+                res.end(JSON.stringify({ result: { value: db[ns][key] } }))
+                return
+            }
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ result: { namespaces: Object.keys(db), value: db[ns] ?? {} } }))
+            return
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ result: { namespaces: Object.keys(db), value: db[ns] ?? {} } }))
+        return
+    }
     if (url.pathname.startsWith('/server/database/')) {
         res.writeHead(200, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ result: { namespaces: ['mainsail', 'maintenance'], value: {} } }))
+        res.end(JSON.stringify({ result: { namespaces: Object.keys(db), value: {} } }))
         return
     }
     if (url.pathname.startsWith('/server/files/config/')) {
@@ -142,6 +182,24 @@ function routeHttp(req, res, url, body) {
     }
     res.writeHead(404, { 'Content-Type': 'application/json' })
     res.end(JSON.stringify({ error: 'not found' }))
+}
+
+const db = { mainsail: {}, maintenance: {} }
+
+function unflatten(obj) {
+    const out = {}
+    for (const [key, value] of Object.entries(obj)) {
+        const parts = key.split('.')
+        let cur = out
+        for (let i = 0; i < parts.length - 1; i++) {
+            if (!cur[parts[i]] || typeof cur[parts[i]] !== 'object' || Array.isArray(cur[parts[i]])) {
+                cur[parts[i]] = {}
+            }
+            cur = cur[parts[i]]
+        }
+        cur[parts[parts.length - 1]] = value
+    }
+    return out
 }
 
 httpServer.listen(PORT, '127.0.0.1', () => {
@@ -261,7 +319,7 @@ function handleMethod(method, params = {}) {
                 cpu_temp: 42.1,
             }
         case 'server.database.list':
-            return { namespaces: [] }
+            return { namespaces: Object.keys(db) }
         case 'server.gcode_store':
             return { gcode_store: [{ time: Date.now() / 1000, type: 'response', message: 'Mock Moonraker ready' }] }
         case 'printer.info':
@@ -270,8 +328,29 @@ function handleMethod(method, params = {}) {
             return { objects: Object.keys(printerState.status) }
         case 'server.webcams.list':
             return { webcams: [] }
-        case 'server.database.get_item':
-            return { namespaces: [params.namespace ?? 'mainsail'], value: {} }
+        case 'server.database.get_item': {
+            const dbNs = params.namespace ?? 'mainsail'
+            const dbKey = params.key
+            if (dbKey && db[dbNs]?.[dbKey] !== undefined) {
+                return { namespaces: [dbNs], key: dbKey, value: db[dbNs][dbKey] }
+            }
+            return { namespaces: [dbNs], value: unflatten(db[dbNs] ?? {}) }
+        }
+        case 'server.database.post_item': {
+            const postNs = params.namespace ?? 'mainsail'
+            const postKey = params.key
+            if (postNs && postKey) {
+                if (!db[postNs]) db[postNs] = {}
+                db[postNs][postKey] = params.value
+            }
+            return {}
+        }
+        case 'server.database.delete_item': {
+            const delNs = params.namespace ?? 'mainsail'
+            const delKey = params.key
+            if (delNs && delKey && db[delNs]) delete db[delNs][delKey]
+            return {}
+        }
         case 'printer.objects.subscribe':
         case 'printer.objects.query':
             printerState.eventtime += 0.5

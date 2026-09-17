@@ -112,7 +112,9 @@
 import { computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useStore } from 'vuex'
 import { useWebcam } from '@/composables/useWebcam'
+import { useTheme } from '@/composables/useTheme'
 import type { FarmPrinterState } from '@/store/farm/printer/types'
+import Panel from '@/components/ui/Panel.vue'
 import MainsailLogo from '@/components/ui/MainsailLogo.vue'
 import { mdiPrinter3d, mdiWebcam, mdiMenuDown, mdiWebcamOff, mdiFileOutline } from '@mdi/js'
 import WebcamWrapper from '@/components/webcams/WebcamWrapper.vue'
@@ -122,7 +124,8 @@ const props = defineProps<{
     printer: FarmPrinterState
 }>()
 
-const { convertWebcamIcon, sidebarBgImage } = useWebcam() as any
+const { convertWebcamIcon } = useWebcam() as any
+const { sidebarBgImage } = useTheme()
 
 const store = useStore()
 
@@ -206,7 +209,8 @@ onMounted(() => {
     calcImageHeight()
 
     resizeObserver = new ResizeObserver(() => handleResize())
-    if (panel.value) resizeObserver.observe(panel.value.$el)
+    const el = panel.value?.$el ?? null
+    if (el instanceof Element) resizeObserver.observe(el)
 })
 
 onBeforeUnmount(() => {
