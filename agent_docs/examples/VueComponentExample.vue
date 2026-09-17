@@ -1,79 +1,74 @@
 <template>
     <div>
         <v-btn :disabled="isLoading" @click="handleClick">
-            <v-icon left>{{ mdiCheck }}</v-icon>
+            <v-icon start>{{ mdiCheck }}</v-icon>
             {{ $t('Common.Save') }}
         </v-btn>
     </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 /**
- * Canonical example of Vue Class Component structure.
+ * Canonical example of Vue 3 <script setup> structure.
  * This file serves as a reference for AI agents - do not delete.
  *
- * Class member order:
- * 1. @Prop declarations
- * 2. Data fields (class properties)
- * 3. Getters (computed properties)
- * 4. Methods
- * 5. @Watch decorators
- * 6. Lifecycle hooks (mounted, beforeDestroy, etc.)
+ * Script order:
+ * 1. Imports
+ * 2. Props and emits
+ * 3. Store/composable bindings
+ * 4. Reactive state
+ * 5. Computed properties
+ * 6. Watchers
+ * 7. Lifecycle hooks (onMounted, onBeforeUnmount, etc.)
+ * 8. Methods
  */
-import { Component, Mixins, Prop, Watch } from 'vue-property-decorator'
-import BaseMixin from '@/components/mixins/base'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { mdiCheck } from '@mdi/js'
 
-@Component
-export default class VueComponentExample extends Mixins(BaseMixin) {
-    // Icons
-    mdiCheck = mdiCheck
+// 2. Props
+const props = withDefaults(defineProps<{ title: string; initialCount?: number }>(), {
+    initialCount: 0,
+})
 
-    // 1. Props
-    @Prop({ type: String, required: true }) readonly title!: string
-    @Prop({ type: Number, default: 0 }) readonly initialCount!: number
+// 4. Reactive state
+const isLoading = ref(false)
+const count = ref(0)
 
-    // 2. Data fields
-    isLoading = false
-    count = 0
+// 5. Computed properties
+const formattedTitle = computed(() => props.title.toUpperCase())
+const isValid = computed(() => count.value > 0 && !isLoading.value)
 
-    // 3. Getters (computed properties)
-    get formattedTitle(): string {
-        return this.title.toUpperCase()
-    }
+// 6. Watchers
+watch(
+    () => props.initialCount,
+    (newVal) => {
+        count.value = newVal
+    },
+    { immediate: true }
+)
 
-    get isValid(): boolean {
-        return this.count > 0 && !this.isLoading
-    }
+// 7. Lifecycle hooks
+onMounted(() => {
+    window.addEventListener('resize', onResize)
+})
 
-    // 4. Watchers
-    @Watch('initialCount', { immediate: true })
-    onInitialCountChanged(newVal: number): void {
-        this.count = newVal
-    }
+// Always clean up:
+// - Event listeners
+// - Timers/intervals
+// - Observers
+// - WebSocket/WebRTC connections
+// - ECharts instances
+// - requestAnimationFrame handles
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', onResize)
+})
 
-    // 5. Lifecycle hooks
-    mounted(): void {
-        window.addEventListener('resize', this.onResize)
-    }
+// 8. Methods
+function handleClick(): void {
+    count.value++
+}
 
-    beforeDestroy(): void {
-        // Always clean up:
-        // - Event listeners
-        // - Timers/intervals
-        // - Observers
-        // - WebSocket/WebRTC connections
-        // - ECharts instances
-        window.removeEventListener('resize', this.onResize)
-    }
-
-    // 6. Methods
-    handleClick(): void {
-        this.count++
-    }
-
-    onResize(): void {
-        // Handle resize
-    }
+function onResize(): void {
+    // Handle resize
 }
 </script>

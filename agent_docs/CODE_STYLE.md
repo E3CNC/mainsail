@@ -57,14 +57,14 @@ if (status === STATUS_PRINTING) { ... }
 
 ## Performance
 
-Use `@Debounce(ms)` for inputs triggering API calls.
+Debounce inputs triggering API calls (e.g. lodash `debounce`).
 Use `throttle()` for resize handlers.
 
 ## Console Logging
 
 No raw `console.log` in production code.
 
-For debug output, define a class method with a descriptive prefix:
+For debug output, define a helper function with a descriptive prefix:
 
 ```typescript
 log(msg: string, obj?: unknown): void {

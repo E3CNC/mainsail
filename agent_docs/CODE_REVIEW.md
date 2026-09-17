@@ -19,9 +19,9 @@
 
 ### Vue Components ([VUE_TYPESCRIPT.md](VUE_TYPESCRIPT.md))
 
-- [ ] Uses Vue Class Component syntax
-- [ ] Class member order correct (`@Prop` → Data → Getters → `@Watch` → Lifecycle → Methods
-- [ ] `beforeDestroy` cleans up all resources
+- [ ] Uses Vue 3 `<script setup>` syntax (no class components, decorators, or mixins)
+- [ ] Script order correct (Props → Store → State → Computed → Watch → Lifecycle → Methods)
+- [ ] `onBeforeUnmount` cleans up all resources
 - [ ] Complex template logic extracted to computed properties
 
 ### UI & i18n ([UI_I18N.md](UI_I18N.md))
@@ -32,6 +32,6 @@
 
 ### Performance
 
-- [ ] `@Debounce(ms)` on inputs triggering API calls
+- [ ] Debounced inputs triggering API calls
 - [ ] `throttle()` on resize handlers
 - [ ] No raw `console.log`

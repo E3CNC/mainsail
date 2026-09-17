@@ -1,9 +1,9 @@
-# Mainsail AI Guidelines
+# Mainsail (E3CNC fork) AI Guidelines
 
-Mainsail is a Vue 2.7 + TypeScript web interface for Klipper 3D printer firmware, using Vuetify 2, Vuex 3, and Vite.
+Mainsail is a Vue 3.5 + TypeScript web interface for Klipper-based CNC machines, using Vuetify 3, Vuex 4, vue-router 4, and Vite 7.
 
-> **CRITICAL:** Use **Vue Class Components** with decorators (`@Component`, `@Prop`, `@Watch`).
-> Do NOT use Vue 3 `<script setup>` or Options API syntax.
+> **CRITICAL:** Use Vue 3 `<script setup>` with the Composition API and composables from `src/composables/`.
+> Do NOT use Vue Class Components, decorators, or mixins.
 
 ## Commands
 
@@ -19,7 +19,7 @@ Mainsail is a Vue 2.7 + TypeScript web interface for Klipper 3D printer firmware
 | Topic                             | File                                                         |
 | --------------------------------- | ------------------------------------------------------------ |
 | Project structure & store modules | [agent_docs/ARCHITECTURE.md](agent_docs/ARCHITECTURE.md)     |
-| Vue Class Components & TypeScript | [agent_docs/VUE_TYPESCRIPT.md](agent_docs/VUE_TYPESCRIPT.md) |
+| Vue 3 setup & TypeScript          | [agent_docs/VUE_TYPESCRIPT.md](agent_docs/VUE_TYPESCRIPT.md) |
 | Formatting, naming, patterns      | [agent_docs/CODE_STYLE.md](agent_docs/CODE_STYLE.md)         |
 | Vuetify, icons, i18n              | [agent_docs/UI_I18N.md](agent_docs/UI_I18N.md)               |
 | Code review checklist             | [agent_docs/CODE_REVIEW.md](agent_docs/CODE_REVIEW.md)       |

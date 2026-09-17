@@ -1,25 +1,28 @@
 # Vue & TypeScript
 
-## Vue Class Components
+## Vue 3 `<script setup>`
 
-Use Vue Class Component with TypeScript decorators.
-Never use Vue 3 `<script setup>` or Options API.
+Use the Composition API with `<script setup lang="ts">`.
+Never use Vue Class Components, decorators, or mixins. Shared logic lives in
+composables under `src/composables/` (e.g. `useSocket`, `useCncOffsets`).
 
 See canonical example: [examples/VueComponentExample.vue](examples/VueComponentExample.vue)
 
-### Class Member Order
+### Script Order
 
-1. `@Prop` declarations
-2. Data fields (class properties)
-3. Getters (computed properties)
-4. `@Watch` decorators
-5. Lifecycle hooks (mounted, beforeDestroy)
-6. Methods
+1. Imports
+2. Props (`defineProps`) and emits (`defineEmits`)
+3. Store/composable bindings (`useStore`, composables)
+4. Reactive state (`ref`, `reactive`)
+5. Computed properties
+6. Watchers
+7. Lifecycle hooks (`onMounted`, `onBeforeUnmount`)
+8. Methods
 
 ### Documentation
 
-- [vue-class-component](https://class-component.vuejs.org/)
-- [vue-property-decorator](https://github.com/kaorun343/vue-property-decorator)
+- [Vue 3 Composition API](https://vuejs.org/guide/extras/composition-api-faq.html)
+- [`<script setup>`](https://vuejs.org/api/sfc-script-setup.html)
 
 ## TypeScript
 
@@ -33,7 +36,7 @@ Define `type`, `required`, and `default` for all props.
 Extract complex logic into computed properties.
 Keep templates declarative - no inline filtering or complex expressions.
 
-## Cleanup in beforeDestroy
+## Cleanup in onBeforeUnmount
 
 Always clean up resources:
 
@@ -42,3 +45,4 @@ Always clean up resources:
 - Observers (ResizeObserver, MutationObserver)
 - ECharts instances
 - WebSocket/WebRTC connections
+- `requestAnimationFrame` handles
