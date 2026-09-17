@@ -1,18 +1,29 @@
-import { FileStateFile } from '@/store/files/types'
+import type { FileStateFile } from '@/store/files/types'
 import { PrinterStateMacroParams } from '@/store/printer/types'
 import {
     mdiAlertOutline,
+    mdiBackupRestore,
+    mdiCamera,
+    mdiClipboardTextOutline,
     mdiCheckboxMarkedCircleOutline,
     mdiCloseCircleOutline,
+    mdiCodeJson,
+    mdiConsoleLine,
+    mdiFileCodeOutline,
+    mdiFileDocumentOutline,
+    mdiFileImage,
+    mdiFileOutline,
     mdiFlash,
     mdiGauge,
+    mdiLanguageMarkdown,
+    mdiLanguagePython,
     mdiLightningBoltOutline,
     mdiMeterElectricOutline,
     mdiProgressClock,
     mdiScale,
     mdiThermometer,
+    mdiTune,
 } from '@mdi/js'
-import Vue from 'vue'
 import { VColorPickerColor } from '@/types/vuetify'
 
 export const isRecord = (value: unknown): value is Record<string, unknown> => {
@@ -55,7 +66,7 @@ export const setDataDeep = (currentState: unknown, payload: unknown): void => {
             return
         }
 
-        Vue.set(currentState, key, value)
+        currentState[key] = value
     })
 }
 
@@ -196,8 +207,10 @@ export const sortFiles = (items: FileStateFile[] | null, sortBy: string[], sortD
     if (items !== null) {
         // Sort by index
         items.sort((a: FileStateFile, b: FileStateFile) => {
-            const valueA = a[sortBySingle]
-            const valueB = b[sortBySingle]
+            const valueA =
+                sortBySingle === 'filetype' ? typeSortValue(a.filename) : a[sortBySingle as keyof FileStateFile]
+            const valueB =
+                sortBySingle === 'filetype' ? typeSortValue(b.filename) : b[sortBySingle as keyof FileStateFile]
 
             if (valueA === valueB) return 0
             if (valueA === null || valueA === undefined) return -1
@@ -365,14 +378,14 @@ export const unitToSymbol = (unit: string): string => {
 export const convertPrintStatusIconColor = (status: string): string => {
     switch (status) {
         case 'in_progress':
-            return 'blue accent-3' //'blue-grey darken-1'
+            return 'info'
         case 'completed':
-            return 'green' //'green'
+            return 'success'
         case 'cancelled':
-            return 'red'
+            return 'error'
 
         default:
-            return 'orange'
+            return 'warning'
     }
 }
 
@@ -390,19 +403,6 @@ export const convertPrintStatusIcon = (status: string) => {
     }
 }
 
-export function filamentTextColor(hexColor: string): string {
-    const splits = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})(?:[a-f\d]{2})?$/i.exec(hexColor)
-
-    if (splits === null || splits?.length < 3) return '#ffffff'
-
-    const r = parseInt(splits[1], 16) * 0.2126
-    const g = parseInt(splits[2], 16) * 0.7152
-    const b = parseInt(splits[3], 16) * 0.0722
-    const perceivedLightness = (r + g + b) / 255
-
-    return perceivedLightness > 0.6 ? '#222' : '#fff'
-}
-
 export function toBoolean(val: unknown): boolean {
     if (typeof val === 'boolean') return val
     if (typeof val === 'number') return val !== 0
@@ -412,13 +412,6 @@ export function toBoolean(val: unknown): boolean {
         if (s === 'false' || s === '0' || s === 'no' || s === 'n') return false
     }
     return Boolean(val)
-}
-
-export function filamentWeightFormat(weight: number): string {
-    if (weight > 1000) return `${Math.round(weight / 10) / 100} kg`
-    else if (weight > 100) return `${Math.round(weight)} g`
-
-    return `${Math.round(weight * 10) / 10} g`
 }
 
 // This function is based on the Fluidd implementation
@@ -593,4 +586,124 @@ export function generateTimestamp(date: Date = new Date()): string {
     const timeString = `${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`
 
     return `${dateString}-${timeString}`
+}
+
+const extensionIconMap: Record<string, string> = {
+    cfg: mdiTune,
+    conf: mdiTune,
+    py: mdiLanguagePython,
+    json: mdiCodeJson,
+    yaml: mdiFileCodeOutline,
+    yml: mdiFileCodeOutline,
+    sh: mdiConsoleLine,
+    md: mdiLanguageMarkdown,
+    txt: mdiFileDocumentOutline,
+    log: mdiClipboardTextOutline,
+    bak: mdiBackupRestore,
+    bkp: mdiBackupRestore,
+    backup: mdiBackupRestore,
+}
+
+const imageExtensions = new Set(['png', 'jpg', 'jpeg', 'gif', 'svg', 'bmp', 'webp', 'tif', 'tiff'])
+
+const typeLabels: Record<string, string> = {
+    '01-config': 'config',
+    '02-webcam': 'webcam',
+    '02-python': 'python',
+    '03-json': 'json',
+    '04-yaml': 'yaml',
+    '05-script': 'script',
+    '06-markdown': 'markdown',
+    '06-log': 'log',
+    '07-text': 'text',
+    '08-backup': 'backup',
+    '09-image': 'image',
+    '99-other': 'other',
+}
+const backupDatePattern = /\d{8}[-_]\d{6}/
+
+function hasBackupDate(filename: string): boolean {
+    return backupDatePattern.test(filename)
+}
+
+function isWebcamFile(filename: string): boolean {
+    const lower = filename.toLowerCase()
+    const ext = lower.split('.').pop() ?? ''
+    return (lower.includes('webcam') && ['conf', 'txt'].includes(ext)) || lower === 'crowsnest.conf'
+}
+
+function isPrinterConfig(filename: string): boolean {
+    return filename.toLowerCase().includes('printer')
+}
+
+export function getFileIcon(filename: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase() ?? ''
+    if (hasBackupDate(filename)) return mdiBackupRestore
+    if (isWebcamFile(filename)) return mdiCamera
+    if (isPrinterConfig(filename)) return mdiTune
+    if (imageExtensions.has(ext)) return mdiFileImage
+    return extensionIconMap[ext] ?? mdiFileOutline
+}
+
+const extensionColorMap: Record<string, string> = {
+    cfg: 'orange',
+    conf: 'orange',
+    py: 'blue',
+    json: 'amber',
+    yaml: 'teal',
+    yml: 'teal',
+    sh: 'green',
+    md: 'blue-grey',
+    txt: 'grey',
+    log: 'blue-grey',
+    bak: 'brown',
+    bkp: 'brown',
+    backup: 'brown',
+}
+
+export function getFileColor(filename: string): string | undefined {
+    if (hasBackupDate(filename)) return 'brown'
+    if (isWebcamFile(filename)) return 'cyan'
+    if (isPrinterConfig(filename)) return 'orange'
+    const ext = filename.split('.').pop()?.toLowerCase() ?? ''
+    if (imageExtensions.has(ext)) return 'purple'
+    return extensionColorMap[ext]
+}
+
+const typePriority: Record<string, string> = {
+    cfg: '01-config',
+    conf: '01-config',
+    py: '02-python',
+    json: '03-json',
+    yaml: '04-yaml',
+    yml: '04-yaml',
+    sh: '05-script',
+    md: '06-markdown',
+    txt: '07-text',
+    log: '06-log',
+    bak: '08-backup',
+    bkp: '08-backup',
+    backup: '08-backup',
+}
+
+export function getFileType(filename: string): string {
+    if (hasBackupDate(filename)) return '08-backup'
+    if (isWebcamFile(filename)) return '02-webcam'
+    if (isPrinterConfig(filename)) return '01-config'
+    const ext = filename.split('.').pop()?.toLowerCase() ?? ''
+    if (imageExtensions.has(ext)) return '09-image'
+    return typePriority[ext] ?? '99-other'
+}
+
+export function getFileTypeLabel(filename: string): string {
+    return typeLabels[getFileType(filename)] ?? 'other'
+}
+
+export function typeSortValue(filename: string): string {
+    const ext = filename.split('.').pop()?.toLowerCase() ?? ''
+    let priority = typePriority[ext] ?? '99-other'
+    if (hasBackupDate(filename)) priority = '08-backup'
+    else if (isWebcamFile(filename)) priority = '02-webcam'
+    else if (isPrinterConfig(filename)) priority = '01-config'
+    return priority + '-' + filename.toLowerCase()
 }

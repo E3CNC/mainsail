@@ -1,0 +1,150 @@
+import { computed, type ComputedRef } from 'vue'
+import type {
+    HistoryStatsValueNames,
+    ServerHistoryStateAllPrintStatusEntry,
+    ServerHistoryStateJob,
+} from '@/store/server/history/types'
+import i18n from '@/plugins/i18n'
+import { useHistory } from '@/composables/useHistory'
+
+export interface UseHistoryStatsResult {
+    allPrintStati: ComputedRef<string[]>
+    printStatusArray: ComputedRef<ServerHistoryStateAllPrintStatusEntry[]>
+    printStatusArrayChart: ComputedRef<ServerHistoryStateAllPrintStatusEntry[]>
+    groupedPrintStatusArray: ComputedRef<ServerHistoryStateAllPrintStatusEntry[]>
+}
+
+export function useHistoryStats(valueName: HistoryStatsValueNames): UseHistoryStatsResult {
+    const history = useHistory()
+
+    function getStatusColor(status: string) {
+        const colorMap: Record<string, string> = {
+            completed: 'rgba(var(--v-theme-on-surface), 0.6)',
+            in_progress: 'rgba(var(--v-theme-on-surface), 0.9)',
+            cancelled: 'rgba(var(--v-theme-on-surface), 0.38)',
+            default: 'rgba(var(--v-theme-on-surface), 0.26)',
+        }
+
+        return colorMap[status] ?? colorMap.default
+    }
+
+    function getLocalizedStatusName(status: string) {
+        return i18n.global.te(`History.StatusValues.${status}`)
+            ? i18n.global.t(`History.StatusValues.${status}`).toString()
+            : status
+    }
+
+    function groupSmallEntries(
+        entries: ServerHistoryStateAllPrintStatusEntry[],
+        threshold: number
+    ): ServerHistoryStateAllPrintStatusEntry[] {
+        const totalCount = entries.reduce((acc, cur) => acc + cur.value, 0)
+        const otherLimit = totalCount * threshold
+        const others = entries.filter((entry) => entry.value < otherLimit)
+
+        if (others.length < 2) return entries
+
+        const value = others.reduce((acc, cur) => acc + cur.value, 0)
+        const remaining = entries.filter((entry) => entry.value >= otherLimit)
+        const displayName = i18n.global.t(`History.StatusValues.Others`).toString() + ` (${others.length})`
+
+        remaining.push({
+            name: displayName,
+            displayName,
+            value,
+            valueFilament: 0,
+            valueTime: 0,
+            itemStyle: {
+                opacity: 0.9,
+                color: 'rgba(var(--v-theme-on-surface), 0.38)',
+                borderColor: 'rgba(var(--v-theme-on-surface), 0.12)',
+                borderWidth: 2,
+                borderRadius: 3,
+            },
+            showInTable: true,
+        })
+
+        return remaining
+    }
+
+    const allPrintStati = computed<string[]>(() => {
+        let array = history.allJobs.value.map((job: ServerHistoryStateJob) => job.status)
+
+        array = array.filter((item: string, index: number) => array.indexOf(item) === index)
+
+        return array
+    })
+
+    const printStatusArray = computed<ServerHistoryStateAllPrintStatusEntry[]>(() => {
+        return allPrintStati.value.map((status: string) => {
+            const filterdJobs = history.allJobs.value.filter((job: ServerHistoryStateJob) => job.status === status)
+
+            return {
+                name: status,
+                displayName: getLocalizedStatusName(status),
+                showInTable: !history.hidePrintStatus.value.includes(status),
+                value: filterdJobs.length,
+                itemStyle: {
+                    opacity: 0.9,
+                    color: getStatusColor(status),
+                    borderColor: 'rgba(var(--v-theme-on-surface), 0.12)',
+                    borderWidth: 2,
+                    borderRadius: 3,
+                },
+            }
+        })
+    })
+
+    const printStatusArrayChart = computed<ServerHistoryStateAllPrintStatusEntry[]>(() => {
+        if (valueName === 'filament') {
+            const jobs = history.selectedJobs.value.length ? history.selectedJobs.value : history.jobs.value
+
+            return printStatusArray.value
+                .map((entry) => {
+                    const value = jobs.reduce(
+                        (acc: number, cur: ServerHistoryStateJob) =>
+                            cur.status === entry.name ? acc + cur.filament_used : acc,
+                        0
+                    )
+
+                    return {
+                        ...entry,
+                        value,
+                    }
+                })
+                .filter((entry) => entry.value > 0)
+        }
+
+        if (valueName === 'time') {
+            const jobs = history.selectedJobs.value.length ? history.selectedJobs.value : history.jobs.value
+
+            return printStatusArray.value
+                .map((entry) => {
+                    const value = jobs.reduce(
+                        (acc: number, cur: ServerHistoryStateJob) =>
+                            cur.status === entry.name ? acc + cur.total_duration : acc,
+                        0
+                    )
+
+                    return {
+                        ...entry,
+                        value,
+                    }
+                })
+                .filter((entry) => entry.value > 0)
+        }
+
+        return printStatusArray.value
+    })
+
+    const groupedPrintStatusArray = computed<ServerHistoryStateAllPrintStatusEntry[]>(() => {
+        return groupSmallEntries(printStatusArrayChart.value, 0.05)
+    })
+
+    return {
+        allPrintStati,
+        printStatusArray,
+        printStatusArrayChart,
+        groupedPrintStatusArray,
+    }
+}

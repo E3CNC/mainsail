@@ -1,34 +1,37 @@
-import Vue from 'vue'
-import { ActionTree } from 'vuex'
+import { ActionContext, ActionTree } from 'vuex'
+import { getSocket } from '@/store/runtime'
 import { RootState } from '@/store/types'
-import { ServerJobQueueState, ServerJobQueueStateJob } from '@/store/server/jobQueue/types'
+import type { ServerJobQueueState, ServerJobQueueStateJob } from '@/store/server/jobQueue/types'
 
 export const actions: ActionTree<ServerJobQueueState, RootState> = {
-    reset({ commit }) {
+    reset({ commit }: ActionContext<ServerJobQueueState, RootState>) {
         commit('reset')
     },
 
     init() {
-        Vue.$socket.emit('server.job_queue.status', {}, { action: 'server/jobQueue/getStatus' })
+        getSocket().emit('server.job_queue.status', {}, { action: 'server/jobQueue/getStatus' })
     },
 
-    getEvent({ commit }, payload) {
+    getEvent({ commit }: ActionContext<ServerJobQueueState, RootState>, payload: any) {
         if ('updated_queue' in payload && payload.updated_queue !== null) commit('setQueuedJobs', payload.updated_queue)
         if ('queue_state' in payload) commit('setQueueState', payload.queue_state)
     },
 
-    async getStatus({ commit, dispatch }, payload) {
+    async getStatus({ commit, dispatch }: ActionContext<ServerJobQueueState, RootState>, payload: any) {
         if ('queued_jobs' in payload) commit('setQueuedJobs', payload.queued_jobs)
         if ('queue_state' in payload) commit('setQueueState', payload.queue_state)
 
         await dispatch('socket/removeInitModule', 'server/jobQueue/init', { root: true })
     },
 
-    async addToQueue(_, filenames: string[]) {
-        Vue.$socket.emit('server.job_queue.post_job', { filenames: filenames })
+    async addToQueue(_context: ActionContext<ServerJobQueueState, RootState>, filenames: string[]) {
+        getSocket().emit('server.job_queue.post_job', { filenames: filenames })
     },
 
-    changeCount({ dispatch, getters }, payload: { job_id: string; count: number }) {
+    changeCount(
+        { dispatch, getters }: ActionContext<ServerJobQueueState, RootState>,
+        payload: { job_id: string; count: number }
+    ) {
         const jobs: ServerJobQueueStateJob[] = getters['getJobs']
 
         const index = jobs.findIndex((job) => job.job_id === payload.job_id)
@@ -39,7 +42,10 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         dispatch('sendNewQueueList', { jobs })
     },
 
-    changePosition({ dispatch, getters }, payload: { oldIndex: number; newIndex: number }) {
+    changePosition(
+        { dispatch, getters }: ActionContext<ServerJobQueueState, RootState>,
+        payload: { oldIndex: number; newIndex: number }
+    ) {
         const jobs: ServerJobQueueStateJob[] = getters['getJobs']
 
         const job = jobs.splice(payload.oldIndex, 1)[0]
@@ -48,7 +54,7 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         dispatch('sendNewQueueList', { jobs })
     },
 
-    startByJobId({ dispatch, getters }, job_id: string) {
+    startByJobId({ dispatch, getters }: ActionContext<ServerJobQueueState, RootState>, job_id: string) {
         const jobs: ServerJobQueueStateJob[] = getters['getJobs']
 
         const index = jobs.findIndex((job) => job.job_id === job_id)
@@ -60,7 +66,10 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         dispatch('sendNewQueueList', { jobs, printStart: true })
     },
 
-    sendNewQueueList(_, payload: { jobs: ServerJobQueueStateJob[]; printStart?: boolean }) {
+    sendNewQueueList(
+        _context: ActionContext<ServerJobQueueState, RootState>,
+        payload: { jobs: ServerJobQueueStateJob[]; printStart?: boolean }
+    ) {
         const filenames = payload.jobs
             .map((job) => {
                 const numJobs = (job.combinedIds?.length ?? 0) + 1
@@ -75,7 +84,7 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         const emitOptions: { action?: string } = {}
         if (payload.printStart) emitOptions.action = 'server/jobQueue/start'
 
-        Vue.$socket.emit(
+        getSocket().emit(
             'server.job_queue.post_job',
             {
                 filenames,
@@ -85,19 +94,19 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         )
     },
 
-    deleteFromQueue(_, job_ids: string[]) {
-        Vue.$socket.emit('server.job_queue.delete_job', { job_ids })
+    deleteFromQueue(_context: ActionContext<ServerJobQueueState, RootState>, job_ids: string[]) {
+        getSocket().emit('server.job_queue.delete_job', { job_ids })
     },
 
     clearQueue() {
-        Vue.$socket.emit('server.job_queue.delete_job', { all: true })
+        getSocket().emit('server.job_queue.delete_job', { all: true })
     },
 
     start() {
-        Vue.$socket.emit('server.job_queue.start', {}, { loading: 'startJobqueue' })
+        getSocket().emit('server.job_queue.start', {}, { loading: 'startJobqueue' })
     },
 
     pause() {
-        Vue.$socket.emit('server.job_queue.pause', {}, { loading: 'pauseJobqueue' })
+        getSocket().emit('server.job_queue.pause', {}, { loading: 'pauseJobqueue' })
     },
 }

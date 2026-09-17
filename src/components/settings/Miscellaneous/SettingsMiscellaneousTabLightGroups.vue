@@ -2,42 +2,44 @@
     <settings-miscellaneous-tab-light-groups-form
         v-if="page === 'form'"
         :type="type"
-        :name="name"
-        :group-id="groupId"
+        :name="name ?? ''"
+        :group-id="groupId ?? ''"
         @close="openPage('')" />
     <settings-miscellaneous-tab-light-groups-list
         v-else
         :type="type"
-        :name="name"
+        :name="name ?? ''"
         @create-group="openPage('form')"
         @edit-group="editGroup"
         @close="close" />
 </template>
 
-<script lang="ts">
-import { Component, Mixins, Prop } from 'vue-property-decorator'
-import BaseMixin from '@/components/mixins/base'
+<script setup lang="ts">
+import { ref } from 'vue'
 
-@Component
-export default class SettingsMiscellaneousTabLightGroups extends Mixins(BaseMixin) {
-    @Prop({ type: String, required: true }) readonly type!: string
-    @Prop({ type: String, required: true }) readonly name!: string
+defineProps({
+    type: { type: String, required: true },
+    name: { type: String, required: true },
+})
 
-    page = ''
-    groupId: string | null = null
+const emit = defineEmits<{
+    (e: 'close'): void
+}>()
 
-    editGroup(groupId: string) {
-        this.openPage('form')
-        this.groupId = groupId
-    }
+const page = ref('')
+const groupId = ref<string | null>(null)
 
-    openPage(name: string) {
-        this.page = name
-        this.groupId = null
-    }
+function editGroup(id: string) {
+    openPage('form')
+    groupId.value = id
+}
 
-    close() {
-        this.$emit('close')
-    }
+function openPage(name: string) {
+    page.value = name
+    groupId.value = null
+}
+
+function close() {
+    emit('close')
 }
 </script>

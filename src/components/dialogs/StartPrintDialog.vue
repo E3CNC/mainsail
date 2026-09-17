@@ -5,25 +5,41 @@
         content-class="overflow-x-hidden"
         @click:outside="closeDialog"
         @keydown.esc="closeDialog">
-        <v-card>
+        <v-card class="start-print-dialog-card">
             <start-print-dialog-thumbnail :file="file" :current-path="currentPath" />
             <v-card-title class="text-h5">{{ $t('Dialogs.StartPrint.Headline') }}</v-card-title>
             <v-card-text class="pb-0">
-                <p class="body-2">
+                <p class="body-2 mb-4">
                     {{ question }}
                 </p>
+                <v-select
+                    v-model="startWcsMode"
+                    :items="wcsModeItems"
+                    item-title="title"
+                    item-value="value"
+                    :label="$t('Dialogs.StartPrint.WcsMode')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details
+                    class="mb-3" />
+                <v-select
+                    v-if="startWcsMode === 'slot'"
+                    v-model="selectedWcsSlot"
+                    :items="wcsSlotItems"
+                    item-title="title"
+                    item-value="value"
+                    :label="$t('Dialogs.StartPrint.GcodeWcsSlot')"
+                    density="compact"
+                    variant="outlined"
+                    hide-details />
             </v-card-text>
-            <start-print-dialog-afc v-if="afcExists" :file="file" />
-            <start-print-dialog-mmu v-else-if="existsMmu" :file="file" />
-            <start-print-dialog-spoolman v-else-if="existsSpoolman" :file="file" />
-            <start-print-dialog-timelapse v-if="existsTimelapse" />
             <v-divider v-if="showDivider" class="my-0" />
             <v-card-actions>
                 <v-spacer />
-                <v-btn text @click="closeDialog">{{ $t('Buttons.Cancel') }}</v-btn>
+                <v-btn variant="text" :disabled="startingPrint" @click="closeDialog">{{ $t('Buttons.Cancel') }}</v-btn>
                 <v-btn
                     color="primary"
-                    text
+                    :loading="startingPrint"
                     :disabled="printerIsPrinting || !klipperReadyForGui"
                     @click="startPrint(file.filename)">
                     {{ $t('Dialogs.StartPrint.Print') }}
@@ -33,62 +49,107 @@
     </v-dialog>
 </template>
 
-<script lang="ts">
-import { Component, Mixins, Prop, VModel } from 'vue-property-decorator'
-import BaseMixin from '@/components/mixins/base'
-import { FileStateGcodefile } from '@/store/files/types'
-import SettingsRow from '@/components/settings/SettingsRow.vue'
-import { mdiPrinter3d } from '@mdi/js'
-import { ServerSpoolmanStateSpool } from '@/store/server/spoolman/types'
-import AfcMixin from '@/components/mixins/afc'
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useToast } from 'vue-toast-notification'
+import { useSocket } from '@/composables/useSocket'
+import { useBase } from '@/composables/useBase'
+import { useCncOffsets, offsetNames } from '@/composables/useCncOffsets'
+import type { FileStateGcodefile } from '@/store/files/types'
 
-@Component({
-    components: { SettingsRow },
+const { t } = useI18n()
+const toast = useToast()
+const socket = useSocket()
+const { klipperReadyForGui, printerIsPrinting, moonrakerComponents } = useBase()
+const { activeWcs, wcsOffsets, refreshWcs, setActiveWcs } = useCncOffsets()
+
+const props = defineProps({
+    modelValue: { type: Boolean },
+    currentPath: { type: String, default: '' },
+    file: { type: Object as () => FileStateGcodefile, required: true },
 })
-export default class StartPrintDialog extends Mixins(BaseMixin, AfcMixin) {
-    mdiPrinter3d = mdiPrinter3d
+const emit = defineEmits(['update:modelValue'])
 
-    @VModel({ type: Boolean }) showDialog!: boolean
-    @Prop({ required: true, default: '' }) readonly currentPath!: string
-    @Prop({ required: true }) readonly file!: FileStateGcodefile
+const showDialog = computed({
+    get: () => props.modelValue,
+    set: (val) => emit('update:modelValue', val),
+})
 
-    get existsMmu() {
-        return this.$store.state.printer.mmu?.enabled && this.$store.state.printer.mmu?.gate !== -2
-    }
+const existsTimelapse = computed(() => moonrakerComponents.value.includes('timelapse'))
+const startWcsMode = ref<'current' | 'slot'>('slot')
+const selectedWcsSlot = ref('G54')
+const startingPrint = ref(false)
 
-    get existsSpoolman() {
-        return this.moonrakerComponents.includes('spoolman')
-    }
+const showDivider = computed(() => existsTimelapse.value)
 
-    get existsTimelapse() {
-        return this.moonrakerComponents.includes('timelapse')
-    }
+const question = computed(() => t('Dialogs.StartPrint.ChooseWcsToUse', { filename: props.file?.filename ?? 'unknown' }))
 
-    get showDivider() {
-        return this.afcExists || this.existsSpoolman || this.existsTimelapse
-    }
+const currentWcsLabel = computed(() => {
+    const offset = wcsOffsets.value[activeWcs.value] ?? { X: 0, Y: 0, Z: 0 }
+    return `${activeWcs.value} · X ${offset.X} · Y ${offset.Y} · Z ${offset.Z}`
+})
 
-    get active_spool(): ServerSpoolmanStateSpool | null {
-        return this.$store.state.server.spoolman.active_spool ?? null
-    }
+const wcsModeItems = computed(() => [
+    {
+        title: t('Dialogs.StartPrint.UseCurrentWcs', { wcs: currentWcsLabel.value }).toString(),
+        value: 'current',
+    },
+    {
+        title: t('Dialogs.StartPrint.UseGcodeWcsSlot').toString(),
+        value: 'slot',
+    },
+])
 
-    get question() {
-        if (this.active_spool)
-            return this.$t('Dialogs.StartPrint.DoYouWantToStartFilenameFilament', {
-                filename: this.file?.filename ?? 'unknown',
-            })
+const wcsSlotItems = computed(() =>
+    offsetNames.map((name) => {
+        const offset = wcsOffsets.value[name] ?? { X: 0, Y: 0, Z: 0 }
+        return {
+            title: `${name} · X ${offset.X} · Y ${offset.Y} · Z ${offset.Z}`,
+            value: name,
+        }
+    })
+)
 
-        return this.$t('Dialogs.StartPrint.DoYouWantToStartFilename', { filename: this.file?.filename ?? 'unknown' })
-    }
+watch(
+    () => props.modelValue,
+    async (open) => {
+        if (!open) return
 
-    startPrint(filename = '') {
-        filename = (this.currentPath + '/' + filename).substring(1)
-        this.closeDialog()
-        this.$socket.emit('printer.print.start', { filename: filename }, { action: 'switchToDashboard' })
-    }
+        try {
+            await refreshWcs()
+            selectedWcsSlot.value = activeWcs.value || 'G54'
+            startWcsMode.value = 'slot'
+        } catch (error) {
+            window.console.error(error)
+        }
+    },
+    { immediate: true }
+)
 
-    closeDialog() {
-        this.showDialog = false
+async function startPrint(filename = '') {
+    filename = (props.currentPath + '/' + filename).substring(1)
+
+    try {
+        startingPrint.value = true
+        if (startWcsMode.value === 'slot') await setActiveWcs(selectedWcsSlot.value)
+        closeDialog()
+        socket.emit('printer.print.start', { filename: filename }, { action: 'switchToDashboard' })
+    } catch (error) {
+        window.console.error(error)
+        toast.error(t('Dialogs.StartPrint.WcsSwitchFailed').toString())
+    } finally {
+        startingPrint.value = false
     }
 }
+
+function closeDialog() {
+    showDialog.value = false
+}
 </script>
+
+<style scoped>
+.start-print-dialog-card {
+    box-shadow: var(--v-shadow-24);
+}
+</style>

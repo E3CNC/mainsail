@@ -1,5 +1,4 @@
 import { ServerPowerState } from '@/store/server/power/types'
-import { ServerUpdateManagerState } from '@/store/server/updateManager/types'
 import { ServerHistoryState } from '@/store/server/history/types'
 import { ServerTimelapseState } from '@/store/server/timelapse/types'
 
@@ -55,12 +54,12 @@ export interface ServerState {
     }
     dbNamespaces: string[]
     websocket_count: number
+    connection_id: string
     moonraker_version: string
 
     console_cleared_this_session?: boolean
 
     power?: ServerPowerState
-    updateManager?: ServerUpdateManagerState
     history?: ServerHistoryState
     timelapse?: ServerTimelapseState
 }
@@ -79,6 +78,8 @@ export interface ServerStateEventPrompt {
     message: string
     children?: ServerStateEventPrompt[]
 }
+
+export type ServerStateEventPromptContent = ServerStateEventPrompt
 
 export interface ServerStateCpuInfo {
     bits: string

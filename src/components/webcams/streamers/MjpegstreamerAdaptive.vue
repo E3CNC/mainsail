@@ -13,7 +13,7 @@
         <span v-if="status === 'connected' && showFpsCounter" class="webcamFpsOutput">
             {{ $t('Panels.WebcamPanel.FPS') }}: {{ fpsOutput }}
         </span>
-        <webcam-nozzle-crosshair v-if="showNozzleCrosshair" :webcam="camSettings" />
+        <!-- Crosshair slot -->
         <v-row v-if="status !== 'connected'">
             <v-col class="_webcam_mjpegstreamer_output text-center d-flex flex-column justify-center align-center">
                 <v-progress-circular v-if="status === 'connecting'" indeterminate color="primary" class="mb-3" />
@@ -23,196 +23,181 @@
     </div>
 </template>
 
-<script lang="ts">
-import Component from 'vue-class-component'
-import { Mixins, Prop, Ref, Watch } from 'vue-property-decorator'
-import BaseMixin from '@/components/mixins/base'
-import { GuiWebcamStateWebcam } from '@/store/gui/webcams/types'
-import WebcamMixin from '@/components/mixins/webcam'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useWebcam } from '@/composables/useWebcam'
 
-@Component
-export default class MjpegstreamerAdaptive extends Mixins(BaseMixin, WebcamMixin) {
-    isVisibleDocument = true
-    isVisibleViewport = false
-    status: string = 'connecting'
-    statusMessage: string = ''
+const props = defineProps({
+    camSettings: { type: Object, required: true },
+    printerUrl: { type: String, default: null },
+    showFps: { type: Boolean, default: true },
+})
 
-    timer: number | null = null
-    request_start_time = performance.now()
-    time = 0
-    request_time = 0
-    request_time_smoothing = 0.2
+const { t } = useI18n()
+const { convertUrl, getWrapperStyle, generateTransform, updateAspectRatioFromImage } = useWebcam()
 
-    currentFPS: number | null = null
-    fpsTimer: number | null = null
-    frames = 0
+const image = ref<HTMLImageElement | null>(null)
 
-    aspectRatio: null | number = null
+const isVisibleDocument = ref(true)
+const isVisibleViewport = ref(false)
+const status = ref('connecting')
+const statusMessage = ref('')
 
-    @Prop({ required: true }) readonly camSettings!: GuiWebcamStateWebcam
-    @Prop({ default: null }) readonly printerUrl!: string | null
-    @Prop({ default: true }) readonly showFps!: boolean
+let timer: number | null = null
+let request_start_time = performance.now()
+const request_time_smoothing = 0.2
+let request_time = 0
 
-    @Ref('image') readonly image!: HTMLImageElement
+const currentFPS = ref<number | null>(null)
+let fpsTimer: number | null = null
+const frames = ref(0)
 
-    get wrapperStyle() {
-        return this.getWrapperStyle(this.aspectRatio, this.camSettings.rotation)
-    }
+const aspectRatio = ref<number | null>(null)
 
-    get webcamStyle() {
-        return {
-            transform: this.generateTransform(
-                this.camSettings.flip_horizontal ?? false,
-                this.camSettings.flip_vertical ?? false,
-                this.camSettings.rotation ?? 0,
-                this.aspectRatio ?? 1
-            ),
-        }
-    }
+const wrapperStyle = computed(() => getWrapperStyle(aspectRatio.value, props.camSettings.rotation))
 
-    get fpsOutput() {
-        if (this.currentFPS === null) return '--'
+const webcamStyle = computed(() => ({
+    transform: generateTransform(
+        props.camSettings.flip_horizontal ?? false,
+        props.camSettings.flip_vertical ?? false,
+        props.camSettings.rotation ?? 0,
+        aspectRatio.value ?? 1
+    ),
+}))
 
-        return this.currentFPS < 10 ? '0' + this.currentFPS.toString() : this.currentFPS
-    }
+const fpsOutput = computed(() => {
+    if (currentFPS.value === null) return '--'
+    return currentFPS.value < 10 ? '0' + currentFPS.value.toString() : currentFPS.value
+})
 
-    get showFpsCounter() {
-        if (!this.showFps) return false
+const showFpsCounter = computed(() => {
+    if (!props.showFps) return false
+    return !(props.camSettings.extra_data?.hideFps ?? false)
+})
 
-        return !(this.camSettings.extra_data?.hideFps ?? false)
-    }
+const url = computed(() => convertUrl(props.camSettings?.snapshot_url, props.printerUrl))
 
-    get url() {
-        return this.convertUrl(this.camSettings?.snapshot_url, this.printerUrl)
-    }
+const isVisible = computed(() => isVisibleDocument.value && isVisibleViewport.value)
 
-    get isVisible() {
-        return this.isVisibleDocument && this.isVisibleViewport
-    }
+onMounted(() => {
+    document.addEventListener('visibilitychange', documentVisibilityChanged)
+})
 
-    get showNozzleCrosshair() {
-        const nozzleCrosshair = this.camSettings.extra_data?.nozzleCrosshair ?? false
+onBeforeUnmount(() => {
+    document.removeEventListener('visibilitychange', documentVisibilityChanged)
+    stopStream()
+})
 
-        return nozzleCrosshair && this.status === 'connected'
-    }
+function documentVisibilityChanged() {
+    isVisibleDocument.value = document.visibilityState === 'visible'
+}
 
-    mounted() {
-        document.addEventListener('visibilitychange', this.documentVisibilityChanged)
-    }
+function viewportVisibilityChanged(newVal: boolean) {
+    isVisibleViewport.value = newVal
+}
 
-    beforeDestroy() {
-        document.removeEventListener('visibilitychange', this.documentVisibilityChanged)
-        this.stopStream()
-    }
-
-    documentVisibilityChanged() {
-        const visibility = document.visibilityState
-        this.isVisibleDocument = visibility === 'visible'
-    }
-
-    viewportVisibilityChanged(newVal: boolean) {
-        this.isVisibleViewport = newVal
-    }
-
-    @Watch('isVisible', { immediate: true })
-    isVisibleChanged(newVal: boolean) {
+watch(
+    isVisible,
+    (newVal) => {
         if (newVal) {
-            this.startStream()
+            startStream()
             return
         }
+        stopStream()
+    },
+    { immediate: true }
+)
 
-        this.stopStream()
+watch(
+    () => props.camSettings,
+    () => {
+        aspectRatio.value = null
+        stopStream()
+        status.value = 'connecting'
+        startStream()
+    },
+    { deep: true }
+)
+
+function refreshFrame() {
+    if (!isVisible.value) return
+
+    if (timer !== null) {
+        window.clearTimeout(timer)
+        timer = null
     }
 
-    refreshFrame() {
-        if (!this.isVisible) return
+    const refreshUrl = new URL(url.value)
+    refreshUrl.searchParams.append('bypassCache', new Date().getTime().toString())
+    if (image.value) {
+        image.value.src = refreshUrl.toString()
+    }
+    request_start_time = performance.now()
+}
 
-        if (this.timer !== null) {
-            window.clearTimeout(this.timer)
-            this.timer = null
-        }
+function onLoad() {
+    if (status.value !== 'connected') {
+        status.value = 'connected'
+        statusMessage.value = ''
+    }
+    frames.value++
 
-        const url = new URL(this.url)
-        url.searchParams.append('bypassCache', new Date().getTime().toString())
-        this.image.src = url.toString()
-        this.request_start_time = performance.now()
+    if (aspectRatio.value === null) {
+        aspectRatio.value = updateAspectRatioFromImage(image.value)
     }
 
-    onLoad() {
-        if (this.status !== 'connected') {
-            this.status = 'connected'
-            this.statusMessage = ''
-        }
-        this.frames++
+    const targetFps = props.camSettings.target_fps || 10
+    const target_time = 1000 / targetFps
 
-        if (this.aspectRatio === null) {
-            this.aspectRatio = this.updateAspectRatioFromImage(this.image)
-        }
+    const current_request_time = performance.now() - request_start_time
+    request_time = request_time * request_time_smoothing + current_request_time * (1 - request_time_smoothing)
+    const timeout = Math.max(0, target_time - request_time)
 
-        const targetFps = this.camSettings.target_fps || 10
-        const target_time = 1000 / targetFps
+    timer = window.setTimeout(refreshFrame, timeout)
+}
 
-        const current_request_time = performance.now() - this.request_start_time
-        this.request_time =
-            this.request_time * this.request_time_smoothing + current_request_time * (1 - this.request_time_smoothing)
-        const timeout = Math.max(0, target_time - this.request_time)
+function onError() {
+    status.value = 'error'
+    statusMessage.value = t('Panels.WebcamPanel.ErrorWhileConnecting', { url: url.value }).toString()
 
-        this.timer = window.setTimeout(this.refreshFrame, timeout)
+    if (timer !== null) return
+
+    timer = window.setTimeout(refreshFrame, 1000)
+}
+
+function startStream() {
+    if (!isVisible.value) return
+
+    if (status.value !== 'connected') {
+        status.value = 'connecting'
+        statusMessage.value = t('Panels.WebcamPanel.ConnectingTo', { url: url.value }).toString()
     }
 
-    onError() {
-        this.status = 'error'
-        this.statusMessage = this.$t('Panels.WebcamPanel.ErrorWhileConnecting', { url: this.url }).toString()
+    clearTimers()
 
-        if (this.timer !== null) return
+    fpsTimer = window.setInterval(() => {
+        currentFPS.value = frames.value
+        frames.value = 0
+    }, 1000)
 
-        this.timer = window.setTimeout(this.refreshFrame, 1000)
+    refreshFrame()
+}
+
+function stopStream() {
+    clearTimers()
+}
+
+function clearTimers() {
+    if (timer) {
+        window.clearTimeout(timer)
+        timer = null
     }
 
-    startStream() {
-        // is not visible or already streaming
-        if (!this.isVisible) return
-
-        if (this.status !== 'connected') {
-            this.status = 'connecting'
-            this.statusMessage = this.$t('Panels.WebcamPanel.ConnectingTo', { url: this.url }).toString()
-        }
-
-        this.clearTimers()
-
-        this.fpsTimer = window.setInterval(() => {
-            this.currentFPS = this.frames
-            this.frames = 0
-        }, 1000)
-
-        this.refreshFrame()
-    }
-
-    stopStream() {
-        this.clearTimers()
-    }
-
-    clearTimers() {
-        if (this.timer) {
-            window.clearTimeout(this.timer)
-            this.timer = null
-        }
-
-        if (this.fpsTimer) {
-            window.clearTimeout(this.fpsTimer)
-            this.fpsTimer = null
-            this.frames = 0
-        }
-    }
-
-    @Watch('camSettings', { deep: true })
-    camSettingsChanged() {
-        this.aspectRatio = null
-        this.stopStream()
-
-        this.status = 'connecting'
-
-        this.startStream()
+    if (fpsTimer) {
+        window.clearTimeout(fpsTimer)
+        fpsTimer = null
+        frames.value = 0
     }
 }
 </script>
@@ -232,7 +217,7 @@ export default class MjpegstreamerAdaptive extends Mixins(BaseMixin, WebcamMixin
     background: rgba(0, 0, 0, 0.8);
 }
 
-html.theme--light .webcamFpsOutput {
-    background: rgba(255, 255, 255, 0.7);
+html.v-theme--light .webcamFpsOutput {
+    background: rgba(var(--v-theme-on-surface), 0.7);
 }
 </style>

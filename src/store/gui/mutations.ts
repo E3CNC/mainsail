@@ -1,49 +1,48 @@
-import Vue from 'vue'
 import { getDefaultState } from './index'
 import { MutationTree } from 'vuex'
-import { GuiState, GuiStateDashboard, GuiStateLayoutoption } from '@/store/gui/types'
+import type { GuiState, GuiStateDashboard, GuiStateLayoutoption, PanelFloatingState } from '@/store/gui/types'
 import { setDataDeep } from '@/plugins/helpers'
 
 export const mutations: MutationTree<GuiState> = {
-    reset(state) {
+    reset(state: GuiState) {
         Object.assign(state, getDefaultState())
     },
 
-    setData(state, payload) {
+    setData(state: GuiState, payload: any) {
         setDataDeep(state, payload)
     },
 
-    saveSetting(state, payload: { name: string; value: unknown }) {
+    saveSetting(state: GuiState, payload: { name: string; value: unknown }) {
         const nested = payload.name.split('.').reduceRight<unknown>((value, key) => ({ [key]: value }), payload.value)
         setDataDeep(state, nested)
     },
 
-    setHeaterChartVisibility(state, payload) {
+    setHeaterChartVisibility(state: GuiState, payload: any) {
         const index = state.view.tempchart.hiddenDataset.indexOf(payload.name.toUpperCase())
 
         if (payload.hidden && index === -1) state.view.tempchart.hiddenDataset.push(payload.name.toUpperCase())
         else if (payload.hidden !== true && index > -1) state.view.tempchart.hiddenDataset.splice(index, 1)
     },
 
-    setGcodefilesMetadata(state, data) {
+    setGcodefilesMetadata(state: GuiState, data: any) {
         const array = [...state.view.gcodefiles.hideMetadataColumns]
         const index = array.findIndex((value: string) => value === data.name)
 
         if (data.value && index !== -1) array.splice(index, 1)
         else if (!data.value && index === -1) array.push(data.name)
 
-        Vue.set(state.view.gcodefiles, 'hideMetadataColumns', array)
+        state.view.gcodefiles.hideMetadataColumns = array
     },
 
-    setGcodefilesShowHiddenFiles(state, value) {
-        Vue.set(state.view.gcodefiles, 'showHiddenFiles', value)
+    setGcodefilesShowHiddenFiles(state: GuiState, value: any) {
+        state.view.gcodefiles.showHiddenFiles = value
     },
 
-    setCurrentWebcam(state, payload) {
-        Vue.set(state.view.webcam.currentCam, payload.page, payload.value)
+    setCurrentWebcam(state: GuiState, payload: any) {
+        ;(state.view.webcam.currentCam as Record<string, string>)[payload.page] = payload.value
     },
 
-    setHistoryColumns(state, data) {
+    setHistoryColumns(state: GuiState, data: any) {
         if (data.value && state.view.history.hideColums.includes(data.name)) {
             state.view.history.hideColums.splice(state.view.history.hideColums.indexOf(data.name), 1)
         } else if (!data.value && !state.view.history.hideColums.includes(data.name)) {
@@ -51,58 +50,65 @@ export const mutations: MutationTree<GuiState> = {
         }
     },
 
-    setHistoryHidePrintStatus(state, payload) {
-        Vue.set(state.view.history, 'hidePrintStatus', payload)
+    setHistoryHidePrintStatus(state: GuiState, payload: any) {
+        state.view.history.hidePrintStatus = payload
     },
 
-    addClosePanel(state, payload) {
+    addClosePanel(state: GuiState, payload: any) {
         const nonExpandPanels = [...state.dashboard.nonExpandPanels[payload.viewport]]
 
         if (!nonExpandPanels.includes(payload.name)) {
             nonExpandPanels.push(payload.name)
 
-            Vue.set(state.dashboard.nonExpandPanels, payload.viewport, nonExpandPanels)
+            state.dashboard.nonExpandPanels[payload.viewport] = nonExpandPanels
         }
     },
 
-    removeClosePanel(state, payload) {
+    removeClosePanel(state: GuiState, payload: any) {
         const nonExpandPanels = [...state.dashboard.nonExpandPanels[payload.viewport]]
         const index = nonExpandPanels.indexOf(payload.name)
         if (index > -1) {
             nonExpandPanels.splice(index, 1)
 
-            Vue.set(state.dashboard.nonExpandPanels, payload.viewport, nonExpandPanels)
+            state.dashboard.nonExpandPanels[payload.viewport] = nonExpandPanels
         }
     },
 
-    deleteFromDashboardLayout(state, payload) {
+    deleteFromDashboardLayout(state: GuiState, payload: any) {
         const layoutArray = [
             ...(state.dashboard[payload.layoutname as keyof GuiStateDashboard] as GuiStateLayoutoption[]),
         ]
         layoutArray.splice(payload.index, 1)
-        Vue.set(state.dashboard, payload.layoutname, layoutArray)
+        ;(state.dashboard as any)[payload.layoutname as keyof GuiStateDashboard] = layoutArray
     },
 
-    setChartDatasetStatus(state, payload: { objectName: string; dataset: string; value: boolean }) {
+    setFloatingPanels(state: GuiState, payload: Record<string, PanelFloatingState>) {
+        state.dashboard.floatingPanels = payload
+    },
+
+    setChartDatasetStatus(state: GuiState, payload: { objectName: string; dataset: string; value: boolean }) {
         // set new value if object doesn't exist in view.tempchart.datasetSettings
         if (!(payload.objectName in state.view.tempchart.datasetSettings)) {
             const newVal: Record<string, boolean> = {}
             newVal[payload.dataset] = payload.value
 
-            Vue.set(state.view.tempchart.datasetSettings, payload.objectName, newVal)
+            state.view.tempchart.datasetSettings[payload.objectName] = newVal
             return
         }
 
-        Vue.set(state.view.tempchart.datasetSettings[payload.objectName], payload.dataset, payload.value)
+        state.view.tempchart.datasetSettings[payload.objectName][payload.dataset] = payload.value
     },
 
-    setDatasetAdditionalSensorStatus(state, payload: { objectName: string; dataset: string; value: boolean }) {
+    setDatasetAdditionalSensorStatus(
+        state: GuiState,
+        payload: { objectName: string; dataset: string; value: boolean }
+    ) {
         // set new value if object doesn't exist in view.tempchart.datasetSettings
         if (!(payload.objectName in state.view.tempchart.datasetSettings)) {
             const newVal: { additionalSensors: Record<string, boolean> } = { additionalSensors: {} }
             newVal.additionalSensors[payload.dataset] = payload.value
 
-            Vue.set(state.view.tempchart.datasetSettings, payload.objectName, newVal)
+            state.view.tempchart.datasetSettings[payload.objectName] = newVal
             return
         }
 
@@ -111,14 +117,11 @@ export const mutations: MutationTree<GuiState> = {
             const newVal: Record<string, boolean> = {}
             newVal[payload.dataset] = payload.value
 
-            Vue.set(state.view.tempchart.datasetSettings[payload.objectName], 'additionalSensors', newVal)
+            state.view.tempchart.datasetSettings[payload.objectName].additionalSensors = newVal
             return
         }
 
-        Vue.set(
-            state.view.tempchart.datasetSettings[payload.objectName].additionalSensors as Record<string, boolean>,
-            payload.dataset,
+        ;(state.view.tempchart.datasetSettings as any)[payload.objectName].additionalSensors[payload.dataset] =
             payload.value
-        )
     },
 }

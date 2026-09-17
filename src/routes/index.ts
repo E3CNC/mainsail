@@ -6,13 +6,14 @@ import Files from '../pages/Files.vue'
 import History from '../pages/History.vue'
 import Timelapse from '../pages/Timelapse.vue'
 import Machine from '../pages/Machine.vue'
-import { AsyncComponent, Component } from 'vue'
+import { Component, defineAsyncComponent } from 'vue'
+
+import type { RouteRecordRaw } from 'vue-router'
 
 import {
     mdiMonitorDashboard,
     mdiWebcam,
     mdiConsoleLine,
-    mdiGrid,
     mdiFileDocumentMultipleOutline,
     mdiVideo3d,
     mdiHistory,
@@ -33,8 +34,8 @@ const routes: AppRoute[] = [
     },
     {
         name: 'farm',
-        title: 'Printers',
-        path: '/allPrinters',
+        title: 'CNC Machines',
+        path: '/allCncMachines',
         component: Farm,
         alwaysShow: false,
         showInNavi: false,
@@ -52,7 +53,7 @@ const routes: AppRoute[] = [
     },
     {
         name: 'console',
-        title: 'Console',
+        title: 'MDI',
         path: '/console',
         icon: mdiConsoleLine,
         component: Console,
@@ -60,17 +61,6 @@ const routes: AppRoute[] = [
         showInNavi: true,
         klipperIsConnected: true,
         position: 30,
-    },
-    {
-        name: 'heightmap',
-        title: 'Heightmap',
-        path: '/heightmap',
-        icon: mdiGrid,
-        component: () => import('../pages/Heightmap.vue'),
-        alwaysShow: false,
-        showInNavi: true,
-        klipperComponent: 'bed_mesh',
-        position: 40,
     },
     {
         name: 'gcodefiles',
@@ -145,7 +135,7 @@ export interface AppRoute {
     path: string
     redirect?: string
     icon?: string
-    component: Component | AsyncComponent | null
+    component: Component | typeof defineAsyncComponent | null
     alwaysShow: boolean
     showInNavi: boolean
     registeredDirectory?: string

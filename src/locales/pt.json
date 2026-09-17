@@ -239,7 +239,6 @@
     },
     "GCodeViewer": {
         "ClearLoadedFile": "Limpar",
-        "CNCMode": "Modo CNC",
         "ColorMode": "Modo de cor",
         "Downloading": "Downloading",
         "ForceLineRendering": "Forçar renderização de linha",
@@ -482,32 +481,6 @@
         "Headline": "Sonda Manual"
     },
     "Panels": {
-        "ExtruderControlPanel": {
-            "Allowed": "Permitido",
-            "EstimatedExtrusion": "Extrusão:",
-            "Extrude": "Extrusão",
-            "ExtruderTempTooLow": "Temperatura da extrusora <",
-            "ExtrusionFactor": "Fator de extrusão",
-            "ExtrusionFeedrate": "Taxa de alimentação de extrusão",
-            "FilamentLength": "Comprimento do Filamento",
-            "FirmwareRetractionSettings": {
-                "RetractLength": "Compr. Retração",
-                "RetractSpeed": "Velocidade de Retração",
-                "UnretractExtraLength": "Compr. Extra ao Voltar Retração",
-                "UnretractSpeed": "Veloc. ao Voltar Retração"
-            },
-            "Headline": "Extrusora",
-            "LoadFilament": "Carregar Filamento",
-            "PressureAdvanceSettings": {
-                "Advance": "Pressure Advance",
-                "Extruder": "Extrusora",
-                "SmoothTime": "Tempo de Suavização"
-            },
-            "Requested": "Requeridos",
-            "Retract": "Retrair",
-            "TooLargeExtrusion": "Extrusão muito grande!",
-            "UnloadFilament": "Descarregar Filamento"
-        },
         "FarmPrinterPanel": {
             "ReconnectToPrinter": "Reconectar",
             "SwitchToPrinter": "Mudar para impressora",
@@ -638,18 +611,6 @@
             "TemperaturesInChart": "Temperatura [°C]",
             "TempTooHigh": "Temperatura muito alta para {name}! (máx: {max})",
             "TempTooLow": "Temperatura muito baixa para {name}! (mín: {min})"
-        },
-        "ToolheadControlPanel": {
-            "Absolute": "absoluto",
-            "ALL": "Todos",
-            "Headline": "Ferramenta",
-            "PleaseConfigureSteps": "Por favor, configure os passos.",
-            "Position": "Posição",
-            "QGL": "QGL",
-            "Relative": "relativo",
-            "SettingsInterfaceControl": "Configurações > Interface > Controle",
-            "SpeedFactor": "Fator Velocidade",
-            "ZTilt": "Z-Tilt"
         },
         "WebcamPanel": {
             "All": "Todos",
@@ -989,20 +950,10 @@
         "UiSettingsTab": {
             "BedScrewsDialog": "Configs. dos Fusos da Mesa",
             "BedScrewsDialogDescription": "Exibir diálogo auxiliar para BED_SCREWS_ADJUST.",
-            "BoolBigThumbnail": "Miniatura grande",
-            "BoolBigThumbnailDescription": "Exibir uma miniatura grande no painel de status durante a impressão.",
-            "BoolHideUploadAndPrintButton": "Ocultar botão de Envio e Impressão",
-            "BoolHideUploadAndPrintButtonDescription": "Mostrar ou ocultar o botão \"Enviar e Imprimir\" na barra superior.",
             "ConfirmOnEmergencyStop": "Requerer confirmação no botão de Parada de Emergência.",
             "ConfirmOnEmergencyStopDescription": "Exibe caixa de diálogo de confirmação ao acionar a Parada de Emergência.",
             "ConfirmOnPowerDeviceChange": "Requerer confirmação nas alterações de Energia do Dispositivo.",
             "ConfirmOnPowerDeviceChangeDescription": "Mostrar uma caixa de diálogo de confirmação ao realizar alterações na energia do dispositivo.",
-            "DisableFanAnimation": "Desabilita animação do ventilador",
-            "DisableFanAnimationDescription": "Isso pode reduzir a carga em seu navegador.",
-            "DisplayCANCEL_PRINT": "Exibe CANCEL_PRINT",
-            "DisplayCANCEL_PRINTDescription": "Exibe permanentemente o botão CANCEL_PRINT - nenhuma confirmação de segunda camada necessária.",
-            "GcodeThumbnails": "Miniaturas G-Code",
-            "GcodeThumbnailsDescription": "Clique no botão para obter as instruções.",
             "Guide": "Guia",
             "HideSaveConfigButtonForBedMesh": "Ocultar SALVAR_CONFIGURAÇÃO para alterações na malha da mesa.",
             "HideSaveConfigButtonForBedMeshDescription": "Ocultar SALVAR_CONFIGURAÇÃO se apenas as alterações na malha da mesa estiverem pendentes para serem salvas no Klipper.",
@@ -1011,8 +962,6 @@
             "LockSlidersDelayDescription": "Sliders will lock after a given delay. If set to 0 or left blank, sliders will only lock on page change/reload.",
             "LockSlidersDescription": "Os controles deslizantes em telas sensíveis ao toque precisam ser desbloqueados antes que as alterações sejam permitidas.",
             "Logo": "Logo",
-            "ManualProbeDialog": "Caixa de diálogo auxiliar de sonda manual.",
-            "ManualProbeDialogDescription": "Exibir caixa de diálogo auxiliar para PROBE_CALIBRATE ou Z_ENDSTOP_CALIBRATE.",
             "NavigationStyle": "Estilo Navegação",
             "NavigationStyleDescription": "Altera aparência navegação",
             "NavigationStyleIconsAndText": "Icones + Texto",

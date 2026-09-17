@@ -1,27 +1,26 @@
 import { getDefaultState } from './index'
 import { MutationTree } from 'vuex'
-import Vue from 'vue'
 import { GuiMacrosState, GuiMacrosStateMacrogroupMacro } from '@/store/gui/macros/types'
 
 export const mutations: MutationTree<GuiMacrosState> = {
-    reset(state) {
+    reset(state: GuiMacrosState) {
         Object.assign(state, getDefaultState())
     },
 
-    groupStore(state, payload) {
-        Vue.set(state.macrogroups, payload.id, payload.values)
+    groupStore(state: GuiMacrosState, payload: any) {
+        state.macrogroups[payload.id] = payload.values
     },
 
-    groupUpdate(state, payload) {
+    groupUpdate(state: GuiMacrosState, payload: any) {
         if (payload.id in state.macrogroups) {
             const preset = { ...state.macrogroups[payload.id] }
             Object.assign(preset, payload.values)
 
-            Vue.set(state.macrogroups, payload.id, preset)
+            state.macrogroups[payload.id] = preset
         }
     },
 
-    addMacroToMacrogroup(state, payload) {
+    addMacroToMacrogroup(state: GuiMacrosState, payload: any) {
         const macros = [...(state.macrogroups[payload.id]?.macros ?? [])]
 
         const newMacro: GuiMacrosStateMacrogroupMacro = {
@@ -36,7 +35,7 @@ export const mutations: MutationTree<GuiMacrosState> = {
         if (macros.length) newMacro.pos = Math.max(...macros.map((m: GuiMacrosStateMacrogroupMacro) => m.pos)) + 1
         macros.push(newMacro)
 
-        Vue.set(state.macrogroups[payload.id], 'macros', macros)
+        state.macrogroups[payload.id].macros = macros
     },
 
     updateMacroFromMacrogroup<K extends keyof GuiMacrosStateMacrogroupMacro>(
@@ -50,10 +49,10 @@ export const mutations: MutationTree<GuiMacrosState> = {
         const macro = { ...macros[updateMacroIndex] }
         macro[payload.option] = payload.value
         macros[updateMacroIndex] = macro
-        Vue.set(state.macrogroups[payload.id], 'macros', macros)
+        state.macrogroups[payload.id].macros = macros
     },
 
-    removeMacroFromMacrogroup(state, payload) {
+    removeMacroFromMacrogroup(state: GuiMacrosState, payload: any) {
         const macros = [...(state.macrogroups[payload.id]?.macros ?? [])]
         const deletedMacroIndex = macros.findIndex((m: GuiMacrosStateMacrogroupMacro) => m.name === payload.macro)
         if (deletedMacroIndex !== -1) {
@@ -67,12 +66,12 @@ export const mutations: MutationTree<GuiMacrosState> = {
                 })
         }
 
-        Vue.set(state.macrogroups[payload.id], 'macros', macros)
+        state.macrogroups[payload.id].macros = macros
     },
 
-    groupDelete(state, payload) {
+    groupDelete(state: GuiMacrosState, payload: any) {
         if (payload in state.macrogroups) {
-            Vue.delete(state.macrogroups, payload)
+            delete state.macrogroups[payload]
         }
     },
 }

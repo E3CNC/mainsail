@@ -1,14 +1,20 @@
-import Vue from 'vue'
-import { ActionTree } from 'vuex'
-import { GuiState, GuiStateDashboard, GuiStateDashboardLayoutKey, GuiStateLayoutoption } from '@/store/gui/types'
+import { ActionContext, ActionTree } from 'vuex'
+import { getSocket } from '@/store/runtime'
+import type {
+    GuiState,
+    GuiStateDashboard,
+    GuiStateDashboardLayoutKey,
+    GuiStateLayoutoption,
+    PanelFloatingState,
+} from '@/store/gui/types'
 import { GuiPresetsStatePreset } from '@/store/gui/presets/types'
 import { RootState } from '@/store/types'
 import { getDefaultState } from './index'
-import { excludeKeys, themeDir } from '@/store/variables'
+import { defaultLogoColor, defaultPrimaryColor, excludeKeys, themeDir, themes } from '@/store/variables'
 import { deletePath, isRecord } from '@/plugins/helpers'
 
 export const actions: ActionTree<GuiState, RootState> = {
-    reset({ commit, dispatch }) {
+    reset({ commit, dispatch }: ActionContext<GuiState, RootState>) {
         commit('reset')
 
         dispatch('console/reset')
@@ -20,10 +26,10 @@ export const actions: ActionTree<GuiState, RootState> = {
 
     init() {
         window.console.debug('init gui')
-        Vue.$socket.emit('server.database.get_item', { namespace: 'mainsail' }, { action: 'gui/initStore' })
+        getSocket().emit('server.database.get_item', { namespace: 'mainsail' }, { action: 'gui/initStore' })
     },
 
-    async initStore({ commit, dispatch, rootGetters, rootState }, payload) {
+    async initStore({ commit, dispatch, rootGetters, rootState }: ActionContext<GuiState, RootState>, payload: any) {
         const baseUrl = rootGetters['socket/getUrl'] + '/server/database/item'
         const mainsailUrl = baseUrl + '?namespace=mainsail'
 
@@ -117,7 +123,7 @@ export const actions: ActionTree<GuiState, RootState> = {
     /*
      * Create mainsail namespace in moonraker DB and fill in default values
      */
-    async initDb({ dispatch, rootGetters }) {
+    async initDb({ dispatch, rootGetters }: ActionContext<GuiState, RootState>) {
         const baseUrl = rootGetters['socket/getUrl'] + '/server/database/item'
 
         const urlDefault =
@@ -176,18 +182,30 @@ export const actions: ActionTree<GuiState, RootState> = {
         dispatch('init')
     },
 
-    saveSetting({ commit }, payload) {
+    saveSetting({ commit, state }: ActionContext<GuiState, RootState>, payload: any) {
         commit('saveSetting', payload)
         if (excludeKeys.includes(payload.name)) return
 
-        Vue.$socket.emit('server.database.post_item', {
+        if (payload.name === 'uiSettings.theme') {
+            const theme = themes.find((t) => t.name === payload.value)
+            if (theme) {
+                if (theme.colorLogo) {
+                    commit('saveSetting', { name: 'uiSettings.logo', value: theme.colorLogo })
+                }
+                if (theme.colorPrimary) {
+                    commit('saveSetting', { name: 'uiSettings.primary', value: theme.colorPrimary })
+                }
+            }
+        }
+
+        getSocket().emit('server.database.post_item', {
             namespace: 'mainsail',
             key: payload.name,
             value: payload.value,
         })
     },
 
-    updateSettings(_, payload) {
+    updateSettings(_context: ActionContext<GuiState, RootState>, payload: any) {
         const keyName = payload.keyName
         let newState = payload.newVal
         if (
@@ -198,10 +216,10 @@ export const actions: ActionTree<GuiState, RootState> = {
         )
             newState = Object.assign(payload.value[keyName], { ...newState })
 
-        Vue.$socket.emit('server.database.post_item', { namespace: 'mainsail', key: keyName, value: newState })
+        getSocket().emit('server.database.post_item', { namespace: 'mainsail', key: keyName, value: newState })
     },
 
-    setGcodefilesMetadata({ commit, dispatch, state }, data) {
+    setGcodefilesMetadata({ commit, dispatch, state }: ActionContext<GuiState, RootState>, data: any) {
         commit('setGcodefilesMetadata', data)
         dispatch('updateSettings', {
             keyName: 'view.gcodefiles.hideMetadataColumns',
@@ -209,7 +227,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    setGcodefilesShowHiddenFiles({ commit, dispatch, state }, data) {
+    setGcodefilesShowHiddenFiles({ commit, dispatch, state }: ActionContext<GuiState, RootState>, data: any) {
         commit('setGcodefilesShowHiddenFiles', data)
         dispatch('updateSettings', {
             keyName: 'view.gcodefiles.showHiddenFiles',
@@ -217,7 +235,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    setCurrentWebcam({ commit, dispatch, state }, payload) {
+    setCurrentWebcam({ commit, dispatch, state }: ActionContext<GuiState, RootState>, payload: any) {
         commit('setCurrentWebcam', payload)
         dispatch('updateSettings', {
             keyName: 'view.webcam.currentCam',
@@ -225,7 +243,10 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    setTempchartDatasetAdditionalSensorSetting({ commit, dispatch, state }, payload) {
+    setTempchartDatasetAdditionalSensorSetting(
+        { commit, dispatch, state }: ActionContext<GuiState, RootState>,
+        payload: any
+    ) {
         commit('setTempchartDatasetAdditionalSensorSetting', payload)
         dispatch('updateSettings', {
             keyName: 'view.tempchart',
@@ -233,7 +254,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    async resetMoonrakerDB({ rootGetters }, payload) {
+    async resetMoonrakerDB({ rootGetters }: ActionContext<GuiState, RootState>, payload: any) {
         const baseUrl = rootGetters['socket/getUrl'] + '/server/database/item'
 
         const urlDefault =
@@ -304,7 +325,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         window.location.reload()
     },
 
-    async backupMoonrakerDB({ rootGetters }, payload) {
+    async backupMoonrakerDB({ rootGetters }: ActionContext<GuiState, RootState>, payload: any) {
         const backup: Record<string, Record<string, unknown>> = {}
 
         const responseMainsail = await fetch(rootGetters['socket/getUrl'] + '/server/database/item?namespace=mainsail')
@@ -342,7 +363,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         document.body.removeChild(element)
     },
 
-    async restoreMoonrakerDB({ rootGetters }, payload) {
+    async restoreMoonrakerDB({ rootGetters }: ActionContext<GuiState, RootState>, payload: any) {
         const baseUrl = rootGetters['socket/getUrl'] + '/server/database/item'
         const mainsailUrl = baseUrl + '?namespace=mainsail'
         const responseNamespaces = await fetch(rootGetters['socket/getUrl'] + '/server/database/list')
@@ -402,7 +423,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         window.location.reload()
     },
 
-    setHistoryColumns({ commit, dispatch, state }, data) {
+    setHistoryColumns({ commit, dispatch, state }: ActionContext<GuiState, RootState>, data: any) {
         commit('setHistoryColumns', data)
         dispatch('updateSettings', {
             keyName: 'view.history',
@@ -410,7 +431,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    toggleStatusInHistoryList({ commit, dispatch, state }, name) {
+    toggleStatusInHistoryList({ commit, dispatch, state }: ActionContext<GuiState, RootState>, name: any) {
         const array: string[] = [...state.view.history.hidePrintStatus]
         const index = array.indexOf(name)
 
@@ -425,7 +446,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    saveExpandPanel({ commit, dispatch, state }, payload) {
+    saveExpandPanel({ commit, dispatch, state }: ActionContext<GuiState, RootState>, payload: any) {
         if (!payload.value) commit('addClosePanel', { name: payload.name, viewport: payload.viewport })
         else commit('removeClosePanel', { name: payload.name, viewport: payload.viewport })
 
@@ -435,7 +456,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    resetLayout({ dispatch }, name: GuiStateDashboardLayoutKey) {
+    resetLayout({ dispatch }: ActionContext<GuiState, RootState>, name: GuiStateDashboardLayoutKey) {
         const defaultState = getDefaultState()
         const newVal = defaultState.dashboard[name]
 
@@ -445,7 +466,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    updateGcodeviewerCache({ dispatch, state }, payload) {
+    updateGcodeviewerCache({ dispatch, state }: ActionContext<GuiState, RootState>, payload: any) {
         const klipperCache = state.gcodeViewer.klipperCache as Record<string, unknown>
         const payloadCache = payload as Record<string, unknown>
 
@@ -458,12 +479,12 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    announcementDismissFlag(_, payload) {
+    announcementDismissFlag(_context: ActionContext<GuiState, RootState>, payload: any) {
         window.console.log(payload)
     },
 
     setChartDatasetStatus(
-        { commit, dispatch, state },
+        { commit, dispatch, state }: ActionContext<GuiState, RootState>,
         payload: { objectName: string; dataset: string; value: boolean }
     ) {
         commit('setChartDatasetStatus', payload)
@@ -475,7 +496,7 @@ export const actions: ActionTree<GuiState, RootState> = {
     },
 
     setDatasetAdditionalSensorStatus(
-        { commit, dispatch, state },
+        { commit, dispatch, state }: ActionContext<GuiState, RootState>,
         payload: { objectName: string; dataset: string; value: boolean }
     ) {
         commit('setDatasetAdditionalSensorStatus', payload)
@@ -486,7 +507,39 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    setChartColor({ commit, dispatch, state }, payload: { objectName: string; value: boolean }) {
+    saveFloatingPanelPosition(
+        { commit, dispatch, state }: ActionContext<GuiState, RootState>,
+        { id, position, remove }: { id: string; position?: PanelFloatingState; remove?: boolean }
+    ) {
+        const floatingPanels = { ...state.dashboard.floatingPanels }
+
+        if (remove) {
+            delete floatingPanels[id]
+        } else if (position) {
+            floatingPanels[id] = position
+        }
+
+        commit('setFloatingPanels', floatingPanels)
+        dispatch('updateSettings', {
+            keyName: 'dashboard.floatingPanels',
+            newVal: floatingPanels,
+        })
+    },
+
+    bringFloatingPanelToFront({ dispatch, state }: ActionContext<GuiState, RootState>, id: string) {
+        const panels = state.dashboard.floatingPanels
+        const maxZ = (Object.values(panels) as PanelFloatingState[]).reduce((max, p) => Math.max(max, p.zIndex), 0)
+
+        dispatch('saveFloatingPanelPosition', {
+            id,
+            position: { ...panels[id], zIndex: maxZ + 1 },
+        })
+    },
+
+    setChartColor(
+        { commit, dispatch, state }: ActionContext<GuiState, RootState>,
+        payload: { objectName: string; value: boolean }
+    ) {
         commit('setChartDatasetStatus', {
             objectName: payload.objectName,
             dataset: 'color',

@@ -1,59 +1,58 @@
 import { getDefaultState } from './index'
 import { MutationTree } from 'vuex'
 import { EditorState } from '@/store/editor/types'
-import Vue from 'vue'
 import { sha256 } from 'js-sha256'
 
 export const mutations: MutationTree<EditorState> = {
-    reset(state) {
+    reset(state: EditorState) {
         Object.assign(state, getDefaultState())
     },
 
-    updateCancelTokenSource(state, source) {
-        Vue.set(state, 'cancelToken', source)
+    updateCancelTokenSource(state: EditorState, source: any) {
+        state.cancelToken = source
     },
 
-    updateLoaderState(state, value) {
-        Vue.set(state, 'loaderBool', value)
+    updateLoaderState(state: EditorState, value: any) {
+        state.loaderBool = value
     },
 
-    updateLoader(state, payload) {
-        Vue.set(state, 'loaderProgress', payload)
+    updateLoader(state: EditorState, payload: any) {
+        state.loaderProgress = payload
     },
 
-    openFile(state, payload) {
-        Vue.set(state, 'filename', payload.filename)
-        Vue.set(state, 'fileroot', payload.fileroot)
-        Vue.set(state, 'filepath', payload.filepath)
-        Vue.set(state, 'sourcecode', payload.file)
+    openFile(state: EditorState, payload: any) {
+        state.filename = payload.filename
+        state.fileroot = payload.fileroot
+        state.filepath = payload.filepath
+        state.sourcecode = payload.file
 
         // Because the used editor converts all Windows-Style line endings with unix ones on load,
         // the hash is computed with the source always having unix-style line endings.
         // https://github.com/codemirror/CodeMirror/issues/3395
 
-        Vue.set(state, 'loadedHash', sha256(payload.file.replace(/(?:\r\n|\r|\n)/g, '\n')))
-        Vue.set(state, 'changed', false)
-        Vue.set(state, 'bool', true)
+        state.loadedHash = sha256(payload.file.replace(/(?:\r\n|\r|\n)/g, '\n'))
+        state.changed = false
+        state.bool = true
     },
 
-    showEditor(state) {
-        Vue.set(state, 'bool', true)
+    showEditor(state: EditorState) {
+        state.bool = true
     },
 
-    setFilename(state, filename) {
-        Vue.set(state, 'filename', filename)
+    setFilename(state: EditorState, filename: any) {
+        state.filename = filename
     },
 
-    setPermissions(state, filename) {
-        Vue.set(state, 'permissions', filename)
+    setPermissions(state: EditorState, filename: any) {
+        state.permissions = filename
     },
 
-    hideEditor(state) {
-        Vue.set(state, 'bool', false)
+    hideEditor(state: EditorState) {
+        state.bool = false
     },
 
-    updateSourcecode(state, payload) {
-        Vue.set(state, 'sourcecode', payload)
+    updateSourcecode(state: EditorState, payload: any) {
+        state.sourcecode = payload
 
         // To check if a file has been changed by the user, we need to calculate a hash
         // (or otherwise we would need to save the full file in memory twice). Simply listening
@@ -69,8 +68,8 @@ export const mutations: MutationTree<EditorState> = {
         state.changed = sha256(payload) != state.loadedHash
     },
 
-    updateLoadedHash(state, payload) {
-        Vue.set(state, 'loadedHash', sha256(payload.replace(/(?:\r\n|\r|\n)/g, '\n')))
-        Vue.set(state, 'changed', false)
+    updateLoadedHash(state: EditorState, payload: any) {
+        state.loadedHash = sha256(payload.replace(/(?:\r\n|\r|\n)/g, '\n'))
+        state.changed = false
     },
 }

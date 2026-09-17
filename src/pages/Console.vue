@@ -5,18 +5,18 @@
                 <console-textarea ref="gcodeCommandField" />
             </v-col>
 
-            <v-col class="col-auto d-flex align-center">
+            <v-col class="v-col-auto d-flex align-center">
                 <v-btn class="mr-3 px-2 minwidth-0" color="lightgray" @click="clearConsole">
                     <v-icon>{{ mdiTrashCan }}</v-icon>
                 </v-btn>
-                <command-help-modal @onCommand="commandClick($event)" />
+                <command-help-modal @on-command="commandClick($event)" />
                 <v-menu
                     offset-y
                     :top="consoleDirection === 'shell'"
                     :close-on-content-click="false"
                     :title="$t('Console.SetupConsole')">
-                    <template #activator="{ on, attrs }">
-                        <v-btn class="ml-3 px-2 minwidth-0" color="lightgray" v-bind="attrs" v-on="on">
+                    <template #activator="{ props: activatorProps }">
+                        <v-btn class="ml-3 px-2 minwidth-0" color="lightgray" v-bind="activatorProps">
                             <v-icon>{{ mdiCog }}</v-icon>
                         </v-btn>
                     </template>
@@ -62,16 +62,18 @@
             </v-col>
         </v-row>
         <v-row :class="consoleDirection === 'table' ? 'order-1' : 'order-0 mt-0'">
-            <v-col :class="consoleDirection === 'table' ? 'col' : 'col pt-0'">
+            <v-col :class="consoleDirection === 'table' ? 'v-col' : 'v-col pt-0'">
                 <v-card>
                     <v-card-text class="pa-0">
-                        <overlay-scrollbars ref="consoleScroll" class="consoleScrollContainer d-flex flex-column">
+                        <OverlayScrollbarsComponent
+                            ref="consoleScroll"
+                            class="consoleScrollContainer d-flex flex-column">
                             <console-table
                                 ref="console"
                                 :is-mini="false"
                                 :events="events"
                                 @command-click="commandClick" />
-                        </overlay-scrollbars>
+                        </OverlayScrollbarsComponent>
                     </v-card-text>
                 </v-card>
             </v-col>
@@ -79,63 +81,62 @@
     </div>
 </template>
 
-<script lang="ts">
-import { Component, Mixins, Ref, Watch } from 'vue-property-decorator'
-import BaseMixin from '@/components/mixins/base'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { useStore } from 'vuex'
+import { useBase } from '@/composables/useBase'
+import { useConsole } from '@/composables/useConsole'
 import ConsoleTable from '@/components/console/ConsoleTable.vue'
 import CommandHelpModal from '@/components/console/CommandHelpModal.vue'
 import { mdiCog, mdiTrashCan } from '@mdi/js'
-import ConsoleMixin from '@/components/mixins/console'
 import ConsoleTextarea from '@/components/inputs/ConsoleTextarea.vue'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 
-@Component({
-    components: {
-        CommandHelpModal,
-        ConsoleTable,
-    },
+const store = useStore()
+const { moonrakerComponents } = useBase()
+const {
+    consoleDirection,
+    autoscroll,
+    hideWaitTemperatures,
+    hideTlCommands,
+    customFilters,
+    rawOutput,
+    toggleFilter,
+    clearConsole,
+} = useConsole()
+
+const consoleScroll = ref<unknown>(null)
+const gcodeCommandField = ref<unknown>(null)
+
+const events = computed(() => store.getters['server/getConsoleEvents'](consoleDirection.value === 'table'))
+
+watch(events, () => {
+    if (consoleDirection.value === 'shell' && autoscroll.value) {
+        setTimeout(() => {
+            scrollToBottom()
+        }, 50)
+    }
 })
-export default class PageConsole extends Mixins(BaseMixin, ConsoleMixin) {
-    mdiCog = mdiCog
-    mdiTrashCan = mdiTrashCan
 
-    @Ref() readonly consoleScroll!: OverlayScrollbarsComponent
-    @Ref() readonly gcodeCommandField!: typeof ConsoleTextarea
+watch(autoscroll, (newVal: boolean) => {
+    if (newVal) scrollToBottom()
+})
 
-    get events() {
-        return this.$store.getters['server/getConsoleEvents'](this.consoleDirection === 'table')
-    }
+function commandClick(msg: string): void {
+    ;(gcodeCommandField.value as any)?.setGcode(msg)
+}
 
-    @Watch('events')
-    eventsChanged() {
-        if (this.consoleDirection === 'shell' && this.autoscroll) {
-            setTimeout(() => {
-                this.scrollToBottom()
-            }, 50)
-        }
-    }
+onMounted(() => {
+    if (consoleDirection.value === 'shell') scrollToBottom()
+})
 
-    @Watch('autoscroll')
-    autoscrollChanged(newVal: boolean) {
-        if (newVal) this.scrollToBottom()
-    }
+function scrollToBottom() {
+    nextTick(() => {
+        if (!consoleScroll.value) return
 
-    commandClick(msg: string): void {
-        this.gcodeCommandField.setGcode(msg)
-    }
-
-    mounted() {
-        if (this.consoleDirection === 'shell') this.scrollToBottom()
-    }
-
-    scrollToBottom() {
-        this.$nextTick(() => {
-            if (!this.consoleScroll) return
-
-            const overlayscroll = this.consoleScroll.osInstance()
-            overlayscroll?.scroll({ y: '100%' })
-        })
-    }
+        const overlayscroll = (consoleScroll.value as any).osInstance()
+        overlayscroll?.scroll({ y: '100%' })
+    })
 }
 </script>
 
@@ -146,6 +147,5 @@ export default class PageConsole extends Mixins(BaseMixin, ConsoleMixin) {
 }
 
 .gcode-command-field {
-    font-family: 'Roboto Mono', monospace;
 }
 </style>

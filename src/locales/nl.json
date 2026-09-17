@@ -277,7 +277,6 @@
     },
     "GCodeViewer": {
         "ClearLoadedFile": "Leeg",
-        "CNCMode": "CNC Modus",
         "ColorMode": "Kleur modus",
         "Downloading": "Downloaden",
         "ForceLineRendering": "Forceer Line Rendering",
@@ -529,32 +528,6 @@
         "Headline": "Handmatige Probe"
     },
     "Panels": {
-        "ExtruderControlPanel": {
-            "Allowed": "Toegestaan",
-            "EstimatedExtrusion": "Geschatte extrusie:",
-            "Extrude": "Extrude",
-            "ExtruderTempTooLow": "Extruder temp. <",
-            "ExtrusionFactor": "Extrusie factor",
-            "ExtrusionFeedrate": "Extrusion Feedrate",
-            "FilamentLength": "Filamentlengte",
-            "FirmwareRetractionSettings": {
-                "RetractLength": "Retractie lengte",
-                "RetractSpeed": "Retractie snelheid",
-                "UnretractExtraLength": "Extra lengte uitvoer",
-                "UnretractSpeed": "Uitvoer snelheid"
-            },
-            "Headline": "Extruder",
-            "LoadFilament": "Filament laden",
-            "PressureAdvanceSettings": {
-                "Advance": "Advance",
-                "Extruder": "Extruder",
-                "SmoothTime": "Smooth Time"
-            },
-            "Requested": "Aangevraagd",
-            "Retract": "Retract",
-            "TooLargeExtrusion": "Extrusie te lang!",
-            "UnloadFilament": "Filament ontladen"
-        },
         "FarmPrinterPanel": {
             "ReconnectToPrinter": "Opnieuw verbinden",
             "SwitchToPrinter": "Wissel naar Printer",
@@ -685,18 +658,6 @@
             "TemperaturesInChart": "Temperatuur [°C]",
             "TempTooHigh": "Temperatuur te hoog voor {name}! (max: {max})",
             "TempTooLow": "Temperatuur te laag voor {name}! (min: {min})"
-        },
-        "ToolheadControlPanel": {
-            "Absolute": "absoluut",
-            "ALL": "ALLES",
-            "Headline": "Toolhead",
-            "PleaseConfigureSteps": "Configureer steps",
-            "Position": "Positie",
-            "QGL": "QGL",
-            "Relative": "relatief",
-            "SettingsInterfaceControl": "Instllingen > Interface > Bediening",
-            "SpeedFactor": "Snelheid factor",
-            "ZTilt": "Z Tilt"
         },
         "WebcamPanel": {
             "All": "Alle",
@@ -1042,18 +1003,10 @@
             "VariableFpsMinDescription": "Minimale waarde voor variabele FPS"
         },
         "UiSettingsTab": {
-            "BoolBigThumbnail": "Grote thumbnail",
-            "BoolBigThumbnailDescription": "Toon een grote thumbnail in het statuspaneel tijdens de print.",
-            "BoolHideUploadAndPrintButton": "Verberg Upload en Print knop",
-            "BoolHideUploadAndPrintButtonDescription": "Toon of verberg de \"Upload en Print\" knop in de bovenbalk.",
             "ConfirmOnEmergencyStop": "Vraag om bevestiging bij Noodstop",
             "ConfirmOnEmergencyStopDescription": "Toon een dialoogvenster bij een Noodstop",
             "ConfirmOnPowerDeviceChange": "Bevesting bij wijzigen van Stroomvoorziening van apparaten",
             "ConfirmOnPowerDeviceChangeDescription": "Vraag om een bevesting bij wijzigen van Stroomvoorziening van apparaten",
-            "DisplayCANCEL_PRINT": "Toon CANCEL_PRINT",
-            "DisplayCANCEL_PRINTDescription": "Toont de CANCEL_PRINT knop altijd - geen bevestiging nodig.",
-            "GcodeThumbnails": "Gcode thumbnails",
-            "GcodeThumbnailsDescription": "Klik op de knop om naar de instructies te gaan.",
             "Guide": "Richtlijnen",
             "HideSaveConfigButtonForBedMesh": "Verberg SAVE_CONFIG knop voor bed_mesh aanpassingen",
             "HideSaveConfigButtonForBedMeshDescription": "Verberg SAVE_CONFIG,wanneer alleen bed_mesh aanpassingen opgeslagen hoeven te worden in Klipper.",

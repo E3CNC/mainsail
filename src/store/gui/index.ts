@@ -17,13 +17,11 @@ import { console } from '@/store/gui/console'
 import { gcodehistory } from '@/store/gui/gcodehistory'
 import { macros } from '@/store/gui/macros'
 import { miscellaneous } from '@/store/gui/miscellaneous'
-import { navigation } from '@/store/gui/navigation'
+import { navigation as sidebarNavigation } from '@/store/gui/navigation'
 import { notifications } from '@/store/gui/notifications'
-import { presets } from '@/store/gui/presets'
 import { remoteprinters } from '@/store/gui/remoteprinters'
 import { maintenance } from '@/store/gui/maintenance'
 import { webcams } from '@/store/gui/webcams'
-import { heightmap } from '@/store/gui/heightmap'
 
 export const getDefaultState = (): GuiState => {
     return {
@@ -51,16 +49,12 @@ export const getDefaultState = (): GuiState => {
             stepsCircleXY: [1, 10, 50, 100],
             stepsCircleZ: [0.1, 1, 10, 50],
             selectedCrossStep: null,
+            selectedCncStepIndex: 2,
+            cncFeedrateXY: 500,
+            cncFeedrateZ: 100,
             reverseX: false,
             reverseY: false,
             reverseZ: false,
-            extruder: {
-                feedamount: 25,
-                feedamounts: [50, 25, 10, 5, 1],
-                feedrate: 5,
-                feedrates: [10, 5, 2, 1],
-                showEstimatedExtrusionInfo: true,
-            },
         },
         dashboard: {
             nonExpandPanels: {
@@ -71,52 +65,63 @@ export const getDefaultState = (): GuiState => {
             },
             mobileLayout: [
                 { name: 'webcam', visible: false },
-                { name: 'toolhead-control', visible: true },
-                { name: 'extruder-control', visible: true },
+                { name: 'dro', visible: true },
+                { name: 'jog', visible: true },
                 { name: 'macros', visible: true },
                 { name: 'machine-settings', visible: true },
                 { name: 'miscellaneous', visible: true },
-                { name: 'temperature', visible: true },
-                { name: 'miniconsole', visible: false },
             ],
             tabletLayout1: [
                 { name: 'webcam', visible: true },
-                { name: 'toolhead-control', visible: true },
-                { name: 'extruder-control', visible: true },
+                { name: 'cnc-status', visible: true },
+                { name: 'dro', visible: true },
+                { name: 'jog', visible: true },
                 { name: 'macros', visible: true },
                 { name: 'machine-settings', visible: true },
                 { name: 'miscellaneous', visible: true },
             ],
             tabletLayout2: [
                 { name: 'temperature', visible: true },
+                { name: 'wcs', visible: true },
+                { name: 'spindle-coolant', visible: true },
+                { name: 'mdi', visible: true },
                 { name: 'miniconsole', visible: true },
             ],
             desktopLayout1: [
                 { name: 'webcam', visible: true },
-                { name: 'toolhead-control', visible: true },
-                { name: 'extruder-control', visible: true },
+                { name: 'cnc-status', visible: true },
+                { name: 'dro', visible: true },
+                { name: 'jog', visible: true },
                 { name: 'macros', visible: true },
                 { name: 'machine-settings', visible: true },
                 { name: 'miscellaneous', visible: true },
             ],
             desktopLayout2: [
                 { name: 'temperature', visible: true },
+                { name: 'wcs', visible: true },
+                { name: 'spindle-coolant', visible: true },
+                { name: 'mdi', visible: true },
                 { name: 'miniconsole', visible: true },
             ],
             widescreenLayout1: [
-                { name: 'toolhead-control', visible: true },
-                { name: 'extruder-control', visible: true },
+                { name: 'cnc-status', visible: true },
+                { name: 'dro', visible: true },
+                { name: 'jog', visible: true },
                 { name: 'macros', visible: true },
                 { name: 'miscellaneous', visible: true },
             ],
             widescreenLayout2: [
                 { name: 'temperature', visible: true },
+                { name: 'wcs', visible: true },
+                { name: 'spindle-coolant', visible: true },
                 { name: 'machine-settings', visible: true },
             ],
             widescreenLayout3: [
                 { name: 'webcam', visible: true },
+                { name: 'mdi', visible: true },
                 { name: 'miniconsole', visible: true },
             ],
+            floatingPanels: {},
         },
         editor: {
             escToClose: true,
@@ -152,9 +157,8 @@ export const getDefaultState = (): GuiState => {
                 axis_maximum: null,
             },
             showGCodePanel: false,
-            cncMode: false,
         },
-        navigation: {
+        navigationSettings: {
             entries: [],
         },
         uiSettings: {
@@ -169,36 +173,25 @@ export const getDefaultState = (): GuiState => {
             confirmOnCoolDown: false,
             confirmOnPowerDeviceChange: false,
             confirmOnCancelJob: false,
-            boolBigThumbnail: true,
-            bigThumbnailBackground: defaultBigThumbnailBackground,
+            // boolBigThumbnail: true,
+            // bigThumbnailBackground: defaultBigThumbnailBackground,
             boolWideNavDrawer: false,
-            boolHideUploadAndPrintButton: false,
+            // boolHideUploadAndPrintButton: false,
             navigationStyle: 'iconsAndText',
             defaultNavigationStateSetting: 'alwaysOpen',
             powerDeviceName: null,
             progressAsFavicon: true,
-            hideSaveConfigForBedMash: false,
-            disableFanAnimation: false,
-            boolManualProbeDialog: true,
-            boolBedScrewsDialog: true,
-            boolScrewsTiltAdjustDialog: true,
+            // disableFanAnimation: false,
+            // boolManualProbeDialog: true,
             tempchartHeight: 250,
             hideUpdateWarnings: false,
-            printstatusThumbnailZoom: true,
+            // printstatusThumbnailZoom: true,
             dashboardFilesLimit: 5,
             dashboardFilesFilter: ['new', 'failed', 'completed'],
             dashboardHistoryLimit: 5,
             hideOtherInstances: false,
         },
         view: {
-            afc: {
-                hiddenExtruders: [],
-                hiddenUnits: [],
-                showFilamentName: false,
-                showLaneInfinite: true,
-                showUnitIcons: true,
-                showTd1Color: true,
-            },
             blockFileUpload: false,
             configfiles: {
                 countPerPage: 10,
@@ -210,20 +203,13 @@ export const getDefaultState = (): GuiState => {
                 rootPath: 'config',
                 selectedFiles: [],
             },
-            extruder: {
-                showTools: true,
-                showExtrusionFactor: true,
-                showPressureAdvance: true,
-                showFirmwareRetraction: true,
-                showExtruderControl: true,
-            },
             gcodefiles: {
                 countPerPage: 10,
                 search: '',
                 sortBy: 'modified',
                 sortDesc: true,
                 showHiddenFiles: false,
-                showPrintedFiles: true,
+                showCompletedFiles: true,
                 hideMetadataColumns: ['filament_name', 'filament_type', 'filament_weight_total'],
                 orderMetadataColumns: [
                     'size',
@@ -242,14 +228,6 @@ export const getDefaultState = (): GuiState => {
                 ],
                 currentPath: '',
                 selectedFiles: [],
-            },
-            heightmap: {
-                probed: true,
-                mesh: false,
-                flat: false,
-                wireframe: true,
-                scaleGradient: false,
-                scaleZMax: 0.5,
             },
             history: {
                 countPerPage: 10,
@@ -301,13 +279,6 @@ export const getDefaultState = (): GuiState => {
                 currentPath: 'timelapse',
                 selectedFiles: [],
             },
-            toolhead: {
-                showPosition: true,
-                showCoordinates: true,
-                showControl: true,
-                showZOffset: true,
-                showSpeedFactor: true,
-            },
             webcam: {
                 currentCam: {
                     dashboard: 'all',
@@ -333,11 +304,9 @@ export const gui: Module<GuiState, RootState> = {
         macros,
         maintenance,
         miscellaneous,
-        navigation,
+        sidebarNavigation,
         notifications,
-        presets,
         remoteprinters,
         webcams,
-        heightmap,
     },
 }

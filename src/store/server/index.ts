@@ -6,12 +6,9 @@ import { getters } from '@/store/server/getters'
 
 // import modules
 import { power } from '@/store/server/power'
-import { updateManager } from '@/store/server/updateManager'
 import { history } from '@/store/server/history'
 import { timelapse } from '@/store/server/timelapse'
 import { jobQueue } from '@/store/server/jobQueue'
-import { announcements } from '@/store/server/announcements'
-import { spoolman } from '@/store/server/spoolman'
 import { sensor } from '@/store/server/sensor'
 import { RootState } from '@/store/types'
 
@@ -19,6 +16,7 @@ import { RootState } from '@/store/types'
 export const getDefaultState = (): ServerState => {
     return {
         klippy_connected: false,
+        connection_id: '',
         klippy_connected_timer: null,
         klippy_state: '',
         klippy_state_timer: null,
@@ -60,12 +58,9 @@ export const server: Module<ServerState, RootState> = {
     mutations,
     modules: {
         power,
-        updateManager,
         history,
         timelapse,
         jobQueue,
-        announcements,
-        spoolman,
         sensor,
     },
 }

@@ -6,7 +6,6 @@
         :collapsible="true"
         card-class="temperature-panel">
         <template #buttons>
-            <temperature-panel-presets />
             <temperature-panel-settings />
         </template>
         <v-card-text class="pa-0">
@@ -19,31 +18,19 @@
     </panel>
 </template>
 
-<script lang="ts">
-import Component from 'vue-class-component'
-import { Mixins } from 'vue-property-decorator'
-import { capitalize, convertName } from '@/plugins/helpers'
-import BaseMixin from '@/components/mixins/base'
-import ControlMixin from '@/components/mixins/control'
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+import { useBase } from '@/composables/useBase'
+import { useControl } from '@/composables/useControl'
 import TempChart from '@/components/charts/TempChart.vue'
-import TemperatureInput from '@/components/inputs/TemperatureInput.vue'
 import Panel from '@/components/ui/Panel.vue'
-import Responsive from '@/components/ui/Responsive.vue'
-import { mdiCloseThick, mdiThermometerLines } from '@mdi/js'
-import TemperaturePanelPresets from '@/components/panels/Temperature/TemperaturePanelPresets.vue'
+import { mdiThermometerLines } from '@mdi/js'
 
-@Component({
-    components: { Panel, TempChart, TemperatureInput, Responsive, TemperaturePanelPresets },
-})
-export default class TemperaturePanel extends Mixins(BaseMixin, ControlMixin) {
-    mdiCloseThick = mdiCloseThick
-    mdiThermometerLines = mdiThermometerLines
+const { klipperReadyForGui } = useBase()
+useControl()
 
-    convertName = convertName
-    capitalize = capitalize
+const store = useStore()
 
-    get boolTempchart(): boolean {
-        return this.$store.state.gui.view.tempchart.boolTempchart ?? false
-    }
-}
+const boolTempchart = computed(() => store.state.gui.view.tempchart.boolTempchart ?? false)
 </script>

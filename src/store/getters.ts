@@ -5,13 +5,13 @@ import { minKlipperVersion, minMoonrakerVersion } from '@/store/variables'
 import i18n from '@/plugins/i18n'
 
 export const getters: GetterTree<RootState, RootState> = {
-    getVersion: (state) => {
+    getVersion: (state: RootState) => {
         return state.packageVersion
     },
 
-    getTitle: (state, getters) => {
-        if (!state.socket?.isConnected) return 'Mainsail'
-        if (state.server?.klippy_state !== 'ready') return i18n.t('App.Titles.Error')
+    getTitle: (state: RootState, getters: any) => {
+        if (!state.socket?.isConnected) return 'E3CNC'
+        if (state.server?.klippy_state !== 'ready') return i18n.global.t('App.Titles.Error')
 
         // get printer_state
         let printer_state = state.printer?.print_stats?.state ?? ''
@@ -20,11 +20,11 @@ export const getters: GetterTree<RootState, RootState> = {
             printer_state = 'printing'
 
         // return pause title
-        if (printer_state === 'paused') return i18n.t('App.Titles.Pause')
+        if (printer_state === 'paused') return i18n.global.t('App.Titles.Pause')
 
         // return complete title
         if (state.printer?.print_stats?.state === 'complete') {
-            let output = i18n.t('App.Titles.Complete', {
+            let output = i18n.global.t('App.Titles.Complete', {
                 filename: state.printer.print_stats.filename,
             })
 
@@ -40,7 +40,7 @@ export const getters: GetterTree<RootState, RootState> = {
             const percent = Math.floor(getters['printer/getPrintPercent'] * 100)
 
             if (eta !== '--') {
-                let output = i18n.t('App.Titles.PrintingETA', {
+                let output = i18n.global.t('App.Titles.PrintingETA', {
                     percent: percent,
                     filename: state.printer?.print_stats?.filename,
                     eta,
@@ -52,7 +52,7 @@ export const getters: GetterTree<RootState, RootState> = {
                 return output
             }
 
-            let output = i18n.t('App.Titles.Printing', {
+            let output = i18n.global.t('App.Titles.Printing', {
                 percent: percent,
                 filename: state.printer?.print_stats?.filename,
             })
@@ -63,10 +63,10 @@ export const getters: GetterTree<RootState, RootState> = {
             return output
         }
 
-        return state.gui?.general.printername ?? state.printer?.hostname ?? 'Mainsail'
+        return state.gui?.general.printername ?? state.printer?.hostname ?? 'E3CNC'
     },
 
-    getDependencies: (state) => {
+    getDependencies: (state: RootState) => {
         const dependencies: RootStateDependency[] = []
 
         const klipperVersion = state.printer?.software_version ?? ''

@@ -2,42 +2,44 @@
     <settings-miscellaneous-tab-light-presets-form
         v-if="page === 'form'"
         :type="type"
-        :name="name"
-        :preset-id="presetId"
+        :name="name ?? ''"
+        :preset-id="(presetId ?? '') as string"
         @close="openPage('')" />
     <settings-miscellaneous-tab-light-presets-list
         v-else
         :type="type"
-        :name="name"
+        :name="(name ?? '') as string"
         @create-preset="openPage('form')"
         @edit-preset="editPreset"
         @close="close" />
 </template>
 
-<script lang="ts">
-import { Component, Mixins, Prop } from 'vue-property-decorator'
-import BaseMixin from '@/components/mixins/base'
+<script setup lang="ts">
+import { ref } from 'vue'
 
-@Component
-export default class SettingsMiscellaneousTabLightPresets extends Mixins(BaseMixin) {
-    @Prop({ type: String, required: true }) readonly type!: string
-    @Prop({ type: String, required: true }) readonly name!: string
+defineProps({
+    type: { type: String, required: true },
+    name: { type: String, required: true },
+})
 
-    page = ''
-    presetId: string | null = null
+const emit = defineEmits<{
+    (e: 'close'): void
+}>()
 
-    editPreset(groupId: string) {
-        this.openPage('form')
-        this.presetId = groupId
-    }
+const page = ref('')
+const presetId = ref<string | null>(null)
 
-    openPage(name: string) {
-        this.page = name
-        this.presetId = null
-    }
+function editPreset(id: string) {
+    openPage('form')
+    presetId.value = id
+}
 
-    close() {
-        this.$emit('close')
-    }
+function openPage(name: string) {
+    page.value = name
+    presetId.value = null
+}
+
+function close() {
+    emit('close')
 }
 </script>

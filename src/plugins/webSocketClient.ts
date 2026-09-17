@@ -1,21 +1,26 @@
-import { Store } from 'vuex'
-import _Vue from 'vue'
-import { RootState } from '@/store/types'
 import { initableServerComponents } from '@/store/variables'
 import type { RPCMethods, RPCParams, RPCResult } from '@/types/moonraker'
+
+type StoreLike = {
+    state: { socket?: { initializationList: unknown[] }; [key: string]: unknown }
+    dispatch: (action: string, payload?: unknown) => Promise<unknown>
+    getters: Record<string, unknown>
+}
 
 export class WebSocketClient {
     url = ''
     instance: WebSocket | null = null
-    maxReconnects = 5
+    maxReconnects = 9999
     reconnectInterval = 1000
+    maxReconnectInterval = 30000
     reconnects = 0
     keepAliveTimeout = 1000
     messageId: number = 0
     timerId: number | null = null
-    store: Store<RootState> | null = null
+    store: StoreLike | null = null
     waits: Wait[] = []
     heartbeatTimer: number | null = null
+    wasCleanClose = false
 
     constructor(options: WebSocketPluginOptions) {
         this.url = options.url
@@ -31,16 +36,13 @@ export class WebSocketClient {
     handleMessage(data: SocketIncomingMessage): void {
         const wait = typeof data.id === 'number' ? this.getWaitById(data.id) : null
 
-        // reject promise if it exists
         if (data.error && wait?.reject) {
             wait.reject(data.error)
             this.removeWaitById(wait.id)
             return
         }
 
-        // report error messages
         if (data.error?.message) {
-            // only report errors, if not disconnected and no init component
             if (data.error?.message !== 'Klippy Disconnected') {
                 window.console.error(`Response Error: ${data.error.message} (${wait?.action ?? 'no action'})`)
             }
@@ -52,7 +54,7 @@ export class WebSocketClient {
                     modulename &&
                     wait.action?.startsWith('server/') &&
                     initableServerComponents.includes(modulename) &&
-                    this.store?.state.socket?.initializationList.length
+                    ((this.store?.state as Record<string, unknown>)?.socket as any)?.['initializationList']?.length
                 ) {
                     const component = wait.action.replace('server/', '').split('/')[0]
                     window.console.error(`init server component ${component} failed`)
@@ -62,20 +64,16 @@ export class WebSocketClient {
 
                 this.removeWaitById(wait.id)
             }
-
             return
         }
 
-        // pass it to socket/onMessage, if no wait exists
         if (!wait) {
             this.store?.dispatch('socket/onMessage', data)
             return
         }
 
-        // resolve promise if it exists
         if (wait.resolve) wait.resolve(data.result ?? {})
 
-        // pass result to action
         if (wait.action) {
             let result = data.result
             if (result === 'ok') result = { result }
@@ -97,23 +95,33 @@ export class WebSocketClient {
         })
 
         this.instance?.close()
+        this.wasCleanClose = false
         this.instance = new WebSocket(this.url)
 
         this.instance.onopen = () => {
+            const wasReconnecting = this.reconnects > 0
             this.reconnects = 0
-            this.store?.dispatch('socket/onOpen', event)
+            this.wasCleanClose = false
+            if (wasReconnecting) {
+                this.store?.dispatch('socket/onReconnected', {})
+            } else {
+                this.store?.dispatch('socket/onOpen', {})
+            }
         }
 
         this.instance.onclose = (e) => {
-            if (e.wasClean || this.reconnects >= this.maxReconnects) {
+            if (this.wasCleanClose || this.reconnects >= this.maxReconnects) {
                 this.store?.dispatch('socket/onClose', e)
                 return
             }
 
             this.reconnects++
+            // Exponential backoff: 1s, 2s, 4s, 8s, ... up to 30s
+            const delay = Math.min(this.reconnectInterval * Math.pow(2, this.reconnects - 1), this.maxReconnectInterval)
+            this.store?.dispatch('socket/onReconnecting', {})
             setTimeout(() => {
                 this.connect()
-            }, this.reconnectInterval)
+            }, delay)
         }
 
         this.instance.onerror = () => {
@@ -123,7 +131,6 @@ export class WebSocketClient {
         this.instance.onmessage = (msg) => {
             if (this.store === null) return
 
-            // websocket is alive
             this.heartbeat()
 
             const data = JSON.parse(msg.data)
@@ -131,7 +138,6 @@ export class WebSocketClient {
                 for (const message of data) {
                     this.handleMessage(message)
                 }
-
                 return
             }
 
@@ -140,6 +146,7 @@ export class WebSocketClient {
     }
 
     close(): void {
+        this.wasCleanClose = true
         this.instance?.close()
     }
 
@@ -149,7 +156,7 @@ export class WebSocketClient {
 
     removeWaitById(id: number | null): void {
         const index = this.waits.findIndex((wait: Wait) => wait.id === id)
-        if (index) {
+        if (index >= 0) {
             const wait = this.waits[index]
             if (wait.loading) this.store?.dispatch('socket/removeLoading', { name: wait.loading })
             this.waits.splice(index, 1)
@@ -251,17 +258,11 @@ export class WebSocketClient {
     }
 }
 
-export function WebSocketPlugin(Vue: typeof _Vue, options: WebSocketPluginOptions): void {
-    const socket = new WebSocketClient(options)
-    Vue.prototype.$socket = socket
-    Vue.$socket = socket
-}
-
 export interface WebSocketPluginOptions {
     url: string
     maxReconnects?: number
     reconnectInterval?: number
-    store: Store<RootState>
+    store: StoreLike
 }
 
 export interface BatchMessage {

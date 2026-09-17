@@ -1,7 +1,7 @@
-import { ActionTree } from 'vuex'
+import { ActionContext, ActionTree } from 'vuex'
 import { RootState } from '@/store/types'
 import { v4 as uuidv4 } from 'uuid'
-import Vue from 'vue'
+import { getSocket } from '@/store/runtime'
 import {
     GuiMiscellaneousState,
     GuiMiscellaneousStateEntryLightgroup,
@@ -9,19 +9,19 @@ import {
 } from '@/store/gui/miscellaneous/types'
 
 export const actions: ActionTree<GuiMiscellaneousState, RootState> = {
-    reset({ commit }) {
+    reset({ commit }: ActionContext<GuiMiscellaneousState, RootState>) {
         commit('reset')
     },
 
-    upload({ state }, id) {
-        Vue.$socket.emit('server.database.post_item', {
+    upload({ state }: ActionContext<GuiMiscellaneousState, RootState>, id: any) {
+        getSocket().emit('server.database.post_item', {
             namespace: 'mainsail',
             key: 'miscellaneous.entries.' + id,
             value: state.entries[id],
         })
     },
 
-    store({ commit, dispatch }, payload: payloadStore) {
+    store({ commit, dispatch }: ActionContext<GuiMiscellaneousState, RootState>, payload: payloadStore) {
         const id = uuidv4()
 
         commit('store', { id, values: payload })
@@ -31,7 +31,7 @@ export const actions: ActionTree<GuiMiscellaneousState, RootState> = {
     },
 
     storeLightgroup(
-        { commit, dispatch, state },
+        { commit, dispatch, state }: ActionContext<GuiMiscellaneousState, RootState>,
         payload: { type: string; name: string; lightgroup: GuiMiscellaneousStateEntryLightgroup }
     ) {
         let entryId =
@@ -49,7 +49,7 @@ export const actions: ActionTree<GuiMiscellaneousState, RootState> = {
     },
 
     updateLightgroup(
-        { commit, dispatch, state },
+        { commit, dispatch, state }: ActionContext<GuiMiscellaneousState, RootState>,
         payload: { type: string; name: string; lightgroupId: string; lightgroup: GuiMiscellaneousStateEntryLightgroup }
     ) {
         const entryId =
@@ -62,7 +62,10 @@ export const actions: ActionTree<GuiMiscellaneousState, RootState> = {
         dispatch('upload', entryId)
     },
 
-    deleteLightgroup({ commit, dispatch, state }, payload: { type: string; name: string; lightgroupId: string }) {
+    deleteLightgroup(
+        { commit, dispatch, state }: ActionContext<GuiMiscellaneousState, RootState>,
+        payload: { type: string; name: string; lightgroupId: string }
+    ) {
         const entryId =
             Object.keys(state.entries).find(
                 (key) => state.entries[key].type === payload.type && state.entries[key].name === payload.name
@@ -74,7 +77,7 @@ export const actions: ActionTree<GuiMiscellaneousState, RootState> = {
     },
 
     storePreset(
-        { commit, dispatch, state },
+        { commit, dispatch, state }: ActionContext<GuiMiscellaneousState, RootState>,
         payload: {
             type: string
             name: string
@@ -96,7 +99,7 @@ export const actions: ActionTree<GuiMiscellaneousState, RootState> = {
     },
 
     updatePreset(
-        { commit, dispatch, state },
+        { commit, dispatch, state }: ActionContext<GuiMiscellaneousState, RootState>,
         payload: { type: string; name: string; presetId: string; preset: GuiMiscellaneousStateEntryPreset }
     ) {
         const entryId =
@@ -109,7 +112,10 @@ export const actions: ActionTree<GuiMiscellaneousState, RootState> = {
         dispatch('upload', entryId)
     },
 
-    deletePreset({ commit, dispatch, state }, payload: { type: string; name: string; presetId: string }) {
+    deletePreset(
+        { commit, dispatch, state }: ActionContext<GuiMiscellaneousState, RootState>,
+        payload: { type: string; name: string; presetId: string }
+    ) {
         const entryId =
             Object.keys(state.entries).find(
                 (key) => state.entries[key].type === payload.type && state.entries[key].name === payload.name

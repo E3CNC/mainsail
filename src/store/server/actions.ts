@@ -1,27 +1,26 @@
-import Vue from 'vue'
 import router from '@/plugins/router'
-import { ActionTree } from 'vuex'
+import { getSocket, $toast } from '@/store/runtime'
+import { ActionContext, ActionTree } from 'vuex'
 import { ServerState, ServerStateEvent } from '@/store/server/types'
 import { camelize, formatConsoleMessage } from '@/plugins/helpers'
 import { RootState } from '@/store/types'
 import { initableServerComponents } from '@/store/variables'
 
 export const actions: ActionTree<ServerState, RootState> = {
-    reset({ commit, dispatch }) {
+    reset({ commit, dispatch }: ActionContext<ServerState, RootState>) {
         dispatch('stopKlippyConnectedInterval')
         dispatch('stopKlippyStateInterval')
 
         commit('reset')
         dispatch('power/reset')
-        dispatch('updateManager/reset')
     },
 
-    async init({ commit, dispatch, rootState }) {
+    async init({ commit, dispatch, rootState }: ActionContext<ServerState, RootState>) {
         window.console.debug('init Server')
 
         // identify client
         try {
-            const connection = await Vue.$socket.emitAndWait('server.connection.identify', {
+            const connection = await getSocket().emitAndWait('server.connection.identify', {
                 client_name: 'mainsail',
                 version: rootState.packageVersion,
                 type: 'web',
@@ -44,16 +43,16 @@ export const actions: ActionTree<ServerState, RootState> = {
         dispatch('socket/addInitModule', 'server/procStats', { root: true })
         dispatch('socket/addInitModule', 'server/databaseList', { root: true })
 
-        Vue.$socket.emit('server.info', {}, { action: 'server/initServerInfo' })
-        Vue.$socket.emit('server.config', {}, { action: 'server/initServerConfig' })
-        Vue.$socket.emit('machine.system_info', {}, { action: 'server/initSystemInfo' })
-        Vue.$socket.emit('machine.proc_stats', {}, { action: 'server/initProcStats' })
-        Vue.$socket.emit('server.database.list', { root: 'config' }, { action: 'server/checkDatabases' })
+        getSocket().emit('server.info', {}, { action: 'server/initServerInfo' })
+        getSocket().emit('server.config', {}, { action: 'server/initServerConfig' })
+        getSocket().emit('machine.system_info', {}, { action: 'server/initSystemInfo' })
+        getSocket().emit('machine.proc_stats', {}, { action: 'server/initProcStats' })
+        getSocket().emit('server.database.list', { root: 'config' }, { action: 'server/checkDatabases' })
 
         await dispatch('socket/removeInitModule', 'server', { root: true })
     },
 
-    checkDatabases({ dispatch, commit }, payload) {
+    checkDatabases({ dispatch, commit }: ActionContext<ServerState, RootState>, payload: any) {
         if (payload.namespaces?.includes('mainsail')) {
             dispatch('socket/addInitModule', 'gui/init', { root: true })
             dispatch('gui/init', null, { root: true })
@@ -69,11 +68,11 @@ export const actions: ActionTree<ServerState, RootState> = {
 
         commit('saveDbNamespaces', payload.namespaces)
 
-        Vue.$socket.emit('server.info', {}, { action: 'server/checkKlippyConnected' })
+        getSocket().emit('server.info', {}, { action: 'server/checkKlippyConnected' })
         dispatch('socket/removeInitModule', 'server/databaseList', { root: true })
     },
 
-    initServerInfo({ dispatch, commit }, payload) {
+    initServerInfo({ dispatch, commit }: ActionContext<ServerState, RootState>, payload: any) {
         // delete old plugin entries
         if ('plugins' in payload) delete payload.plugins
         if ('failed_plugins' in payload) delete payload.failed_plugins
@@ -97,17 +96,17 @@ export const actions: ActionTree<ServerState, RootState> = {
         dispatch('socket/removeInitModule', 'server/info', { root: true })
     },
 
-    initServerConfig({ commit, dispatch }, payload) {
+    initServerConfig({ commit, dispatch }: ActionContext<ServerState, RootState>, payload: any) {
         commit('setConfig', payload)
         dispatch('socket/removeInitModule', 'server/config', { root: true })
     },
 
-    initSystemInfo({ commit, dispatch }, payload) {
+    initSystemInfo({ commit, dispatch }: ActionContext<ServerState, RootState>, payload: any) {
         commit('setSystemInfo', payload.system_info)
         dispatch('socket/removeInitModule', 'server/systemInfo', { root: true })
     },
 
-    initProcStats({ commit, dispatch }, payload) {
+    initProcStats({ commit, dispatch }: ActionContext<ServerState, RootState>, payload: any) {
         if (payload.throttled_state !== null) {
             commit('setThrottledState', payload.throttled_state)
         }
@@ -120,49 +119,49 @@ export const actions: ActionTree<ServerState, RootState> = {
         dispatch('socket/removeInitModule', 'server/procStats', { root: true })
     },
 
-    updateProcStats({ commit }, payload) {
+    updateProcStats({ commit }: ActionContext<ServerState, RootState>, payload: any) {
         if ('cpu_temp' in payload) commit('setCpuTemp', payload.cpu_temp)
         if ('moonraker_stats' in payload) commit('setMoonrakerStats', payload.moonraker_stats)
         if ('network' in payload) commit('setNetworkStats', payload.network)
         if ('system_cpu_usage' in payload) commit('setCpuStats', payload.system_cpu_usage)
     },
 
-    setKlippyReady({ dispatch }) {
+    setKlippyReady({ dispatch }: ActionContext<ServerState, RootState>) {
         dispatch('stopKlippyConnectedInterval')
         dispatch('stopKlippyStateInterval')
         dispatch('printer/reset', null, { root: true })
         dispatch('printer/init', null, { root: true })
     },
 
-    setKlippyDisconnected({ commit, dispatch }) {
+    setKlippyDisconnected({ commit, dispatch }: ActionContext<ServerState, RootState>) {
         commit('setKlippyDisconnected', null)
         dispatch('stopKlippyStateInterval')
         dispatch('startKlippyConnectedInterval')
     },
 
-    setKlippyShutdown({ commit, dispatch }) {
+    setKlippyShutdown({ commit, dispatch }: ActionContext<ServerState, RootState>) {
         commit('setKlippyShutdown', null)
         dispatch('stopKlippyStateInterval')
         dispatch('startKlippyConnectedInterval')
     },
 
-    startKlippyConnectedInterval({ commit, state }) {
+    startKlippyConnectedInterval({ commit, state }: ActionContext<ServerState, RootState>) {
         if (state.klippy_connected_timer) return
 
         const timer = setInterval(() => {
-            Vue.$socket.emit('server.info', {}, { action: 'server/checkKlippyConnected' })
+            getSocket().emit('server.info', {}, { action: 'server/checkKlippyConnected' })
         }, 2000)
         commit('setKlippyConnectedTimer', timer)
     },
 
-    stopKlippyConnectedInterval({ commit, state }) {
+    stopKlippyConnectedInterval({ commit, state }: ActionContext<ServerState, RootState>) {
         if (state.klippy_connected_timer === null) return
 
         clearInterval(state.klippy_connected_timer)
         commit('setKlippyConnectedTimer', null)
     },
 
-    checkKlippyConnected({ commit, dispatch }, payload) {
+    checkKlippyConnected({ commit, dispatch }: ActionContext<ServerState, RootState>, payload: any) {
         if (!payload.klippy_connected) {
             dispatch('startKlippyConnectedInterval')
 
@@ -175,23 +174,26 @@ export const actions: ActionTree<ServerState, RootState> = {
         dispatch('checkKlippyState', { state: payload.klippy_state, state_message: null })
     },
 
-    startKlippyStateInterval({ commit, state }) {
+    startKlippyStateInterval({ commit, state }: ActionContext<ServerState, RootState>) {
         if (state.klippy_state_timer) return
 
         const timer = setInterval(() => {
-            Vue.$socket.emit('printer.info', {}, { action: 'server/checkKlippyState' })
+            getSocket().emit('printer.info', {}, { action: 'server/checkKlippyState' })
         }, 2000)
         commit('setKlippyStateTimer', timer)
     },
 
-    stopKlippyStateInterval({ commit, state }) {
+    stopKlippyStateInterval({ commit, state }: ActionContext<ServerState, RootState>) {
         if (state.klippy_state_timer === null) return
 
         clearInterval(state.klippy_state_timer)
         commit('setKlippyStateTimer', null)
     },
 
-    checkKlippyState({ commit, dispatch }, payload: { state: string; state_message: string | null }) {
+    checkKlippyState(
+        { commit, dispatch }: ActionContext<ServerState, RootState>,
+        payload: { state: string; state_message: string | null }
+    ) {
         commit('setKlippyState', payload.state)
         commit('setKlippyMessage', payload.state_message)
 
@@ -205,11 +207,11 @@ export const actions: ActionTree<ServerState, RootState> = {
         dispatch('printer/init', null, { root: true })
     },
 
-    getData({ commit }, payload) {
+    getData({ commit }: ActionContext<ServerState, RootState>, payload: any) {
         commit('setData', payload)
     },
 
-    getGcodeStore({ commit, dispatch, rootGetters }, payload) {
+    getGcodeStore({ commit, dispatch, rootGetters }: ActionContext<ServerState, RootState>, payload: any) {
         commit('clearGcodeStore')
 
         let events: ServerStateEvent[] = payload.gcode_store
@@ -241,13 +243,13 @@ export const actions: ActionTree<ServerState, RootState> = {
         dispatch('socket/removeInitModule', 'server/gcode_store', { root: true })
     },
 
-    addRootDirectory({ commit, state }, data) {
+    addRootDirectory({ commit, state }: ActionContext<ServerState, RootState>, data: any) {
         if (!state.registered_directories.includes(data.item.root)) {
             commit('addRootDirectory', { name: data.item.root })
         }
     },
 
-    addEvent({ commit, rootGetters }, payload) {
+    addEvent({ commit, rootGetters }: ActionContext<ServerState, RootState>, payload: any) {
         let message = payload
         let type = 'response'
 
@@ -288,19 +290,19 @@ export const actions: ActionTree<ServerState, RootState> = {
 
             if (
                 ['error', 'response'].includes(type) &&
-                !['/', '/console'].includes(router.currentRoute.path) &&
+                !['/', '/console'].includes(router.currentRoute.value.path) &&
                 message.startsWith('!! ')
             ) {
-                Vue.$toast.error(formatMessage)
+                $toast.error(formatMessage)
             }
         }
     },
 
-    serviceStateChanged({ commit }, payload) {
+    serviceStateChanged({ commit }: ActionContext<ServerState, RootState>, payload: any) {
         commit('updateServiceState', payload)
     },
 
-    addFailedInitComponent({ commit }, payload) {
+    addFailedInitComponent({ commit }: ActionContext<ServerState, RootState>, payload: any) {
         commit('removeComponent', payload)
         commit('addFailedInitComponent', payload)
     },

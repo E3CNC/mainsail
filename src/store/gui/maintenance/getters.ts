@@ -1,9 +1,9 @@
 import { GetterTree } from 'vuex'
-import { GuiMaintenanceState, GuiMaintenanceStateEntry } from '@/store/gui/maintenance/types'
+import type { GuiMaintenanceState, GuiMaintenanceStateEntry } from '@/store/gui/maintenance/types'
 import { RootState } from '@/store/types'
 
 export const getters: GetterTree<GuiMaintenanceState, RootState> = {
-    getEntries: (state) => {
+    getEntries: (state: GuiMaintenanceState) => {
         const entries: GuiMaintenanceStateEntry[] = []
 
         Object.keys(state.entries).forEach((id: string) => {
@@ -13,7 +13,7 @@ export const getters: GetterTree<GuiMaintenanceState, RootState> = {
         return entries
     },
 
-    getOverdueEntries: (state, getters, rootState) => {
+    getOverdueEntries: (state: GuiMaintenanceState, getters: any, rootState: RootState) => {
         const currentTotalPrintTime = rootState.server?.history?.job_totals.total_print_time ?? 0
         const currentTotalFilamentUsed = rootState.server?.history?.job_totals.total_filament_used ?? 0
         const currentDate = new Date().getTime() / 1000
@@ -21,6 +21,7 @@ export const getters: GetterTree<GuiMaintenanceState, RootState> = {
         const entries: GuiMaintenanceStateEntry[] = getters['getEntries'] ?? []
 
         return entries.filter((entry) => {
+            if (!entry?.reminder || typeof entry.reminder !== 'object') return false
             if (entry.reminder.type === null || entry.end_time !== null) return false
 
             if (entry.reminder.filament.bool) {

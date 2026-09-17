@@ -1,27 +1,27 @@
-import { ActionTree } from 'vuex'
+import { ActionContext, ActionTree } from 'vuex'
 import { RootState } from '@/store/types'
-import Vue from 'vue'
 import { GuiNavigationState, GuiNavigationStateEntry } from '@/store/gui/navigation/types'
-import { NaviPoint } from '@/components/mixins/navigation'
+import { getSocket } from '@/store/runtime'
+import type { NaviPoint } from '@/composables/useNavigation'
 
 export const actions: ActionTree<GuiNavigationState, RootState> = {
-    reset({ commit }) {
+    reset({ commit }: ActionContext<GuiNavigationState, RootState>) {
         commit('reset')
     },
 
-    upload({ state }) {
-        Vue.$socket.emit('server.database.post_item', {
+    upload({ state }: ActionContext<GuiNavigationState, RootState>) {
+        getSocket().emit('server.database.post_item', {
             namespace: 'mainsail',
             key: 'navigation.entries',
             value: state.entries,
         })
     },
 
-    updatePos({ commit }, payload: GuiNavigationStateEntry) {
+    updatePos({ commit }: ActionContext<GuiNavigationState, RootState>, payload: GuiNavigationStateEntry) {
         commit('updatePos', payload)
     },
 
-    changeVisibility({ commit, dispatch }, payload: NaviPoint) {
+    changeVisibility({ commit, dispatch }: ActionContext<GuiNavigationState, RootState>, payload: NaviPoint) {
         commit('changeVisibility', payload)
         dispatch('upload')
     },

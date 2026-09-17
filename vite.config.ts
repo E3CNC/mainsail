@@ -1,24 +1,45 @@
-import vue from '@vitejs/plugin-vue2'
-import version from 'vite-plugin-package-version'
+import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
 import Components from 'unplugin-vue-components/vite'
-import { VuetifyResolver } from 'unplugin-vue-components/resolvers'
-import { checker } from 'vite-plugin-checker'
-
+import { Vuetify3Resolver } from 'unplugin-vue-components/resolvers'
 import path from 'path'
 import buildVersion from './src/plugins/build-version'
 import buildReleaseInfo from './src/plugins/build-release_info'
 import { VitePWA, VitePWAOptions } from 'vite-plugin-pwa'
 import postcssNesting from 'postcss-nesting'
 
+const devProxyTarget = process.env.VITE_DEV_PROXY_TARGET ?? process.env.DEV_PROXY_TARGET ?? 'http://192.168.0.239'
+const devProxyPaths = [
+    '/access',
+    '/api',
+    '/machine',
+    '/printer',
+    '/server',
+    '/webcam',
+    '/webcam2',
+    '/webcam3',
+    '/webcam4',
+    '/websocket',
+]
+const devServerProxy = Object.fromEntries(
+    devProxyPaths.map((pathname) => [
+        pathname,
+        {
+            target: devProxyTarget,
+            changeOrigin: true,
+            ws: pathname === '/websocket',
+        },
+    ])
+)
+
 const PWAConfig: Partial<VitePWAOptions> = {
     registerType: 'autoUpdate',
     includeAssets: ['fonts/**/*.woff2', 'img/**/*.svg', 'img/**/*.png'],
     manifest: {
-        name: 'Mainsail',
-        short_name: 'Mainsail',
-        description: 'Web interface for Klipper 3D printer firmware',
+        name: 'E3CNC UI',
+        short_name: 'E3CNC UI',
+        description: 'Web interface for Klipper-based CNC machines',
         theme_color: '#D51F26',
         display: 'standalone',
         start_url: '/',
@@ -65,9 +86,9 @@ const PWAConfig: Partial<VitePWAOptions> = {
         ],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
     },
-    /* enable sw on development */
+    /* disable sw on development to avoid workbox precaching noise */
     devOptions: {
-        enabled: true,
+        enabled: false,
         type: 'module',
         suppressWarnings: true,
     },
@@ -80,16 +101,9 @@ export default defineConfig({
         buildVersion(),
         buildReleaseInfo(),
         vue(),
-        version(),
-        checker({
-            typescript: {
-                root: path.resolve(__dirname),
-                buildMode: false,
-            },
-        }),
         Components({
-            dts: true, // enabled by default if `typescript` is installed
-            resolvers: [VuetifyResolver()],
+            dts: true,
+            resolvers: [Vuetify3Resolver()],
         }),
     ],
 
@@ -111,6 +125,7 @@ export default defineConfig({
 
     build: {
         target: 'safari12',
+        chunkSizeWarningLimit: 2000,
         rollupOptions: {
             output: {
                 manualChunks: (id: string) => {
@@ -120,8 +135,23 @@ export default defineConfig({
                             return 'codemirror'
                         }
 
-                        // split these libs into their own chunks
-                        const chunkedLibs = ['vuetify', 'echarts', 'overlayscrollbars']
+                        // split vuetify (largest UI dep)
+                        if (id.includes('/vuetify/')) {
+                            return 'vuetify'
+                        }
+
+                        // split vue core + ecosystem
+                        if (
+                            id.includes('/vue/') &&
+                            !id.includes('/vue-router/') &&
+                            !id.includes('/vuex/') &&
+                            !id.includes('/vue-i18n/')
+                        ) {
+                            return 'vue-core'
+                        }
+
+                        // split echarts and overlayscrollbars into their own chunks
+                        const chunkedLibs = ['echarts', 'overlayscrollbars']
                         for (const lib of chunkedLibs) {
                             if (id.includes(`/node_modules/${lib}/`)) {
                                 return lib.replace('.js', '')
@@ -157,10 +187,47 @@ export default defineConfig({
     server: {
         host: '0.0.0.0',
         port: 8080,
+        proxy: devServerProxy,
     },
 
     test: {
-        environment: 'node',
+        environment: 'jsdom',
         include: ['tests/**/*.spec.ts'],
+        globals: true,
+        setupFiles: ['tests/setup.ts'],
+        pool: 'threads',
+        poolOptions: {
+            threads: {
+                minThreads: 1,
+                maxThreads: 2,
+            },
+        },
+        css: true,
+        deps: {
+            inline: ['vuetify'],
+        },
+        coverage: {
+            provider: 'v8',
+            reporter: ['text', 'text-summary'],
+            include: ['src/**/*.{ts,vue}'],
+            exclude: [
+                'node_modules/',
+                'tests/',
+                '**/*.d.ts',
+                '**/*.config.ts',
+                'src/main.ts',
+                'src/plugins/**',
+                'src/types/**',
+                'src/routes/**',
+                'src/store/runtime.ts',
+                'src/store/variables.ts',
+            ],
+            thresholds: {
+                lines: 65,
+                functions: 55,
+                branches: 75,
+                statements: 65,
+            },
+        },
     },
 })

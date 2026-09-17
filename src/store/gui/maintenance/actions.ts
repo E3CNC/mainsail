@@ -1,5 +1,5 @@
-import Vue from 'vue'
-import { ActionTree } from 'vuex'
+import { ActionContext, ActionTree } from 'vuex'
+import { getSocket } from '@/store/runtime'
 import { GuiMaintenanceState, MaintenanceJson } from '@/store/gui/maintenance/types'
 import { RootState } from '@/store/types'
 import { v4 as uuidv4 } from 'uuid'
@@ -7,19 +7,19 @@ import { themeDir } from '@/store/variables'
 import { ServerHistoryState } from '@/store/server/history/types'
 
 export const actions: ActionTree<GuiMaintenanceState, RootState> = {
-    reset({ commit }) {
+    reset({ commit }: ActionContext<GuiMaintenanceState, RootState>) {
         commit('reset')
     },
 
     init() {
-        Vue.$socket.emit(
+        getSocket().emit(
             'server.database.get_item',
             { namespace: 'maintenance' },
             { action: 'gui/maintenance/initStore' }
         )
     },
 
-    async initDb({ dispatch, rootGetters }) {
+    async initDb({ dispatch, rootGetters }: ActionContext<GuiMaintenanceState, RootState>) {
         const baseUrl = rootGetters['socket/getUrl']
         const url = `${baseUrl}/server/files/config/${themeDir}/maintenance.json?time=${Date.now()}`
 
@@ -37,7 +37,7 @@ export const actions: ActionTree<GuiMaintenanceState, RootState> = {
         // stop, when no entries are available/found
         const entries = defaults.entries ?? []
         if (entries?.length === 0) {
-            Vue.$socket.emit('server.database.post_item', {
+            getSocket().emit('server.database.post_item', {
                 namespace: 'maintenance',
                 key: uuidv4(),
                 value: {
@@ -105,7 +105,7 @@ export const actions: ActionTree<GuiMaintenanceState, RootState> = {
         })
     },
 
-    async initStore({ commit, dispatch }, payload) {
+    async initStore({ commit, dispatch }: ActionContext<GuiMaintenanceState, RootState>, payload: any) {
         await commit('reset')
 
         const entries = payload.value ?? {}
@@ -116,15 +116,15 @@ export const actions: ActionTree<GuiMaintenanceState, RootState> = {
         await dispatch('socket/removeInitModule', 'gui/maintenance/init', { root: true })
     },
 
-    upload(_, payload) {
-        Vue.$socket.emit('server.database.post_item', {
+    upload(_context: ActionContext<GuiMaintenanceState, RootState>, payload: any) {
+        getSocket().emit('server.database.post_item', {
             namespace: 'maintenance',
             key: payload.id,
             value: payload.value,
         })
     },
 
-    store({ commit, dispatch, state }, payload) {
+    store({ commit, dispatch, state }: ActionContext<GuiMaintenanceState, RootState>, payload: any) {
         const id = uuidv4()
 
         commit('store', { id, values: payload.entry })
@@ -134,7 +134,7 @@ export const actions: ActionTree<GuiMaintenanceState, RootState> = {
         })
     },
 
-    update({ commit, dispatch }, payload) {
+    update({ commit, dispatch }: ActionContext<GuiMaintenanceState, RootState>, payload: any) {
         const id = payload.id
         delete payload.id
 
@@ -148,12 +148,15 @@ export const actions: ActionTree<GuiMaintenanceState, RootState> = {
         })
     },
 
-    delete({ commit }, payload) {
+    delete({ commit }: ActionContext<GuiMaintenanceState, RootState>, payload: any) {
         commit('delete', payload)
-        Vue.$socket.emit('server.database.delete_item', { namespace: 'maintenance', key: payload })
+        getSocket().emit('server.database.delete_item', { namespace: 'maintenance', key: payload })
     },
 
-    perform({ dispatch, state, rootState }, payload: { id: string; note: string }) {
+    perform(
+        { dispatch, state, rootState }: ActionContext<GuiMaintenanceState, RootState>,
+        payload: { id: string; note: string }
+    ) {
         const entry = state.entries[payload.id]
         if (!entry) return
 

@@ -1,32 +1,31 @@
-import Vue from 'vue'
 import { MutationTree } from 'vuex'
 import { GuiRemindersState } from '@/store/gui/reminders/types'
 import { getDefaultState } from './index'
 
 export const mutations: MutationTree<GuiRemindersState> = {
-    reset(state) {
+    reset(state: GuiRemindersState) {
         Object.assign(state, getDefaultState())
     },
 
-    initStore(state, payload) {
-        Vue.set(state, 'reminders', payload.value)
+    initStore(state: GuiRemindersState, payload: any) {
+        state.reminders = payload.value
     },
 
-    store(state, payload) {
-        Vue.set(state.reminders, payload.id, payload.values)
+    store(state: GuiRemindersState, payload: any) {
+        state.reminders[payload.id] = payload.values
     },
 
-    update(state, payload) {
+    update(state: GuiRemindersState, payload: any) {
         if (payload.id in state.reminders) {
             const reminder = { ...state.reminders[payload.id] }
             Object.assign(reminder, payload)
-            Vue.set(state.reminders, payload.id, reminder)
+            state.reminders[payload.id] = reminder
         }
     },
 
-    delete(state, payload) {
+    delete(state: GuiRemindersState, payload: any) {
         if (payload in state.reminders) {
-            Vue.delete(state.reminders, payload)
+            delete state.reminders[payload]
         }
     },
 }

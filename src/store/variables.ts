@@ -1,7 +1,7 @@
 import { KlipperRepos, Theme } from '@/store/types'
 
 export const defaultMode = 'dark'
-export const defaultTheme = 'mainsail'
+export const defaultTheme = 'e3cnc'
 export const defaultLogoColor = '#D41216'
 export const defaultPrimaryColor = '#2196f3'
 export const defaultBigThumbnailBackground = '#1e1e1e'
@@ -40,16 +40,7 @@ export const validGcodeExtensions = ['.gcode', '.g', '.gco', '.ufp', '.nc']
 /*
  * List of initable server components
  */
-export const initableServerComponents = [
-    'history',
-    'power',
-    'updateManager',
-    'timelapse',
-    'jobQueue',
-    'announcements',
-    'spoolman',
-    'sensor',
-]
+export const initableServerComponents = ['history', 'power', 'timelapse', 'jobQueue', 'spoolman', 'sensor']
 
 /*
  * List of required klipper config modules
@@ -108,16 +99,16 @@ export const maxGcodeHistory = 50
  * List of generic dashboard panels
  */
 export const allDashboardPanels = [
-    'afc',
-    'toolhead-control',
-    'extruder-control',
+    'cnc-status',
+    'dro',
+    'jog',
+    'wcs',
+    'spindle-coolant',
     'macros',
     'led-effects',
     'machine-settings',
     'miniconsole',
     'miscellaneous',
-    'spoolman',
-    'mmu',
     'temperature',
     'webcam',
 ]
@@ -184,6 +175,22 @@ export const excludeKeys = [
  * List of all Themes
  */
 export const themes: Theme[] = [
+    {
+        name: 'e3cnc',
+        displayName: 'E3CNC',
+        colorLogo: '#00FF00',
+        colorPrimary: '#00FF00',
+        logo: { show: true, light: false },
+    },
+    {
+        name: 'ndot57',
+        displayName: 'Ndot57',
+        colorLogo: '#00FF00',
+        colorPrimary: '#00FF00',
+        fontFamily: "'Ndot 57 Aligned', '0xProto Nerd Font Mono', monospace",
+        letterSpacing: '0.1rem',
+        logo: { show: false, light: false },
+    },
     { name: 'mainsail', displayName: 'Mainsail', colorLogo: defaultLogoColor },
     {
         name: 'klipper',
@@ -198,46 +205,12 @@ export const themes: Theme[] = [
         logo: { show: true, light: false },
     },
     {
-        name: 'ldo',
-        displayName: 'LDO Motion (Sponsor)',
-        colorLogo: '#326799',
-        colorPrimary: '#326799',
-        logo: { show: true, light: false },
-    },
-    {
-        name: 'yumi',
-        displayName: 'YUMI (Sponsor)',
-        colorLogo: '#F6CF3D',
-        colorPrimary: '#F6CF3D',
-        logo: { show: true, light: false },
-    },
-    {
         name: 'vzbot',
         displayName: 'VzBot',
         colorLogo: '#FF0000',
         logo: { show: true, light: false },
         sidebarBackground: { show: true, light: false },
         css: true,
-    },
-    {
-        name: 'prusa',
-        displayName: 'Prusa Research (Sponsor)',
-        colorLogo: '#fa6831',
-        colorPrimary: '#fa6831',
-        logo: { show: true, light: false },
-    },
-    {
-        name: 'btt',
-        displayName: 'BigTreeTech (Sponsor)',
-        colorLogo: '#ef0025',
-        logo: { show: true, light: false },
-    },
-    {
-        name: 'multec',
-        displayName: 'Multec GmbH (Sponsor)',
-        colorLogo: '#234D7A',
-        colorPrimary: '#234D7A',
-        logo: { show: true, light: false },
     },
 ]
 

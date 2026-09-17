@@ -251,7 +251,6 @@
     },
     "GCodeViewer": {
         "ClearLoadedFile": "清除",
-        "CNCMode": "CNC模式",
         "ColorMode": "顏色模式",
         "Downloading": "下載中",
         "ForceLineRendering": "Force Line Rendering",
@@ -491,32 +490,6 @@
         "Advanced": "高級"
     },
     "Panels": {
-        "ExtruderControlPanel": {
-            "Allowed": "允許",
-            "EstimatedExtrusion": "預計擠出量：",
-            "Extrude": "擠出",
-            "ExtruderTempTooLow": "擠出温度 <",
-            "ExtrusionFactor": "擠出係數",
-            "ExtrusionFeedrate": "進料速率",
-            "FilamentLength": "耗材長度",
-            "FirmwareRetractionSettings": {
-                "RetractLength": "回抽長度",
-                "RetractSpeed": "回抽速度",
-                "UnretractExtraLength": "退料長度",
-                "UnretractSpeed": "退料速度"
-            },
-            "Headline": "擠出機",
-            "LoadFilament": "裝載耗材",
-            "PressureAdvanceSettings": {
-                "Advance": "壓力提前",
-                "Extruder": "擠出機",
-                "SmoothTime": "平滑時間"
-            },
-            "Requested": "需要",
-            "Retract": "回抽",
-            "TooLargeExtrusion": "擠出過大！",
-            "UnloadFilament": "釋放耗材"
-        },
         "FarmPrinterPanel": {
             "ReconnectToPrinter": "重新連線",
             "SwitchToPrinter": "切換到列印機",
@@ -643,18 +616,6 @@
             "TemperaturesInChart": "溫度 [°C]",
             "TempTooHigh": "溫度{name}過高！(最高：{max})",
             "TempTooLow": "溫度{name}過低！(最低：{min})"
-        },
-        "ToolheadControlPanel": {
-            "Absolute": "絕對座標",
-            "ALL": "歸位所有",
-            "Headline": "工具頭",
-            "PleaseConfigureSteps": "請設定步進",
-            "Position": "位置",
-            "QGL": "四軸調平(QGL)",
-            "Relative": "相對座標",
-            "SettingsInterfaceControl": "設定 > 界面 > 控制",
-            "SpeedFactor": "速度係數",
-            "ZTilt": "Z軸傾斜"
         },
         "WebcamPanel": {
             "All": "全部",
@@ -984,21 +945,10 @@
         },
         "UiSettingsTab": {
             "BedScrewsDialogDescription": "顯示 BED_SCREWS_ADJUST 的幫助對話框。",
-            "BigThumbnailBackground": "大縮圖背景色",
-            "BoolBigThumbnail": "大縮圖",
-            "BoolBigThumbnailDescription": "列印期間在狀態面板中顯示大縮圖。",
-            "BoolHideUploadAndPrintButton": "隱藏上傳和列印按鈕",
-            "BoolHideUploadAndPrintButtonDescription": "顯示或隱藏頂部欄中的\"上傳和列印\"按鈕。",
             "ConfirmOnEmergencyStop": "需要確認緊急停止",
             "ConfirmOnEmergencyStopDescription": "顯示緊急停止確認對話框",
             "ConfirmOnPowerDeviceChange": "設備電源更改需要確認",
             "ConfirmOnPowerDeviceChangeDescription": "顯示設備電源更改的確認對話框",
-            "DisableFanAnimation": "禁用風扇動畫",
-            "DisableFanAnimationDescription": "這可以減少瀏覽器中的一些負載。",
-            "DisplayCANCEL_PRINT": "關閉取消列印按鈕",
-            "DisplayCANCEL_PRINTDescription": "一直顯示取消列印按鈕, 無需再次確認.",
-            "GcodeThumbnails": "Gcode 縮圖",
-            "GcodeThumbnailsDescription": "點擊按鈕進入說明。",
             "Guide": "指南",
             "HideSaveConfigButtonForBedMesh": "隱藏 網床 更改的 SAVE_CONFIG 按鈕",
             "HideSaveConfigButtonForBedMeshDescription": "隱藏 SAVE_CONFIG，如果只有 bed_mesh 更改等待儲存在 Klipper 中。",
@@ -1007,8 +957,6 @@
             "LockSlidersDelayDescription": "滑塊將在給定延遲後鎖定。如果設置為 0 或留空，滑塊將僅在頁面更改/重新載入時鎖定。",
             "LockSlidersDescription": "在允許更改之前，需要解鎖觸控螢幕上的滑塊。",
             "Logo": "Logo顏色",
-            "ManualProbeDialog": "手動探針助手對話框",
-            "ManualProbeDialogDescription": "顯示 PROBE_CALIBRATE 或 Z_ENDSTOP_CALIBRATE 的幫助對話框。",
             "Mode": "模式",
             "ModeDescription": "變更應用程式的整體外觀和感覺。",
             "NavigationStyle": "導航欄風格",
@@ -1018,8 +966,6 @@
             "PowerDeviceName": "列印機電源裝置",
             "PowerDeviceNameDescription": "選擇應使用哪個 Moonraker 電源設備為列印機供電。",
             "Primary": "高亮顏色",
-            "PrintstatusThumbnailZoom": "大縮圖縮放",
-            "PrintstatusThumbnailZoomDescription": "這將停用狀態面板中縮圖的縮放效果。",
             "ScrewsTiltAdjustDialogDescription": "顯示 SCREWS_TILT_CALCULATE 的幫助程序對話框。",
             "ThemeDescription": "自訂特定風格的介面外觀。",
             "UiSettings": "使用者介面設定"

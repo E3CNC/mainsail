@@ -235,7 +235,6 @@
     },
     "GCodeViewer": {
         "ClearLoadedFile": "초기화",
-        "CNCMode": "CNC 모드",
         "ColorMode": "컬러 모드",
         "Downloading": "정보 다운로딩 중..",
         "ForceLineRendering": "Force line 랜더링",
@@ -476,32 +475,6 @@
         "Headline": "수동 레벨 측정"
     },
     "Panels": {
-        "ExtruderControlPanel": {
-            "Allowed": "허용 됨",
-            "EstimatedExtrusion": "예상 압출량 :",
-            "Extrude": "필라 압출",
-            "ExtruderTempTooLow": "핫엔드 온도가 낮습니다",
-            "ExtrusionFactor": "압출 속도 비율",
-            "ExtrusionFeedrate": "압출 속도",
-            "FilamentLength": "필라멘트 길이",
-            "FirmwareRetractionSettings": {
-                "RetractLength": "필라 퇴출 길이",
-                "RetractSpeed": "필라 퇴출 속도",
-                "UnretractExtraLength": "필라 압출 추가 길이",
-                "UnretractSpeed": "필라 압출 속도"
-            },
-            "Headline": "압출 제어",
-            "LoadFilament": "필라멘트 압출",
-            "PressureAdvanceSettings": {
-                "Advance": "모서리 압출 제어 [PA]",
-                "Extruder": "필라멘트 압출 제어",
-                "SmoothTime": "반응 시간 [ST]"
-            },
-            "Requested": "요청됨",
-            "Retract": "필라 퇴출",
-            "TooLargeExtrusion": "압출 길이를 초과합니다!",
-            "UnloadFilament": "필라멘트 퇴출"
-        },
         "FarmPrinterPanel": {
             "ReconnectToPrinter": "재접속",
             "SwitchToPrinter": "프린터 전환",
@@ -632,18 +605,6 @@
             "TemperaturesInChart": "온도 [°C]",
             "TempTooHigh": "{name}의 온도가 너무 높습니다! (최대: {max})",
             "TempTooLow": "{name}의 온도가 너무 낮습니다!! (최저: {min})"
-        },
-        "ToolheadControlPanel": {
-            "Absolute": "절대 좌표",
-            "ALL": "전체",
-            "Headline": "툴 헤드 제어",
-            "PleaseConfigureSteps": "steps를 설정해 주세요",
-            "Position": "좌표 유형",
-            "QGL": "쿼드 갠트리 레벨",
-            "Relative": "상대 좌표",
-            "SettingsInterfaceControl": "설정 > 인터페이스 > 컨트롤",
-            "SpeedFactor": "속도 비율 설정",
-            "ZTilt": "Z틸트"
         },
         "WebcamPanel": {
             "All": "전체",
@@ -977,20 +938,10 @@
             "VariableFpsMinDescription": "최소 가변 FPS 값을 지정합니다"
         },
         "UiSettingsTab": {
-            "BoolBigThumbnail": "큰 썸네일 이미지",
-            "BoolBigThumbnailDescription": "출력 중 상태 패널을 클릭하면 썸네일을 크게 표시합니다",
-            "BoolHideUploadAndPrintButton": "업로드/프린트 버튼 숨김",
-            "BoolHideUploadAndPrintButtonDescription": "상단 메뉴에서 \"업로드 & 프린트\" 버튼 숨김",
             "ConfirmOnEmergencyStop": "비상 정지 버튼 클릭 시 확인 창 열기",
             "ConfirmOnEmergencyStopDescription": "비상 정지 버튼 클릭할 경우 안내 창을 열어 승인 이후 작동하도록 합니다",
             "ConfirmOnPowerDeviceChange": "장치 전원 끄고 켤 때 확인 창 열기",
             "ConfirmOnPowerDeviceChangeDescription": "장치 전원을 변경할 경우 안내 창을 열어 사용자의 확인 후 작동토록 합니다",
-            "DisableFanAnimation": "에니메이션 비활성화",
-            "DisableFanAnimationDescription": "에니메이션을 비활성화 시키면 브라우저 로딩 속도를 개선할 수 있습니다",
-            "DisplayCANCEL_PRINT": "출력 취소 표시",
-            "DisplayCANCEL_PRINTDescription": "상태 창에서 출력 정지 아이콘을 표시하며 비활성화 시킬 경우, 일시 정지 후 출력 정지 아이콘이 표시됩니다",
-            "GcodeThumbnails": "G-Code 썸네일",
-            "GcodeThumbnailsDescription": "Gcode 썸네일을 클릭하면 파일 편집기로 곧바로 전환합니다",
             "Guide": "추가 설명",
             "HideSaveConfigButtonForBedMesh": "베드 메시 완료 후 SAVE_CONFIG 버튼 숨김",
             "HideSaveConfigButtonForBedMeshDescription": "베드 메시 교정 변경 사항이 생겼어도 SAVE_CONFIG를 숨깁니다 만약 변경된 베드 메시를 저장하려면 콘솔 명령 창에서 SAVE_CONFIG 명령을 실행하면 됩니다",

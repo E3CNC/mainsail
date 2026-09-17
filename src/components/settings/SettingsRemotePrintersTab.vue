@@ -3,7 +3,7 @@
         <v-card v-if="!form.bool" flat>
             <v-card-text>
                 <h3 class="text-h5 mb-3">{{ $t('Settings.RemotePrintersTab.RemotePrinters') }}</h3>
-                <v-alert v-if="!canAddPrinters" :icon="mdiAlertOutline" type="warning" text>
+                <v-alert v-if="!canAddPrinters" :icon="mdiAlertOutline" type="warning" variant="text">
                     {{ $t('Settings.RemotePrintersTab.UseConfigJson') }}
                 </v-alert>
                 <div v-for="(printer, index) in printers" :key="printer.id">
@@ -12,24 +12,28 @@
                         :title="formatPrinterName(printer)"
                         :loading="printer.socket.isConnecting"
                         :icon="printer.socket.isConnected ? mdiCheckboxMarkedCircle : mdiCancel">
-                        <v-btn small outlined :disabled="!canAddPrinters" @click="editPrinter(printer)">
-                            <v-icon left small>{{ mdiPencil }}</v-icon>
+                        <v-btn
+                            size="small"
+                            variant="outlined"
+                            :disabled="!canAddPrinters"
+                            @click="editPrinter(printer)">
+                            <v-icon start size="small">{{ mdiPencil }}</v-icon>
                             {{ $t('Settings.Edit') }}
                         </v-btn>
                         <v-btn
-                            small
-                            outlined
+                            size="small"
+                            variant="outlined"
                             class="ml-3 minwidth-0 px-2"
                             color="error"
                             :disabled="!canAddPrinters"
                             @click="delPrinter(printer.id)">
-                            <v-icon small>{{ mdiDelete }}</v-icon>
+                            <v-icon size="small">{{ mdiDelete }}</v-icon>
                         </v-btn>
                     </settings-row>
                 </div>
             </v-card-text>
             <v-card-actions class="d-flex justify-end">
-                <v-btn text color="primary" :disabled="!canAddPrinters" @click="createPrinter">
+                <v-btn variant="text" color="primary" :disabled="!canAddPrinters" @click="createPrinter">
                     {{ $t('Settings.RemotePrintersTab.AddPrinter') }}
                 </v-btn>
             </v-card-actions>
@@ -53,8 +57,8 @@
                         ]"
                         hide-details="auto"
                         required
-                        dense
-                        outlined />
+                        density="compact"
+                        variant="outlined" />
                 </settings-row>
                 <v-divider class="my-2" />
                 <settings-row :title="$t('Settings.RemotePrintersTab.Port')">
@@ -63,8 +67,8 @@
                         :rules="[(v) => !!v || 'Port is required']"
                         hide-details="auto"
                         required
-                        dense
-                        outlined />
+                        density="compact"
+                        variant="outlined" />
                 </settings-row>
                 <v-divider class="my-2" />
                 <settings-row :title="$t('Settings.RemotePrintersTab.Path')">
@@ -72,24 +76,29 @@
                         v-model="form.path"
                         :rules="[(v) => !v || v.startsWith('/') || 'Path must start with /']"
                         hide-details="auto"
-                        outlined
-                        dense />
+                        variant="outlined"
+                        density="compact" />
                 </settings-row>
                 <template v-if="instancesDB !== 'moonraker'">
                     <v-divider class="my-2" />
                     <settings-row
                         :title="$t('Settings.RemotePrintersTab.Name')"
                         :sub-title="$t('Settings.RemotePrintersTab.NameDescription')">
-                        <v-text-field v-model="form.name" outlined hide-details="auto" dense />
+                        <v-text-field v-model="form.name" variant="outlined" hide-details="auto" density="compact" />
                     </settings-row>
                 </template>
             </v-card-text>
             <v-card-actions class="d-flex justify-end">
-                <v-btn text @click="form.bool = false">{{ $t('Buttons.Cancel') }}</v-btn>
-                <v-btn v-if="form.id === null" text color="primary" @click="storePrinter">
+                <v-btn variant="text" :loading="testing" :disabled="!form.hostname" @click="testConnection">
+                    <v-icon start size="small">{{ mdiConnection }}</v-icon>
+                    {{ $t('Settings.RemotePrintersTab.TestConnection') }}
+                </v-btn>
+                <v-spacer />
+                <v-btn variant="text" @click="form.bool = false">{{ $t('Buttons.Cancel') }}</v-btn>
+                <v-btn v-if="form.id === null" variant="text" color="primary" @click="storePrinter">
                     {{ $t('Settings.RemotePrintersTab.AddPrinter') }}
                 </v-btn>
-                <v-btn v-else text color="primary" @click="updatePrinter">
+                <v-btn v-else variant="text" color="primary" @click="updatePrinter">
                     {{ $t('Settings.RemotePrintersTab.UpdatePrinter') }}
                 </v-btn>
             </v-card-actions>
@@ -97,12 +106,15 @@
     </div>
 </template>
 
-<script lang="ts">
-import { Component, Mixins } from 'vue-property-decorator'
-import BaseMixin from '../mixins/base'
+<script setup lang="ts">
+import { reactive, computed, ref } from 'vue'
+import { useStore } from 'vuex'
+import { useBase } from '@/composables/useBase'
+import { useI18n } from 'vue-i18n'
+import { useToast } from 'vue-toast-notification'
 import SettingsRow from '@/components/settings/SettingsRow.vue'
-import { GuiRemoteprintersStatePrinter } from '@/store/gui/remoteprinters/types'
-import { mdiCancel, mdiCheckboxMarkedCircle, mdiDelete, mdiPencil, mdiAlertOutline } from '@mdi/js'
+import type { GuiRemoteprintersStatePrinter } from '@/store/gui/remoteprinters/types'
+import { mdiCancel, mdiCheckboxMarkedCircle, mdiDelete, mdiPencil, mdiAlertOutline, mdiConnection } from '@mdi/js'
 
 interface printerForm {
     bool: boolean
@@ -114,98 +126,115 @@ interface printerForm {
     namespace: string | null
 }
 
-@Component({
-    components: { SettingsRow },
+const store = useStore()
+const { instancesDB } = useBase()
+const { t } = useI18n()
+const $toast = useToast()
+
+const testing = ref(false)
+
+const form = reactive<printerForm>({
+    bool: false,
+    hostname: '',
+    port: 7125,
+    path: '/',
+    name: '',
+    id: null,
+    namespace: null,
 })
-export default class SettingsRemotePrintersTab extends Mixins(BaseMixin) {
-    mdiCheckboxMarkedCircle = mdiCheckboxMarkedCircle
-    mdiCancel = mdiCancel
-    mdiPencil = mdiPencil
-    mdiDelete = mdiDelete
-    mdiAlertOutline = mdiAlertOutline
 
-    form: printerForm = {
-        bool: false,
-        hostname: '',
-        port: 7125,
-        path: '/',
-        name: '',
-        id: null,
-        namespace: null,
+const printers = computed(() => store.getters['gui/remoteprinters/getRemoteprinters'] ?? [])
+
+const canAddPrinters = computed(() => store.state.instancesDB !== 'json')
+
+function formatPrinterName(printer: GuiRemoteprintersStatePrinter) {
+    return printer.hostname + (printer.port !== 80 ? ':' + printer.port : '') + (printer.path ?? '')
+}
+
+function createPrinter() {
+    form.hostname = ''
+    form.port = 7125
+    form.path = '/'
+    form.name = ''
+    form.id = null
+    form.namespace = null
+    form.bool = true
+}
+
+async function testConnection() {
+    if (!form.hostname) {
+        $toast.error(t('Settings.RemotePrintersTab.HostnameRequired'))
+        return
     }
-
-    get printers() {
-        return this.$store.getters['gui/remoteprinters/getRemoteprinters'] ?? []
-    }
-
-    get canAddPrinters() {
-        return this.$store.state.instancesDB !== 'json'
-    }
-
-    get protocol() {
-        return this.$store.state.socket.protocol ?? 'ws'
-    }
-
-    formatPrinterName(printer: GuiRemoteprintersStatePrinter) {
-        return printer.hostname + (printer.port !== 80 ? ':' + printer.port : '') + (printer.path ?? '')
-    }
-
-    createPrinter() {
-        this.form.hostname = ''
-        this.form.port = 7125
-        this.form.path = '/'
-        this.form.name = ''
-        this.form.id = null
-        this.form.namespace = null
-        this.form.bool = true
-    }
-
-    storePrinter() {
-        const printer = {
-            hostname: this.form.hostname,
-            port: this.form.port,
-            name: this.form.name,
-            path: this.form.path,
+    testing.value = true
+    const protocol = window.location.protocol === 'https:' ? 'https' : 'http'
+    const url = `${protocol}://${form.hostname}:${form.port}${form.path ?? '/'}server/info`
+    try {
+        const response = await fetch(url, { method: 'GET', signal: AbortSignal.timeout(5000) })
+        if (response.ok) {
+            $toast.success(t('Settings.RemotePrintersTab.ConnectionSuccess', { hostname: form.hostname }))
+        } else {
+            $toast.error(
+                t('Settings.RemotePrintersTab.ConnectionFailed', { hostname: form.hostname, status: response.status })
+            )
         }
+    } catch (e: unknown) {
+        const error = e instanceof Error ? e.message : 'unknown'
+        $toast.error(t('Settings.RemotePrintersTab.ConnectionError', { hostname: form.hostname, error }))
+    } finally {
+        testing.value = false
+    }
+}
 
-        this.$store.dispatch('gui/remoteprinters/store', { values: printer })
-
-        this.form.hostname = ''
-        this.form.port = 7125
-        this.form.name = ''
-        this.form.id = null
-        this.form.bool = false
+function storePrinter() {
+    const printer = {
+        hostname: form.hostname,
+        port: form.port,
+        name: form.name,
+        path: form.path,
     }
 
-    editPrinter(printer: GuiRemoteprintersStatePrinter) {
-        this.form.id = printer.id ?? null
-        this.form.hostname = printer.hostname
-        this.form.port = printer.port
-        this.form.path = printer.path ?? '/'
-        this.form.name = printer.name ?? ''
-        this.form.bool = true
+    store.dispatch('gui/remoteprinters/store', { values: printer })
+
+    form.hostname = ''
+    form.port = 7125
+    form.name = ''
+    form.id = null
+    form.bool = false
+
+    $toast.success(t('Settings.RemotePrintersTab.PrinterSaved', { hostname: printer.hostname }))
+}
+
+function editPrinter(printer: GuiRemoteprintersStatePrinter) {
+    form.id = printer.id ?? null
+    form.hostname = printer.hostname
+    form.port = printer.port
+    form.path = printer.path ?? '/'
+    form.name = printer.name ?? ''
+    form.bool = true
+}
+
+function updatePrinter() {
+    const values = {
+        hostname: form.hostname,
+        port: form.port,
+        name: form.name,
+        path: form.path,
     }
 
-    updatePrinter() {
-        const values = {
-            hostname: this.form.hostname,
-            port: this.form.port,
-            name: this.form.name,
-            path: this.form.path,
-        }
+    store.dispatch('gui/remoteprinters/update', { id: form.id, values })
 
-        this.$store.dispatch('gui/remoteprinters/update', { id: this.form.id, values })
+    form.id = null
+    form.hostname = ''
+    form.port = 7125
+    form.path = '/'
+    form.name = ''
+    form.bool = false
 
-        this.form.id = null
-        this.form.hostname = ''
-        this.form.port = 7125
-        this.form.path = '/'
-        this.form.name = ''
-        this.form.bool = false
-    }
+    $toast.success(t('Settings.RemotePrintersTab.PrinterUpdated', { hostname: values.hostname }))
+}
 
-    delPrinter(id: string) {
-        this.$store.dispatch('gui/remoteprinters/delete', id)
-    }
+function delPrinter(id: string) {
+    store.dispatch('gui/remoteprinters/delete', id)
 }
 </script>

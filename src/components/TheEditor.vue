@@ -15,89 +15,145 @@
             <panel
                 card-class="editor-dialog"
                 :icon="isWriteable ? mdiFileDocumentEditOutline : mdiFileDocumentOutline"
-                :title="title">
+                :title="title"
+                height="var(--app-height)">
                 <template #buttons>
-                    <v-btn text tile class="d-none d-md-flex" @click="dialogDevices = true">
-                        <v-icon small class="mr-1">{{ mdiUsb }}</v-icon>
+                    <v-btn variant="text" rounded="0" class="d-none d-md-flex" @click="dialogDevices = true">
+                        <v-icon size="small" class="mr-1">{{ mdiUsb }}</v-icon>
                         {{ $t('Editor.DeviceDialog') }}
                     </v-btn>
                     <v-btn
                         v-if="restartServiceName === 'klipper'"
-                        text
-                        tile
+                        variant="text"
+                        rounded="0"
                         :href="klipperConfigReference"
                         target="_blank"
                         class="d-none d-md-flex">
-                        <v-icon small class="mr-1">{{ mdiHelp }}</v-icon>
+                        <v-icon size="small" class="mr-1">{{ mdiHelp }}</v-icon>
                         {{ $t('Editor.ConfigReference') }}
                     </v-btn>
-                    <v-btn v-if="existsFileStructure" text tile class="d-none d-md-flex" @click="toggleFileStructure">
-                        <v-icon small class="mr-1">{{ mdiFormatListCheckbox }}</v-icon>
+
+                    <v-btn
+                        v-if="existsFileStructure"
+                        variant="text"
+                        rounded="0"
+                        class="d-none d-md-flex"
+                        @click="toggleFileStructure">
+                        <v-icon size="small" class="mr-1">{{ mdiFormatListCheckbox }}</v-icon>
                         {{ $t('Editor.FileStructure') }}
                     </v-btn>
                     <v-btn
                         v-if="restartServiceNameExists"
                         color="primary"
-                        text
-                        tile
+                        variant="text"
+                        rounded="0"
                         class="d-none d-sm-flex"
                         @click="save(restartServiceName)">
-                        <v-icon small class="mr-1">{{ mdiRestart }}</v-icon>
+                        <v-icon size="small" class="mr-1">{{ mdiRestart }}</v-icon>
                         {{ $t('Editor.SaveRestart') }}
                     </v-btn>
-                    <v-btn v-if="isWriteable" icon tile @click="save(null)">
-                        <v-icon>{{ mdiContentSave }}</v-icon>
-                    </v-btn>
-                    <v-btn icon tile @click="close">
-                        <v-icon>{{ mdiCloseThick }}</v-icon>
-                    </v-btn>
+                    <v-btn
+                        v-if="isWriteable"
+                        :icon="mdiContentSave"
+                        rounded="0"
+                        class="editor-header-icon-btn"
+                        @click="save(null)" />
+                    <v-btn :icon="mdiCloseThick" rounded="0" class="editor-header-icon-btn" @click="close" />
                 </template>
-                <v-card-text class="pa-0 d-flex">
+                <v-card-text class="pa-0 d-flex editor-content-area">
                     <codemirror-async
+                        ref="codemirrorRef"
                         v-if="show"
-                        ref="editor"
                         v-model="sourcecode"
                         :name="filename"
                         :file-extension="fileExtension"
+                        :validation-errors="visibleErrors"
                         class="codemirror"
                         :class="{ withSidebar: existsFileStructure && fileStructureSidebar }"
-                        @lineChange="lineChanges" />
+                        @line-change="lineChanges" />
                     <div v-if="existsFileStructure && fileStructureSidebar" class="d-none d-md-flex structure-sidebar">
                         <v-treeview
                             activatable
-                            dense
+                            density="compact"
                             :active="structureActive"
                             :open="structureOpen"
                             :item-key="treeviewItemKeyProp"
                             :items="configFileStructure"
                             class="w-100"
                             @update:active="activeChanges">
-                            <template #label="{ item }">
+                            <template #title="{ item }">
                                 <div
                                     class="cursor-pointer _structure-sidebar-item"
-                                    :class="item.type == 'item' ? 'ͼp' : 'ͼt'"
-                                    @click="activeChangesItemClick">
+                                    @click="activeChangesItemClick(item)">
                                     {{ item.name }}
                                 </div>
                             </template>
                             <template v-if="restartServiceName === 'klipper'" #append="{ item }">
                                 <v-btn
                                     v-if="item.type == 'section'"
-                                    icon
-                                    small
-                                    plain
-                                    color="grey darken-2"
+                                    :icon="mdiHelpCircle"
+                                    size="small"
+                                    variant="plain"
+                                    color="disabled"
                                     :href="klipperConfigReference + '#' + item.name.split(' ')[0]"
-                                    target="_blank">
-                                    <v-icon small class="mr-1">{{ mdiHelpCircle }}</v-icon>
-                                </v-btn>
+                                    target="_blank" />
                             </template>
                         </v-treeview>
                     </div>
                 </v-card-text>
+
+                <!-- Validation console (sticky bottom) -->
+                <div
+                    v-if="validationErrors.length > 0"
+                    class="validation-console"
+                    :style="{ height: consoleHeight + 'px' }">
+                    <div class="validation-console__resize-handle" @pointerdown="onResizeStart" />
+                    <div class="validation-console__header">
+                        <span class="validation-console__title">
+                            {{ validationErrors.length }} issue{{ validationErrors.length !== 1 ? 's' : '' }} found
+                        </span>
+                        <v-spacer />
+                        <v-select
+                            v-model="annotationFilter"
+                            :items="[
+                                { title: 'All', value: 'all' },
+                                { title: 'Errors', value: 'errors' },
+                                { title: 'Warnings', value: 'warnings' },
+                            ]"
+                            density="compact"
+                            variant="outlined"
+                            hide-details
+                            style="min-width: 90px; max-width: 120px" />
+                        <v-btn icon size="x-small" variant="text" @click="validationErrors = []">
+                            <v-icon size="small">{{ mdiCloseThick }}</v-icon>
+                        </v-btn>
+                    </div>
+                    <div ref="validationConsoleBodyRef" class="validation-console__body">
+                        <div
+                            v-for="(err, idx) in visibleErrors"
+                            :key="idx"
+                            role="button"
+                            tabindex="0"
+                            class="validation-console__item"
+                            :class="[
+                                'validation-console__item--' + err.severity,
+                                { 'validation-console__item--active': activeValidationErrorIndex === idx },
+                            ]"
+                            :data-validation-index="idx"
+                            @click="jumpToLine(err.line)"
+                            @keydown.enter.prevent="jumpToLine(err.line)"
+                            @keydown.space.prevent="jumpToLine(err.line)">
+                            <span class="validation-console__icon">
+                                {{ err.severity === 'error' ? '\u2716' : '\u26A0' }}
+                            </span>
+                            <span class="validation-console__line">L{{ err.line }}</span>
+                            <span class="validation-console__msg">{{ err.message }}</span>
+                        </div>
+                    </div>
+                </div>
             </panel>
         </v-dialog>
-        <v-snackbar v-model="loaderBool" :timeout="-1" fixed right bottom>
+        <v-snackbar v-model="loaderBool" :timeout="-1" location="bottom right">
             <div>
                 {{ snackbarHeadline }}
                 <br />
@@ -111,13 +167,13 @@
                 <br />
                 <v-progress-linear
                     class="mt-2"
-                    :value="(100 * loaderProgress.loaded) / loaderProgress.total"></v-progress-linear>
+                    :model-value="(100 * loaderProgress.loaded) / loaderProgress.total"></v-progress-linear>
             </template>
             <template v-else>
                 <v-progress-linear class="mt-2" indeterminate></v-progress-linear>
             </template>
-            <template #action="{ attrs }">
-                <v-btn color="red" text v-bind="attrs" style="min-width: auto" tile @click="cancelDownload">
+            <template #actions>
+                <v-btn color="error" variant="text" style="min-width: auto" rounded="0" @click="cancelDownload">
                     <v-icon class="0">{{ mdiClose }}</v-icon>
                 </v-btn>
             </template>
@@ -129,9 +185,7 @@
                 :title="$t('Editor.UnsavedChanges')"
                 :margin-bottom="false">
                 <template #buttons>
-                    <v-btn icon tile @click="dialogConfirmChange = false">
-                        <v-icon>{{ mdiCloseThick }}</v-icon>
-                    </v-btn>
+                    <v-btn :icon="mdiCloseThick" rounded="0" @click="dialogConfirmChange = false" />
                 </template>
                 <v-card-text class="pt-3">
                     <v-row>
@@ -143,14 +197,14 @@
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer />
-                    <v-btn text @click="discardChanges">
+                    <v-btn variant="text" @click="discardChanges">
                         {{ $t('Editor.DontSave') }}
                     </v-btn>
-                    <v-btn text color="primary" @click="save">
+                    <v-btn variant="text" color="primary" @click="save">
                         {{ $t('Editor.SaveClose') }}
                     </v-btn>
                     <template v-if="restartServiceNameExists">
-                        <v-btn text color="primary" @click="save(restartServiceName)">
+                        <v-btn variant="text" color="primary" @click="save(restartServiceName)">
                             {{ $t('Editor.SaveRestart') }}
                         </v-btn>
                     </template>
@@ -161,16 +215,22 @@
     </div>
 </template>
 
-<script lang="ts">
-import { Component, Mixins, Ref, Watch } from 'vue-property-decorator'
-import BaseMixin from '@/components/mixins/base'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { useStore } from 'vuex'
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
+import { useBase } from '@/composables/useBase'
 import { capitalize, formatFilesize, windowBeforeUnloadFunction } from '@/plugins/helpers'
-import Panel from '@/components/ui/Panel.vue'
+import { $toast } from '@/store/runtime'
 import { klipperRepos } from '@/store/variables'
-import CodemirrorAsync from '@/components/inputs/CodemirrorAsync'
-import type Codemirror from '@/components/inputs/Codemirror.vue'
+import CodemirrorAsync from '@/components/inputs/CodemirrorAsync.vue'
+import { validateCfg, type CfgValidationError } from '@/utils/cfgValidator'
 import {
+    mdiAlert,
+    mdiAlertCircle,
     mdiClose,
+    mdiCloseCircle,
     mdiCloseThick,
     mdiContentSave,
     mdiFileDocumentOutline,
@@ -184,318 +244,351 @@ import {
 import DevicesDialog from '@/components/dialogs/DevicesDialog.vue'
 import { ConfigFileSection } from '@/store/files/types'
 
-@Component({
-    components: { DevicesDialog, Panel, CodemirrorAsync },
+const store = useStore()
+const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
+const { printer_state, klipperAppName } = useBase()
+
+const editorFilePath = computed(() => {
+    if (!store.state.editor.bool) return null
+    const parts = [store.state.editor.fileroot]
+    if (store.state.editor.filepath) parts.push(store.state.editor.filepath)
+    parts.push(store.state.editor.filename)
+    return parts.join('/')
 })
-export default class TheEditor extends Mixins(BaseMixin) {
-    dialogConfirmChange = false
-    dialogDevices = false
-    treeviewItemKeyProp = 'line' as const
-    structureActive: number[] = []
-    structureOpen: number[] = []
-    structureActiveChangedBySidebar: boolean = false
 
-    formatFilesize = formatFilesize
+const isRestoring = ref(false)
 
-    /**
-     * Icons
-     */
-    mdiCloseThick = mdiCloseThick
-    mdiHelp = mdiHelp
-    mdiContentSave = mdiContentSave
-    mdiRestart = mdiRestart
-    mdiClose = mdiClose
-    mdiHelpCircle = mdiHelpCircle
-    mdiFileDocumentEditOutline = mdiFileDocumentEditOutline
-    mdiFileDocumentOutline = mdiFileDocumentOutline
-    mdiUsb = mdiUsb
-    mdiFormatListCheckbox = mdiFormatListCheckbox
-
-    @Ref() readonly editor!: typeof Codemirror
-
-    get changed() {
-        return this.$store.state.editor.changed ?? false
+watch(editorFilePath, (newPath) => {
+    if (isRestoring.value) return
+    const query = { ...route.query }
+    if (newPath) {
+        query.editorFile = newPath
+    } else {
+        delete query.editorFile
     }
+    router.replace({ query })
+})
 
-    get changedOutput() {
-        return this.changed ? '*' : ''
-    }
+onMounted(async () => {
+    const filePath = route.query.editorFile as string | undefined
+    if (!filePath || store.state.editor.bool) return
 
-    get show() {
-        return this.$store.state.editor.bool ?? false
-    }
+    const parts = filePath.split('/')
+    if (parts.length < 2) return
 
-    get filepath(): string {
-        return this.$store.state.editor.filepath ?? ''
-    }
-
-    get filename(): string {
-        return this.$store.state.editor.filename ?? ''
-    }
-
-    get filenameWithoutExtension(): string {
-        if (this.filename.lastIndexOf('.')) return this.filename.slice(0, this.filename.lastIndexOf('.'))
-
-        return this.filename
-    }
-
-    get fileExtension() {
-        if (this.filename.lastIndexOf('.')) return this.filename.slice(this.filename.lastIndexOf('.') + 1)
-
-        return ''
-    }
-
-    get fileroot() {
-        return this.$store.state.editor.fileroot ?? 'gcodes'
-    }
-
-    get permissions(): string {
-        return this.$store.state.editor.permissions ?? 'r'
-    }
-
-    get isWriteable() {
-        return this.permissions.includes('w')
-    }
-
-    get sourcecode() {
-        return this.$store.state.editor.sourcecode ?? ''
-    }
-
-    set sourcecode(newVal) {
-        this.$store.dispatch('editor/updateSourcecode', newVal)
-    }
-
-    get loaderBool() {
-        return this.$store.state.editor.loaderBool ?? false
-    }
-
-    get loaderProgress() {
-        return this.$store.state.editor.loaderProgress ?? {}
-    }
-
-    get snackbarHeadline() {
-        let directionUppercase = this.$t('Editor.Downloading')
-        if (this.loaderProgress.direction) directionUppercase = capitalize(this.loaderProgress.direction)
-
-        return this.$t(`Editor.${directionUppercase}`)
-    }
-
-    get availableServices() {
-        return this.$store.state.server.system_info?.available_services ?? []
-    }
-
-    get restartAllowedOrPossible() {
-        if (!this.isWriteable) return null
-        if (['printing', 'paused'].includes(this.printer_state)) return null
-
-        return true
-    }
-
-    get restartServiceName() {
-        // check for generic services <service>.conf (like moonraker.conf, crowsnest.conf, sonar.conf)
-        if (this.availableServices.includes(this.filenameWithoutExtension) && this.fileExtension === 'conf')
-            return this.filenameWithoutExtension
-
-        // old webcam service DEPRECATED
-        if (this.filename.startsWith('webcam') && ['conf', 'txt'].includes(this.fileExtension)) return 'webcamd'
-
-        // check for mooncord config files
-        if (this.filename.startsWith('mooncord') && this.fileExtension === 'json') return 'mooncord'
-
-        // fallback for moonraker with multi instances
-        if (this.filename === 'moonraker.conf') return 'moonraker'
-
-        // all .cfg files will be klipper config files
-        if (this.fileExtension === 'cfg') return 'klipper'
-
-        return null
-    }
-
-    get restartServiceNameExists() {
-        if (!this.restartAllowedOrPossible) return false
-
-        // hide the button, if there is no service found
-        if (this.restartServiceName === null) return false
-
-        // klipper and moonraker uses specific api calls instead of generic service restart
-        if (['klipper', 'moonraker'].includes(this.restartServiceName)) return true
-
-        return this.availableServices.includes(this.restartServiceName)
-    }
-
-    get confirmUnsavedChanges() {
-        return this.$store.state.gui.editor.confirmUnsavedChanges ?? false
-    }
-
-    get escToClose() {
-        return this.$store.state.gui.editor.escToClose ?? false
-    }
-
-    get title() {
-        const title = this.filepath ? `${this.filepath}/${this.filename}` : this.filename
-
-        if (!this.isWriteable) return `${title} (${this.$t('Editor.FileReadOnly')})`
-
-        return `${title} ${this.changedOutput}`
-    }
-
-    get currentLanguage() {
-        return this.$store.state.gui.general.language
-    }
-
-    get klipperConfigReference(): string {
-        const currentLanguage = this.currentLanguage
-        const klipperRepo = klipperRepos[this.klipperAppName] ?? klipperRepos.Klipper
-
-        let url = klipperRepo.url
-        if (klipperRepo.docsLanguages?.includes(currentLanguage)) {
-            url += `${currentLanguage}/`
-        }
-
-        url += 'Config_Reference.html'
-
-        return url
-    }
-
-    get fileStructureSidebar() {
-        return this.$store.state.gui.editor.fileStructureSidebar
-    }
-
-    set fileStructureSidebar(newVal) {
-        this.$store.dispatch('gui/saveSetting', { name: 'editor.fileStructureSidebar', value: newVal })
-    }
-
-    get configFileStructure(): ConfigFileSection[] {
-        if (!['conf', 'cfg'].includes(this.fileExtension)) return []
-
-        const lines = this.sourcecode.split(/\n/gi)
-        const regex = /^[^#\S]*?(\[(?<section>.*?)]|(?<name>\w+)\s*?[:=])/gim
-        const structure: ConfigFileSection[] = []
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i]
-            const matches = [...line.matchAll(regex)]
-
-            // break if no matches were found
-            if (matches.length === 0) continue
-
-            const match = matches[0]
-            if (match['groups']['section']) {
-                structure.push({
-                    name: match['groups']['section'],
-                    type: 'section',
-                    line: i + 1,
-                    children: [],
-                })
-
-                continue
-            }
-
-            if (structure.length && match['groups']['name']) {
-                structure[structure.length - 1]['children'].push({
-                    name: match['groups']['name'],
-                    type: 'item',
-                    line: i + 1,
-                })
-            }
-        }
-
-        return structure
-    }
-
-    get existsFileStructure() {
-        return this.configFileStructure.length > 0
-    }
-
-    toggleFileStructure() {
-        this.fileStructureSidebar = !this.fileStructureSidebar
-    }
-
-    cancelDownload() {
-        this.$store.dispatch('editor/cancelLoad')
-    }
-
-    escClose() {
-        if (this.escToClose) this.close()
-    }
-
-    close() {
-        if (this.confirmUnsavedChanges) this.promptUnsavedChanges()
-        else this.$store.dispatch('editor/close')
-    }
-
-    discardChanges() {
-        this.dialogConfirmChange = false
-        this.$store.dispatch('editor/close')
-    }
-
-    promptUnsavedChanges() {
-        if (!this.changed || !this.isWriteable) this.$store.dispatch('editor/close')
-        else this.dialogConfirmChange = true
-    }
-
-    save(restartServiceName: string | null = null) {
-        this.dialogConfirmChange = false
-
-        this.$store.dispatch('editor/saveFile', {
-            content: this.sourcecode,
-            restartServiceName: restartServiceName,
+    isRestoring.value = true
+    try {
+        await store.dispatch('editor/openFile', {
+            root: parts[0],
+            path: parts.length > 2 ? parts.slice(1, -1).join('/') : '',
+            filename: parts[parts.length - 1],
+            size: 0,
+            permissions: 'rw',
         })
+    } catch {
+        const query = { ...route.query }
+        delete query.editorFile
+        router.replace({ query })
+    } finally {
+        isRestoring.value = false
     }
+})
 
-    // Relies on event bubbling to flip the flag before treeview active change is handled
-    activeChangesItemClick() {
-        this.structureActiveChangedBySidebar = true
-    }
+const dialogConfirmChange = ref(false)
+const validationErrors = ref<CfgValidationError[]>([])
+const annotationFilter = ref<'all' | 'errors' | 'warnings'>('all')
+const codemirrorRef = ref<{ gotoLine?: (line: number) => void } | null>(null)
+const validationConsoleBodyRef = ref<HTMLElement | null>(null)
+const currentEditorLine = ref<number | null>(null)
+let validationRunId = 0
 
-    activeChanges(activeItems: Array<ConfigFileSection[typeof this.treeviewItemKeyProp]>) {
-        if (!this.structureActiveChangedBySidebar) {
+// Resize state for validation console
+const consoleHeight = ref(Math.round(window.innerHeight * 0.4))
+let resizeStartY = 0
+let resizeStartH = 0
+
+function onResizeStart(e: PointerEvent) {
+    resizeStartY = e.clientY
+    resizeStartH = consoleHeight.value
+    window.addEventListener('pointermove', onResizeMove)
+    window.addEventListener('pointerup', onResizeEnd)
+    e.preventDefault()
+}
+
+function onResizeMove(e: PointerEvent) {
+    const delta = resizeStartY - e.clientY
+    const vh = window.innerHeight
+    const minH = Math.round(vh * 0.1)
+    const maxH = Math.round(vh * 0.7)
+    consoleHeight.value = Math.max(minH, Math.min(maxH, resizeStartH + delta))
+}
+
+function onResizeEnd() {
+    window.removeEventListener('pointermove', onResizeMove)
+    window.removeEventListener('pointerup', onResizeEnd)
+}
+
+const visibleErrors = computed(() => {
+    if (annotationFilter.value === 'all') return validationErrors.value
+    return validationErrors.value.filter((e) => e.severity === annotationFilter.value.slice(0, -1))
+})
+const activeValidationErrorIndex = computed(() =>
+    currentEditorLine.value === null ? -1 : visibleErrors.value.findIndex((e) => e.line === currentEditorLine.value)
+)
+const dialogDevices = ref(false)
+const treeviewItemKeyProp = 'line' as const
+const structureActive = ref<number[]>([])
+const structureOpen = ref<number[]>([])
+const changed = computed(() => store.state.editor.changed ?? false)
+const changedOutput = computed(() => (changed.value ? '*' : ''))
+const show = computed(() => store.state.editor.bool ?? false)
+const filepath = computed((): string => store.state.editor.filepath ?? '')
+const filename = computed((): string => store.state.editor.filename ?? '')
+const filenameWithoutExtension = computed((): string => {
+    if (filename.value.lastIndexOf('.')) return filename.value.slice(0, filename.value.lastIndexOf('.'))
+    return filename.value
+})
+const fileExtension = computed(() => {
+    if (filename.value.lastIndexOf('.')) return filename.value.slice(filename.value.lastIndexOf('.') + 1)
+    return ''
+})
+const permissions = computed((): string => store.state.editor.permissions ?? 'r')
+const isWriteable = computed(() => permissions.value.includes('w'))
+const sourcecode = computed({
+    get: () => store.state.editor.sourcecode ?? '',
+    set: (newVal) => store.dispatch('editor/updateSourcecode', newVal),
+})
+
+async function runCfgValidation(content: string, fileName: string) {
+    const runId = ++validationRunId
+    const errors = await validateCfg(content, fileName)
+    if (runId !== validationRunId) return null
+    return [...errors].sort((a, b) => a.line - b.line)
+}
+
+watch(
+    [sourcecode, filename],
+    async ([content, fileName]) => {
+        if (!fileName.endsWith('.cfg') || !content) {
+            validationRunId++
+            validationErrors.value = []
             return
         }
 
-        this.structureActiveChangedBySidebar = false
+        await nextTick()
+        const errors = await runCfgValidation(content, fileName)
+        if (errors === null) return
+        validationErrors.value = errors
+    },
+    { immediate: true }
+)
 
-        if (!activeItems.length) {
-            return
+const loaderBool = computed(() => store.state.editor.loaderBool ?? false)
+const loaderProgress = computed(() => store.state.editor.loaderProgress ?? {})
+const snackbarHeadline = computed(() => {
+    let directionUppercase = t('Editor.Downloading')
+    if (loaderProgress.value.direction) directionUppercase = capitalize(loaderProgress.value.direction)
+    return t(`Editor.${directionUppercase}`)
+})
+const availableServices = computed(() => store.state.server.system_info?.available_services ?? [])
+const restartAllowedOrPossible = computed(() => {
+    if (!isWriteable.value) return null
+    if (['printing', 'paused'].includes(printer_state.value)) return null
+    return true
+})
+const restartServiceName = computed(() => {
+    if (availableServices.value.includes(filenameWithoutExtension.value) && fileExtension.value === 'conf')
+        return filenameWithoutExtension.value
+    if (filename.value.startsWith('webcam') && ['conf', 'txt'].includes(fileExtension.value)) return 'webcamd'
+    if (filename.value.startsWith('mooncord') && fileExtension.value === 'json') return 'mooncord'
+    if (filename.value === 'moonraker.conf') return 'moonraker'
+    if (fileExtension.value === 'cfg') return 'klipper'
+    return null
+})
+const restartServiceNameExists = computed(() => {
+    if (!restartAllowedOrPossible.value) return false
+    if (restartServiceName.value === null) return false
+    if (['klipper', 'moonraker'].includes(restartServiceName.value)) return true
+    return availableServices.value.includes(restartServiceName.value)
+})
+const confirmUnsavedChanges = computed(() => store.state.gui.editor.confirmUnsavedChanges ?? false)
+const escToClose = computed(() => store.state.gui.editor.escToClose ?? false)
+const title = computed(() => {
+    const title = filepath.value ? `${filepath.value}/${filename.value}` : filename.value
+    if (!isWriteable.value) return `${title} (${t('Editor.FileReadOnly')})`
+    return `${title} ${changedOutput.value}`
+})
+const currentLanguage = computed(() => store.state.gui.general.language)
+const klipperConfigReference = computed((): string => {
+    const currentLanguageValue = currentLanguage.value
+    const klipperRepo = klipperRepos[klipperAppName.value] ?? klipperRepos.Klipper
+    let url = klipperRepo.url
+    if (klipperRepo.docsLanguages?.includes(currentLanguageValue)) {
+        url += `${currentLanguageValue}/`
+    }
+    url += 'Config_Reference.html'
+    return url
+})
+const fileStructureSidebar = computed({
+    get: () => store.state.gui.editor.fileStructureSidebar,
+    set: (newVal) => store.dispatch('gui/saveSetting', { name: 'editor.fileStructureSidebar', value: newVal }),
+})
+const configFileStructure = computed((): ConfigFileSection[] => {
+    if (!['conf', 'cfg'].includes(fileExtension.value)) return []
+    const lines = sourcecode.value.split(/\n/gi)
+    const regex = /^[^#\S]*?(\[(?<section>.*?)]|(?<name>\w+)\s*?[:=])/gim
+    const structure: ConfigFileSection[] = []
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
+        const matches = [...line.matchAll(regex)]
+        if (matches.length === 0) continue
+        const match = matches[0]
+        if (match['groups']['section']) {
+            structure.push({
+                name: match['groups']['section'],
+                type: 'section',
+                line: i + 1,
+                children: [],
+            })
+            continue
         }
+        if (structure.length && match['groups']['name']) {
+            structure[structure.length - 1]['children'].push({
+                name: match['groups']['name'],
+                type: 'item',
+                line: i + 1,
+            })
+        }
+    }
+    return structure
+})
+const existsFileStructure = computed(() => configFileStructure.value.length > 0)
 
-        this.editor?.gotoLine(activeItems[0])
+function toggleFileStructure() {
+    fileStructureSidebar.value = !fileStructureSidebar.value
+}
+
+function cancelDownload() {
+    store.dispatch('editor/cancelLoad')
+}
+
+function escClose() {
+    if (escToClose.value) close()
+}
+
+function close() {
+    if (confirmUnsavedChanges.value) promptUnsavedChanges()
+    else store.dispatch('editor/close')
+}
+
+function discardChanges() {
+    dialogConfirmChange.value = false
+    store.dispatch('editor/close')
+}
+
+function promptUnsavedChanges() {
+    if (!changed.value || !isWriteable.value) store.dispatch('editor/close')
+    else dialogConfirmChange.value = true
+}
+
+async function save(restartServiceName: string | null = null) {
+    dialogConfirmChange.value = false
+
+    // Surface config validation results, but do not block saving.
+    const isCfgFile = filename.value.endsWith('.cfg')
+    let cfgValidationIssues: CfgValidationError[] = []
+    if (isCfgFile) {
+        cfgValidationIssues = (await runCfgValidation(sourcecode.value, filename.value)) ?? []
+        validationErrors.value = cfgValidationIssues
+    } else {
+        validationRunId++
+        validationErrors.value = []
     }
 
-    lineChanges(line: number) {
-        this.configFileStructure?.map((item) => {
-            if (item.line == line) {
-                this.structureActive = [line]
-            } else {
-                item.children?.map((child) => {
-                    if (child.line == line) {
-                        this.structureActive = [line]
-                        if (!this.structureOpen.includes(item.line)) this.structureOpen.push(item.line)
-                    }
-                })
-            }
-        })
-    }
+    const saveSucceeded = await store.dispatch('editor/saveFile', {
+        content: sourcecode.value,
+        restartServiceName: restartServiceName,
+    })
 
-    @Watch('changed')
-    changedChanged(newVal: boolean) {
-        if (!this.confirmUnsavedChanges) return
-
-        if (newVal) {
-            window.addEventListener('beforeunload', windowBeforeUnloadFunction)
-            return
-        }
-
-        window.removeEventListener('beforeunload', windowBeforeUnloadFunction)
+    if (saveSucceeded && cfgValidationIssues.length > 0) {
+        $toast.warning(
+            `Saved with ${cfgValidationIssues.length} validation issue${cfgValidationIssues.length === 1 ? '' : 's'}.`
+        )
     }
 }
+
+function activeChangesItemClick(item: ConfigFileSection) {
+    structureActive.value = [item.line]
+    jumpToLine(item.line)
+}
+
+function activeChanges(activeItems: Array<ConfigFileSection[typeof treeviewItemKeyProp]>) {
+    if (!activeItems.length) return
+    jumpToLine(activeItems[0])
+}
+
+function jumpToLine(line: number) {
+    codemirrorRef.value?.gotoLine?.(line)
+}
+
+function lineChanges(line: number) {
+    currentEditorLine.value = line
+
+    configFileStructure.value?.map((item) => {
+        if (item.line == line) {
+            structureActive.value = [line]
+        } else {
+            item.children?.map((child) => {
+                if (child.line == line) {
+                    structureActive.value = [line]
+                    if (!structureOpen.value.includes(item.line)) structureOpen.value.push(item.line)
+                }
+            })
+        }
+    })
+}
+
+watch(activeValidationErrorIndex, async (newIndex) => {
+    if (newIndex < 0) return
+
+    await nextTick()
+
+    const container = validationConsoleBodyRef.value
+    const activeItem = container?.querySelector<HTMLElement>(`[data-validation-index="${newIndex}"]`)
+    if (!container || !activeItem) return
+
+    const containerRect = container.getBoundingClientRect()
+    const activeItemRect = activeItem.getBoundingClientRect()
+    const targetTop =
+        container.scrollTop +
+        (activeItemRect.top - containerRect.top) -
+        container.clientHeight / 2 +
+        activeItemRect.height / 2
+    const maxScrollTop = container.scrollHeight - container.clientHeight
+
+    container.scrollTo({
+        top: Math.max(0, Math.min(targetTop, maxScrollTop)),
+        behavior: 'smooth',
+    })
+})
+
+watch(changed, (newVal: boolean) => {
+    if (!confirmUnsavedChanges.value) return
+    if (newVal) {
+        window.addEventListener('beforeunload', windowBeforeUnloadFunction)
+        return
+    }
+    window.removeEventListener('beforeunload', windowBeforeUnloadFunction)
+})
 </script>
 <style scoped>
-::v-deep .ͼ1 .cm-panel.cm-search *:focus:not(.focus-visible) {
+:deep(.ͼ1 .cm-panel.cm-search *:focus:not(.focus-visible)) {
     outline: none;
 }
 
-::v-deep .ͼ1 .cm-panel.cm-search input[type='checkbox'] {
+:deep(.ͼ1 .cm-panel.cm-search input[type='checkbox']) {
     width: 2.2em;
     height: 2.2em;
     color: dodgerblue;
@@ -511,9 +604,7 @@ export default class TheEditor extends Mixins(BaseMixin) {
     margin-right: 0.5em;
 }
 
-/* Pseudo element for check styling */
-
-::v-deep .ͼ1 .cm-panel.cm-search input[type='checkbox']::before {
+:deep(.ͼ1 .cm-panel.cm-search input[type='checkbox']::before) {
     content: '';
     color: transparent;
     display: block;
@@ -523,17 +614,15 @@ export default class TheEditor extends Mixins(BaseMixin) {
     border: 2px;
     background-color: transparent;
     background-size: contain;
-    box-shadow: inset 0 0 0 1px #ccd3d8;
-    font-size: 16px;
+    box-shadow: inset 0 0 0 1px rgba(var(--v-theme-on-surface), 0.23);
+    font-size: 1rem;
 }
 
-/* Checked */
-
-::v-deep .ͼ1 .cm-panel.cm-search input[type='checkbox']:checked {
+:deep(.ͼ1 .cm-panel.cm-search input[type='checkbox']:checked) {
     background-color: var(--color-primary);
 }
 
-::v-deep .ͼ1 .cm-panel.cm-search input[type='checkbox']:checked::before {
+:deep(.ͼ1 .cm-panel.cm-search input[type='checkbox']:checked::before) {
     box-shadow: none;
     background-color: var(--color-primary);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E %3Cpath d='M15.88 8.29L10 14.17l-1.88-1.88a.996.996 0 1 0-1.41 1.41l2.59 2.59c.39.39 1.02.39 1.41 0L17.3 9.7a.996.996 0 0 0 0-1.41c-.39-.39-1.03-.39-1.42 0z' fill='%23fffff'/%3E %3C/svg%3E");
@@ -549,9 +638,11 @@ export default class TheEditor extends Mixins(BaseMixin) {
 }
 
 .structure-sidebar {
+    height: 100%;
+    min-height: 0;
     width: 300px;
     overflow-y: auto;
-    max-height: calc(100vh - 48px);
+    max-height: none;
 }
 ._structure-sidebar-item {
     text-overflow: ellipsis;
@@ -559,7 +650,136 @@ export default class TheEditor extends Mixins(BaseMixin) {
     white-space: nowrap;
 }
 
-::v-deep .v-treeview-node__level + .v-treeview-node__level {
-    width: 12px;
+.editor-header-icon-btn + .editor-header-icon-btn {
+    margin-inline-start: 8px;
+}
+
+:deep(.editor-dialog) .panel-content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.editor-content-area {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.editor-content-area :deep(.codemirror) {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+:deep(.editor-dialog) .panel-content {
+    min-height: 60vh;
+}
+
+:deep(.editor-dialog .v-toolbar__content) {
+    padding-right: 8px;
+}
+
+:deep(.editor-dialog .cm-editor) {
+    height: 100%;
+}
+
+.validation-console {
+    border-top: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+    background: rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.75rem;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.validation-console__resize-handle {
+    height: 4px;
+    cursor: ns-resize;
+    background: rgba(var(--v-theme-on-surface), 0.08);
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.validation-console__resize-handle:hover,
+.validation-console__resize-handle:active {
+    background: rgb(var(--v-theme-primary));
+}
+
+.validation-console__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px 4px 12px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: rgba(var(--v-theme-on-surface), 0.5);
+    border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+    flex-shrink: 0;
+}
+
+.validation-console__body {
+    padding: 4px 0;
+    overflow-y: auto;
+    flex: 1 1 auto;
+}
+
+.validation-console__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 3px 12px;
+    line-height: 1.5;
+    transition: background 0.1s;
+    cursor: pointer;
+}
+
+.validation-console__item:hover,
+.validation-console__item:focus-visible {
+    background: rgba(var(--v-theme-on-surface), 0.05);
+    outline: none;
+}
+
+.validation-console__item--active {
+    background: rgba(var(--v-theme-primary), 0.18);
+    box-shadow: inset 2px 0 0 rgb(var(--v-theme-primary));
+}
+
+.validation-console__icon {
+    flex-shrink: 0;
+    width: 14px;
+    text-align: center;
+    font-size: 0.6875rem;
+}
+
+.validation-console__item--error .validation-console__icon {
+    color: #f44336;
+}
+
+.validation-console__item--warning .validation-console__icon {
+    color: #ff9800;
+}
+
+.validation-console__line {
+    flex-shrink: 0;
+    color: rgba(var(--v-theme-on-surface), 0.4);
+    min-width: 36px;
+}
+
+.validation-console__msg {
+    color: rgba(var(--v-theme-on-surface), 0.75);
+    word-break: break-word;
+}
+
+.validation-console__item--error .validation-console__msg {
+    color: #ef9a9a;
+}
+
+.validation-console__item--warning .validation-console__msg {
+    color: #ffcc80;
 }
 </style>

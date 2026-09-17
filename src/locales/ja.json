@@ -235,7 +235,6 @@
     },
     "GCodeViewer": {
         "ClearLoadedFile": "クリア",
-        "CNCMode": "CNCモード",
         "ColorMode": "カラーモード",
         "Downloading": "ダウンロード中",
         "ForceLineRendering": "強制ラインレンダリング",
@@ -475,32 +474,6 @@
         "Headline": "手動プローブ"
     },
     "Panels": {
-        "ExtruderControlPanel": {
-            "Allowed": "許可",
-            "EstimatedExtrusion": "推定押し出し量:",
-            "Extrude": "押し出し",
-            "ExtruderTempTooLow": "エクストルーダー温度 <",
-            "ExtrusionFactor": "押し出し係数",
-            "ExtrusionFeedrate": "押し出し速度",
-            "FilamentLength": "フィラメント長",
-            "FirmwareRetractionSettings": {
-                "RetractLength": "引き込み長",
-                "RetractSpeed": "引き込み速度",
-                "UnretractExtraLength": "追加の戻り長",
-                "UnretractSpeed": "戻り速度"
-            },
-            "Headline": "エクストルーダー",
-            "LoadFilament": "フィラメントのロード",
-            "PressureAdvanceSettings": {
-                "Advance": "Pressure Advance",
-                "Extruder": "エクストルーダー",
-                "SmoothTime": "スムーズ時間"
-            },
-            "Requested": "要求",
-            "Retract": "引き込み",
-            "TooLargeExtrusion": "押し出しが量が大きすぎます!",
-            "UnloadFilament": "フィラメントのアンロード"
-        },
         "FarmPrinterPanel": {
             "ReconnectToPrinter": "再接続",
             "SwitchToPrinter": "プリンターへ切り替え",
@@ -631,18 +604,6 @@
             "TemperaturesInChart": "温度 [°C]",
             "TempTooHigh": "{name}の温度が高すぎます! (最高: {max})",
             "TempTooLow": "{name}の温度が低すぎます! (最低: {min})"
-        },
-        "ToolheadControlPanel": {
-            "Absolute": "絶対",
-            "ALL": "すべて",
-            "Headline": "ツールヘッド",
-            "PleaseConfigureSteps": "ステップを設定をしてください",
-            "Position": "位置",
-            "QGL": "QGL",
-            "Relative": "相対",
-            "SettingsInterfaceControl": "設定 > インターフェース > コントロール",
-            "SpeedFactor": "速度係数",
-            "ZTilt": "Z軸チルト"
         },
         "WebcamPanel": {
             "All": "すべて",
@@ -974,18 +935,10 @@
             "VariableFpsMin": "可変フレームレートの最低値"
         },
         "UiSettingsTab": {
-            "BoolBigThumbnail": "大きなサムネイル",
-            "BoolBigThumbnailDescription": "印刷中、状態パネルに大きなサムネイルを表示します。",
-            "BoolHideUploadAndPrintButton": "アップロード＆印刷ボタンを隠す",
-            "BoolHideUploadAndPrintButtonDescription": "上部バーの\"アップロード&印刷\"ボタンを表示または隠します。",
             "ConfirmOnEmergencyStop": "緊急停止時の確認",
             "ConfirmOnEmergencyStopDescription": "緊急停止時に確認ダイアログを表示します。",
             "ConfirmOnPowerDeviceChange": "電源デバイス変更時の確認",
             "ConfirmOnPowerDeviceChangeDescription": "電源デバイス変更時に確認ダイアログを表示します。",
-            "DisplayCANCEL_PRINT": "印刷取り消しの表示",
-            "DisplayCANCEL_PRINTDescription": "印刷取り消しボタンを常に表示します - 2層目の確認不要",
-            "GcodeThumbnails": "Gコードのサムネイル",
-            "GcodeThumbnailsDescription": "ボタンをクリックすると、説明書に移動します。",
             "Guide": "ガイド",
             "HideSaveConfigButtonForBedMesh": "ベッドメッシュ変更時の設定保存ボタンを表示しない",
             "HideSaveConfigButtonForBedMeshDescription": "ベッドメッシュの変更のみが保存の保留をされている時に、設定保存ボタンを表示しない。",

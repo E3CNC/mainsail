@@ -1,39 +1,38 @@
 import { getDefaultState } from './index'
-import Vue from 'vue'
 import { MutationTree } from 'vuex'
 import { PrinterTempHistoryState, PrinterTempHistoryStateSerie } from '@/store/printer/tempHistory/types'
 
 export const mutations: MutationTree<PrinterTempHistoryState> = {
-    reset(state) {
+    reset(state: PrinterTempHistoryState) {
         Object.assign(state, getDefaultState())
     },
 
-    setInitSource(state, payload) {
-        Vue.set(state, 'source', payload)
+    setInitSource(state: PrinterTempHistoryState, payload: any) {
+        state.source = payload
     },
 
-    setInitSeries(state, payload) {
-        Vue.set(state, 'series', payload)
+    setInitSeries(state: PrinterTempHistoryState, payload: any) {
+        state.series = payload
     },
 
-    addToSource(state, payload) {
+    addToSource(state: PrinterTempHistoryState, payload: any) {
         const newSource = [...state.source]
         newSource.push(payload.data)
         while (newSource.length > payload.maxHistory) newSource.splice(0, 1)
 
-        Vue.set(state, 'source', newSource)
+        state.source = newSource
     },
 
     // function for debugging tempchart update interval (browser sleep)
-    saveLastDate(state, payload) {
-        Vue.set(state, 'timeLastUpdate', payload)
+    saveLastDate(state: PrinterTempHistoryState, payload: any) {
+        state.timeLastUpdate = payload
     },
 
-    setUpdateSourceInterval(state, payload) {
-        Vue.set(state, 'updateSourceInterval', payload)
+    setUpdateSourceInterval(state: PrinterTempHistoryState, payload: any) {
+        state.updateSourceInterval = payload
     },
 
-    setColor(state, payload) {
+    setColor(state: PrinterTempHistoryState, payload: any) {
         state.series
             .filter((serie: PrinterTempHistoryStateSerie) => {
                 return payload.name === serie.name || serie.name.startsWith(payload.name + '-')

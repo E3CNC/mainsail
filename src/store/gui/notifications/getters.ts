@@ -1,6 +1,5 @@
 import { GetterTree } from 'vuex'
-import { GuiNotificationState, GuiNotificationStateDismissEntry, GuiNotificationStateEntry } from './types'
-import { ServerAnnouncementsStateEntry } from '@/store/server/announcements/types'
+import type { GuiNotificationState, GuiNotificationStateDismissEntry, GuiNotificationStateEntry } from './types'
 import i18n from '@/plugins/i18n.js'
 import { RootState, RootStateDependency } from '@/store/types'
 import { sha256 } from 'js-sha256'
@@ -8,14 +7,11 @@ import { PrinterStateKlipperConfigWarning } from '@/store/printer/types'
 import { detect } from 'detect-browser'
 import semver from 'semver'
 import { minBrowserVersions } from '@/store/variables'
-import { GuiMaintenanceStateEntry } from '@/store/gui/maintenance/types'
+import type { GuiMaintenanceStateEntry } from '@/store/gui/maintenance/types'
 
 export const getters: GetterTree<GuiNotificationState, RootState> = {
-    getNotifications: (state, getters) => {
+    getNotifications: (state: GuiNotificationState, getters: any) => {
         let notifications: GuiNotificationStateEntry[] = []
-
-        // moonraker announcements
-        notifications = notifications.concat(getters['getNotificationsAnnouncements'])
 
         // rpi flag notifications
         notifications = notifications.concat(getters['getNotificationsFlags'])
@@ -58,29 +54,7 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         })
     },
 
-    getNotificationsAnnouncements: (state, getters, rootState, rootGetters) => {
-        const notifications: GuiNotificationStateEntry[] = []
-
-        // moonraker announcements
-        const announcements = rootGetters['server/announcements/getAnnouncements']
-        if (announcements.length) {
-            announcements.forEach((entry: ServerAnnouncementsStateEntry) => {
-                notifications.push({
-                    id: 'announcement/' + entry.entry_id,
-                    priority: entry.priority,
-                    title: entry.title,
-                    description: entry.description,
-                    date: entry.date,
-                    dismissed: entry.dismissed,
-                    url: entry.url,
-                } as GuiNotificationStateEntry)
-            })
-        }
-
-        return notifications
-    },
-
-    getNotificationsFlags: (state, getters, rootState, rootGetters) => {
+    getNotificationsFlags: (state: GuiNotificationState, getters: any, rootState: RootState, rootGetters: any) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         // get all current flags
@@ -103,8 +77,8 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
                 notifications.push({
                     id: 'flag/' + flag,
                     priority: flag.startsWith('Previously') ? 'high' : 'critical',
-                    title: i18n.t(`App.ThrottledStates.Title${flag}`),
-                    description: i18n.t(`App.ThrottledStates.Description${flag}`),
+                    title: i18n.global.t(`App.ThrottledStates.Title${flag}`),
+                    description: i18n.global.t(`App.ThrottledStates.Description${flag}`),
                     date,
                     dismissed: false,
                 } as GuiNotificationStateEntry)
@@ -114,7 +88,12 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsDependencies: (state, getters, rootState, rootGetters) => {
+    getNotificationsDependencies: (
+        state: GuiNotificationState,
+        getters: any,
+        rootState: RootState,
+        rootGetters: any
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         let dependencies = rootGetters['getDependencies']
@@ -138,8 +117,10 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
                 notifications.push({
                     id: `dependency/${dependency.serviceName}/${dependency.neededVersion}`,
                     priority: 'high',
-                    title: i18n.t('App.Notifications.DependencyName', { name: dependency.serviceName }).toString(),
-                    description: i18n
+                    title: i18n.global
+                        .t('App.Notifications.DependencyName', { name: dependency.serviceName })
+                        .toString(),
+                    description: i18n.global
                         .t('App.Notifications.DependencyDescription', {
                             name: dependency.serviceName,
                             installedVersion: dependency.installedVersion,
@@ -155,7 +136,12 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsMoonrakerWarnings: (state, getters, rootState, rootGetters) => {
+    getNotificationsMoonrakerWarnings: (
+        state: GuiNotificationState,
+        getters: any,
+        rootState: RootState,
+        rootGetters: any
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         let warnings = rootState.server?.warnings ?? []
@@ -179,17 +165,21 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
                 if (warning.startsWith('Unparsed config option')) {
                     const warningRegExp = RegExp(/'(?<option>.+): (?<value>.+)'.+\[(?<section>.+)\]/)
                     const output = warningRegExp.exec(warning)?.groups ?? { option: '', section: '', value: '' }
-                    description = i18n.t('App.Notifications.MoonrakerWarnings.UnparsedConfigOption', output).toString()
+                    description = i18n.global
+                        .t('App.Notifications.MoonrakerWarnings.UnparsedConfigOption', output)
+                        .toString()
                 } else if (warning.startsWith('Unparsed config section')) {
                     const warningRegExp = RegExp(/\[(?<section>.+)\]/)
                     const output = warningRegExp.exec(warning)?.groups ?? { section: '' }
-                    description = i18n.t('App.Notifications.MoonrakerWarnings.UnparsedConfigSection', output).toString()
+                    description = i18n.global
+                        .t('App.Notifications.MoonrakerWarnings.UnparsedConfigSection', output)
+                        .toString()
                 }
 
                 notifications.push({
                     id: `moonrakerWarning/${sha256(warning)}`,
                     priority: 'high',
-                    title: i18n.t('App.Notifications.MoonrakerWarnings.MoonrakerWarning').toString(),
+                    title: i18n.global.t('App.Notifications.MoonrakerWarnings.MoonrakerWarning').toString(),
                     description: description,
                     date,
                     dismissed: false,
@@ -200,7 +190,12 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsMoonrakerFailedComponents: (state, getters, rootState, rootGetters) => {
+    getNotificationsMoonrakerFailedComponents: (
+        state: GuiNotificationState,
+        getters: any,
+        rootState: RootState,
+        rootGetters: any
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         let failedCompontents = rootState.server?.failed_components ?? []
@@ -221,8 +216,10 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
                 notifications.push({
                     id: `moonrakerFailedComponent/${component}`,
                     priority: 'high',
-                    title: i18n.t('App.Notifications.MoonrakerWarnings.MoonrakerComponent', { component }).toString(),
-                    description: i18n
+                    title: i18n.global
+                        .t('App.Notifications.MoonrakerWarnings.MoonrakerComponent', { component })
+                        .toString(),
+                    description: i18n.global
                         .t('App.Notifications.MoonrakerWarnings.MoonrakerFailedComponentDescription', { component })
                         .toString(),
                     date,
@@ -234,7 +231,12 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsMoonrakerFailedInitComponents: (state, getters, rootState, rootGetters) => {
+    getNotificationsMoonrakerFailedInitComponents: (
+        state: GuiNotificationState,
+        getters: any,
+        rootState: RootState,
+        rootGetters: any
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         let failedInitCompontents = rootState.server?.failed_init_components ?? []
@@ -257,10 +259,10 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
                 notifications.push({
                     id: `moonrakerFailedInitComponent/${component}`,
                     priority: 'high',
-                    title: i18n
+                    title: i18n.global
                         .t('App.Notifications.MoonrakerWarnings.MoonrakerInitComponent', { component })
                         .toString(),
-                    description: i18n
+                    description: i18n.global
                         .t('App.Notifications.MoonrakerWarnings.MoonrakerFailedInitComponentDescription', { component })
                         .toString(),
                     date,
@@ -272,7 +274,12 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsKlipperWarnings: (state, getters, rootState, rootGetters) => {
+    getNotificationsKlipperWarnings: (
+        state: GuiNotificationState,
+        getters: any,
+        rootState: RootState,
+        rootGetters: any
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         let warnings = (rootState.printer?.configfile?.warnings ?? []) as PrinterStateKlipperConfigWarning[]
@@ -290,18 +297,22 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
             warnings = warnings.filter((warning) => !warningsDismisses.includes(sha256(warning.message)))
 
             warnings.forEach((warning) => {
-                let title = i18n.t('App.Notifications.KlipperWarnings.KlipperWarning').toString()
+                let title = i18n.global.t('App.Notifications.KlipperWarnings.KlipperWarning').toString()
                 let description = warning.message
 
                 // add possible translations
                 if (warning.type === 'deprecated_value') {
-                    title = i18n.t('App.Notifications.KlipperWarnings.DeprecatedValueHeadline').toString()
-                    description = i18n.t('App.Notifications.KlipperWarnings.DeprecatedValue', warning).toString()
+                    title = i18n.global.t('App.Notifications.KlipperWarnings.DeprecatedValueHeadline').toString()
+                    description = i18n.global
+                        .t('App.Notifications.KlipperWarnings.DeprecatedValue', warning as any)
+                        .toString()
                 } else if (warning.type === 'deprecated_option') {
-                    title = i18n.t('App.Notifications.KlipperWarnings.DeprecatedOptionHeadline').toString()
-                    description = i18n.t('App.Notifications.KlipperWarnings.DeprecatedOption', warning).toString()
+                    title = i18n.global.t('App.Notifications.KlipperWarnings.DeprecatedOptionHeadline').toString()
+                    description = i18n.global
+                        .t('App.Notifications.KlipperWarnings.DeprecatedOption', warning as any)
+                        .toString()
                 } else if (warning.type === 'runtime_warning') {
-                    title = i18n.t('App.Notifications.KlipperWarnings.KlipperRuntimeWarning').toString()
+                    title = i18n.global.t('App.Notifications.KlipperWarnings.KlipperRuntimeWarning').toString()
                 }
 
                 // generate url to mainsail docs to fix this warning
@@ -326,7 +337,7 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsBrowserWarnings: (state, getters, rootState) => {
+    getNotificationsBrowserWarnings: (state: GuiNotificationState, getters: any, rootState: RootState) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         const browser = detect()
@@ -354,8 +365,8 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
             notifications.push({
                 id: `browserWarning/${minBrowserVersion.name}/${minBrowserVersion.version}`,
                 priority: 'critical',
-                title: i18n.t('App.Notifications.BrowserWarnings.Headline').toString(),
-                description: i18n
+                title: i18n.global.t('App.Notifications.BrowserWarnings.Headline').toString(),
+                description: i18n.global
                     .t('App.Notifications.BrowserWarnings.Description', {
                         name: minBrowserVersion.name,
                         version: browser.version,
@@ -370,7 +381,12 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsOverdueMaintenance: (state, getters, rootState, rootGetters) => {
+    getNotificationsOverdueMaintenance: (
+        state: GuiNotificationState,
+        getters: any,
+        rootState: RootState,
+        rootGetters: any
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
         let entries: GuiMaintenanceStateEntry[] = rootGetters['gui/maintenance/getOverdueEntries']
         if (entries.length == 0) return []
@@ -391,8 +407,10 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
             notifications.push({
                 id: `maintenance/${entry.id}`,
                 priority: 'high',
-                title: i18n.t('App.Notifications.MaintenanceReminder').toString(),
-                description: i18n.t('App.Notifications.MaintenanceReminderText', { name: entry.name }).toString(),
+                title: i18n.global.t('App.Notifications.MaintenanceReminder').toString(),
+                description: i18n.global
+                    .t('App.Notifications.MaintenanceReminderText', { name: entry.name })
+                    .toString(),
                 date,
                 dismissed: false,
             })
@@ -401,7 +419,7 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsOverheatDrivers: (state, getters, rootState) => {
+    getNotificationsOverheatDrivers: (state: GuiNotificationState, getters: any, rootState: RootState) => {
         const notifications: GuiNotificationStateEntry[] = []
         const date = rootState.server?.system_boot_at ?? new Date()
 
@@ -415,8 +433,8 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
                     notifications.push({
                         id: `tmcwarning/${key}-ot`,
                         priority: 'critical',
-                        title: i18n.t('App.Notifications.TmcOtFlag').toString(),
-                        description: i18n.t('App.Notifications.TmcOtFlagText', { name }).toString(),
+                        title: i18n.global.t('App.Notifications.TmcOtFlag').toString(),
+                        description: i18n.global.t('App.Notifications.TmcOtFlagText', { name }).toString(),
                         date,
                         dismissed: false,
                         url: 'https://www.klipper3d.org/TMC_Drivers.html#tmc-reports-error-ot1overtemperror',
@@ -427,8 +445,8 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
                     notifications.push({
                         id: `tmcwarning/${key}-otpw`,
                         priority: 'high',
-                        title: i18n.t('App.Notifications.TmcOtpwFlag').toString(),
-                        description: i18n.t('App.Notifications.TmcOtpwFlagText', { name }).toString(),
+                        title: i18n.global.t('App.Notifications.TmcOtpwFlag').toString(),
+                        description: i18n.global.t('App.Notifications.TmcOtpwFlagText', { name }).toString(),
                         date,
                         dismissed: false,
                         url: 'https://www.klipper3d.org/TMC_Drivers.html#tmc-reports-error-ot1overtemperror',
@@ -449,7 +467,7 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         })
     },
 
-    getDismiss: (state, getters, rootState) => {
+    getDismiss: (state: GuiNotificationState, getters: any, rootState: RootState) => {
         const currentTime = new Date()
         const systemBootAt = rootState.server?.system_boot_at ?? new Date()
         let dismisses = [...state.dismiss]
@@ -468,7 +486,7 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return dismisses
     },
 
-    getDismissByCategory: (state, getters) => (category: string) => {
+    getDismissByCategory: (state: GuiNotificationState, getters: any) => (category: string) => {
         let dismisses = getters.getDismiss
         dismisses = dismisses.filter((dismiss: GuiNotificationStateDismissEntry) => dismiss.category === category)
 

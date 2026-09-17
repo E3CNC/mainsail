@@ -1,32 +1,27 @@
-import { ActionTree } from 'vuex'
+import { ActionContext, ActionTree } from 'vuex'
 import { GuiNotificationState, GuiNotificationStateDismissEntry } from './types'
 import { RootState } from '../../types'
-import Vue from 'vue'
+import { getSocket } from '@/store/runtime'
 
 export const actions: ActionTree<GuiNotificationState, RootState> = {
-    reset({ commit }) {
+    reset({ commit }: ActionContext<GuiNotificationState, RootState>) {
         commit('reset')
     },
 
-    upload({ state }) {
-        Vue.$socket.emit('server.database.post_item', {
+    upload({ state }: ActionContext<GuiNotificationState, RootState>) {
+        getSocket().emit('server.database.post_item', {
             namespace: 'mainsail',
             key: 'notifications.dismiss',
             value: state.dismiss,
         })
     },
 
-    close({ dispatch }, payload) {
+    close({ dispatch }: ActionContext<GuiNotificationState, RootState>, payload: any) {
         const posFirstSlash = payload.id.indexOf('/')
         if (posFirstSlash === -1) return
 
         const category = payload.id.slice(0, posFirstSlash)
         const id = payload.id.slice(posFirstSlash + 1)
-
-        if (category === 'announcement') {
-            dispatch('server/announcements/close', { entry_id: id }, { root: true })
-            return
-        }
 
         dispatch('storeDismiss', {
             entry_id: id,
@@ -36,17 +31,12 @@ export const actions: ActionTree<GuiNotificationState, RootState> = {
         })
     },
 
-    dismiss({ dispatch }, payload) {
+    dismiss({ dispatch }: ActionContext<GuiNotificationState, RootState>, payload: any) {
         const posFirstSlash = payload.id.indexOf('/')
         if (posFirstSlash === -1) return
 
         const category = payload.id.slice(0, posFirstSlash)
         const id = payload.id.slice(posFirstSlash + 1)
-
-        if (category === 'announcement') {
-            dispatch('server/announcements/dismiss', { entry_id: id, time: payload.time }, { root: true })
-            return
-        }
 
         dispatch('storeDismiss', {
             entry_id: id,
@@ -57,7 +47,7 @@ export const actions: ActionTree<GuiNotificationState, RootState> = {
     },
 
     async storeDismiss(
-        { commit, dispatch, state },
+        { commit, dispatch, state }: ActionContext<GuiNotificationState, RootState>,
         payload: { entry_id: string; category: string; type: string; time: number | null }
     ) {
         let date = new Date().getTime()
@@ -74,7 +64,7 @@ export const actions: ActionTree<GuiNotificationState, RootState> = {
 
         if (
             state.dismiss.filter(
-                (dismiss) =>
+                (dismiss: any) =>
                     dismiss.id === newDismiss.id &&
                     dismiss.category === newDismiss.category &&
                     dismiss.type === newDismiss.type

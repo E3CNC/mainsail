@@ -1,50 +1,64 @@
-import Vue from 'vue'
-import { ActionTree } from 'vuex'
+import { ActionContext, ActionTree } from 'vuex'
 import { SocketState } from '@/store/socket/types'
 import { RootState } from '@/store/types'
+import { getSocket, $toast } from '@/store/runtime'
 
 export const actions: ActionTree<SocketState, RootState> = {
-    reset({ commit }) {
+    reset({ commit }: ActionContext<SocketState, RootState>) {
         commit('setDisconnected')
         commit('clearLoadings')
         commit('reset')
     },
 
-    setData({ commit }, payload) {
+    setData({ commit }: ActionContext<SocketState, RootState>, payload: any) {
         commit('setData', payload)
     },
 
-    async setSocket({ commit, state }, payload) {
+    async setSocket({ commit, state }: ActionContext<SocketState, RootState>, payload: any) {
         commit('setData', payload)
 
-        if ('$socket' in Vue.prototype) {
+        try {
+            const socket = getSocket()
             const normPath = payload.path.replaceAll(/(^\/*)|(\/*$)/g, '')
             const path = normPath.length > 0 ? `/${normPath}` : ''
 
-            await Vue.prototype.$socket.close()
-            await Vue.prototype.$socket.setUrl(
-                state.protocol + '://' + payload.hostname + ':' + payload.port + path + '/websocket'
-            )
-            await Vue.prototype.$socket.connect()
+            await socket.close()
+            await socket.setUrl(state.protocol + '://' + payload.hostname + ':' + payload.port + path + '/websocket')
+            await socket.connect()
+        } catch {
+            // socket not initialized yet
         }
     },
 
-    onOpen({ commit, dispatch, rootState }) {
+    onOpen({ commit, dispatch, rootState }: ActionContext<SocketState, RootState>) {
         //set socket connection to connected
         commit('setConnected')
 
         // init server
         dispatch('server/init', null, { root: true })
-
-        if (!rootState?.server?.updateManager?.updateResponse.complete)
-            commit('server/updateManager/setStatus', { busy: false }, { root: true })
     },
 
-    onClose({ commit }) {
+    onClose({ commit }: ActionContext<SocketState, RootState>) {
         commit('setDisconnected')
     },
 
-    onMessage({ commit, dispatch }, payload) {
+    onReconnecting({ commit, dispatch }: ActionContext<SocketState, RootState>) {
+        commit('setReconnecting', true)
+        $toast.info('Connection lost — reconnecting...', { duration: 4000 })
+    },
+
+    onReconnected({ commit, dispatch }: ActionContext<SocketState, RootState>) {
+        commit('setReconnecting', false)
+        commit('setConnected')
+        $toast.success('Connection restored', { duration: 3000 })
+        // Full server re-initialization after reconnect
+        dispatch('server/reset', null, { root: true })
+        dispatch('server/init', null, { root: true })
+        dispatch('printer/reset', null, { root: true })
+        dispatch('printer/init', null, { root: true })
+    },
+
+    onMessage({ commit, dispatch }: ActionContext<SocketState, RootState>, payload: any) {
         switch (payload.method) {
             case 'notify_status_update':
                 dispatch('printer/getData', payload.params[0], { root: true })
@@ -91,14 +105,6 @@ export const actions: ActionTree<SocketState, RootState> = {
                 commit('server/power/setStatus', payload.params[0], { root: true })
                 break
 
-            case 'notify_update_response':
-                commit('server/updateManager/addUpdateResponse', payload.params[0], { root: true })
-                break
-
-            case 'notify_update_refreshed':
-                dispatch('server/updateManager/onUpdateStatus', payload.params[0], { root: true })
-                break
-
             case 'notify_history_changed':
                 dispatch('server/history/getChanged', payload.params[0], { root: true })
                 break
@@ -115,24 +121,8 @@ export const actions: ActionTree<SocketState, RootState> = {
                 dispatch('server/jobQueue/getEvent', payload.params[0], { root: true })
                 break
 
-            case 'notify_announcement_update':
-                dispatch('server/announcements/getList', payload.params[0], { root: true })
-                break
-
-            case 'notify_announcement_dismissed':
-                dispatch('server/announcements/getDismissed', payload.params[0], { root: true })
-                break
-
-            case 'notify_announcement_wake':
-                dispatch('server/announcements/getWaked', payload.params[0], { root: true })
-                break
-
             case 'notify_webcams_changed':
                 dispatch('gui/webcams/initStore', payload.params[0], { root: true })
-                break
-
-            case 'notify_active_spool_set':
-                dispatch('server/spoolman/getActiveSpoolId', payload.params[0], { root: true })
                 break
 
             case 'notify_sensor_update':
@@ -144,37 +134,37 @@ export const actions: ActionTree<SocketState, RootState> = {
         }
     },
 
-    addLoading({ commit }, payload: string) {
+    addLoading({ commit }: ActionContext<SocketState, RootState>, payload: string) {
         commit('addLoading', payload)
     },
 
-    removeLoading({ commit }, payload: string) {
+    removeLoading({ commit }: ActionContext<SocketState, RootState>, payload: string) {
         commit('removeLoading', payload)
     },
 
-    clearLoadings({ commit }) {
+    clearLoadings({ commit }: ActionContext<SocketState, RootState>) {
         commit('clearLoadings')
     },
 
-    addInitModule({ commit }, payload: string) {
+    addInitModule({ commit }: ActionContext<SocketState, RootState>, payload: string) {
         commit('addInitModule', payload)
     },
 
     // remove only one module from init component like 'server/spoolman/getActiveSpoolId'
-    removeInitModule({ commit }, payload: string) {
+    removeInitModule({ commit }: ActionContext<SocketState, RootState>, payload: string) {
         commit('removeInitModule', payload)
     },
 
     // remove a complete init component like 'server/spoolman'
-    removeInitComponent({ commit }, payload: string) {
+    removeInitComponent({ commit }: ActionContext<SocketState, RootState>, payload: string) {
         commit('removeInitComponent', payload)
     },
 
-    reportDebug(_, payload) {
+    reportDebug(_context: ActionContext<SocketState, RootState>, payload: any) {
         window.console.log(payload)
     },
 
-    setConnectionFailed({ commit }, payload) {
+    setConnectionFailed({ commit }: ActionContext<SocketState, RootState>, payload: any) {
         commit('setDisconnected', payload)
     },
 }

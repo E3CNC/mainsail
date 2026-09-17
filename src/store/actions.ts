@@ -1,13 +1,13 @@
 import router from '@/plugins/router'
-import { ActionTree } from 'vuex'
+import { ActionContext, ActionTree } from 'vuex'
 import { ConfigJson, RootState } from './types'
 
 export const actions: ActionTree<RootState, RootState> = {
     switchToDashboard() {
-        if (router.currentRoute.fullPath !== '/') router.push('/')
+        if (router.currentRoute.value.fullPath !== '/') router.push('/')
     },
 
-    changePrinter({ dispatch, getters }, payload) {
+    changePrinter({ dispatch, getters }: ActionContext<RootState, RootState>, payload: any) {
         dispatch('files/reset')
         dispatch('gui/reset')
         dispatch('printer/reset')
@@ -23,14 +23,14 @@ export const actions: ActionTree<RootState, RootState> = {
         })
     },
 
-    setNaviDrawer({ commit }, payload) {
+    setNaviDrawer({ commit }: ActionContext<RootState, RootState>, payload: any) {
         commit('setNaviDrawer', payload)
     },
 
     /**
      * This function will parse the config.json content and config mainsail
      */
-    async importConfigJson({ commit }, payload: ConfigJson) {
+    async importConfigJson({ commit }: ActionContext<RootState, RootState>, payload: ConfigJson) {
         type RootStateInstancesDbType = 'moonraker' | 'browser' | 'json'
         let instancesDB: RootStateInstancesDbType = payload.instancesDB ?? 'moonraker'
         if (import.meta.env.VUE_APP_INSTANCES_DB)

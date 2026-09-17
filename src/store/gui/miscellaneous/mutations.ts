@@ -1,6 +1,5 @@
 import { getDefaultState } from './index'
 import { MutationTree } from 'vuex'
-import Vue from 'vue'
 import {
     GuiMiscellaneousState,
     GuiMiscellaneousStateEntry,
@@ -10,11 +9,11 @@ import {
 import { v4 as uuidv4 } from 'uuid'
 
 export const mutations: MutationTree<GuiMiscellaneousState> = {
-    reset(state) {
+    reset(state: GuiMiscellaneousState) {
         Object.assign(state, getDefaultState())
     },
 
-    store(state, payload: payloadStore) {
+    store(state: GuiMiscellaneousState, payload: payloadStore) {
         const values: GuiMiscellaneousStateEntry = {
             name: payload.values.name,
             type: payload.values.type,
@@ -22,41 +21,41 @@ export const mutations: MutationTree<GuiMiscellaneousState> = {
             presets: {},
         }
 
-        Vue.set(state.entries, payload.id, values)
+        state.entries[payload.id] = values
     },
 
-    storeLightgroup(state, payload: payloadCreateLightgroup) {
+    storeLightgroup(state: GuiMiscellaneousState, payload: payloadCreateLightgroup) {
         const lightgroupId = uuidv4()
 
-        Vue.set(state.entries[payload.entryId].lightgroups, lightgroupId, payload.values)
+        state.entries[payload.entryId].lightgroups[lightgroupId] = payload.values
     },
 
-    updateLightgroup(state, payload: payloadUpdateLightgroup) {
-        Vue.set(state.entries[payload.entryId].lightgroups, payload.lightgroupId, payload.values)
+    updateLightgroup(state: GuiMiscellaneousState, payload: payloadUpdateLightgroup) {
+        state.entries[payload.entryId].lightgroups[payload.lightgroupId] = payload.values
     },
 
-    destroyLightgroup(state, payload: payloadDestroyLightgroup) {
+    destroyLightgroup(state: GuiMiscellaneousState, payload: payloadDestroyLightgroup) {
         const entry = { ...state.entries[payload.entryId] }
         delete entry.lightgroups[payload.lightgroupId]
 
-        Vue.set(state.entries, payload.entryId, entry)
+        state.entries[payload.entryId] = entry
     },
 
-    storePreset(state, payload: payloadCreatePreset) {
+    storePreset(state: GuiMiscellaneousState, payload: payloadCreatePreset) {
         const presetId = uuidv4()
 
-        Vue.set(state.entries[payload.entryId].presets, presetId, payload.values)
+        state.entries[payload.entryId].presets[presetId] = payload.values
     },
 
-    updatePreset(state, payload: payloadUpdatePreset) {
-        Vue.set(state.entries[payload.entryId].presets, payload.presetId, payload.values)
+    updatePreset(state: GuiMiscellaneousState, payload: payloadUpdatePreset) {
+        state.entries[payload.entryId].presets[payload.presetId] = payload.values
     },
 
-    destroyPreset(state, payload: payloadDestroyPreset) {
+    destroyPreset(state: GuiMiscellaneousState, payload: payloadDestroyPreset) {
         const entry = { ...state.entries[payload.entryId] }
         delete entry.presets[payload.presetId]
 
-        Vue.set(state.entries, payload.entryId, entry)
+        state.entries[payload.entryId] = entry
     },
 }
 

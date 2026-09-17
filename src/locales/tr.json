@@ -249,7 +249,6 @@
     },
     "GCodeViewer": {
         "ClearLoadedFile": "Temizle",
-        "CNCMode": "CNC Modu",
         "ColorMode": "Renk modu",
         "Downloading": "İndiriliyor",
         "ForceLineRendering": "Çizgi İşlemeyi Zorla",
@@ -515,32 +514,6 @@
         "Headline": "Manuel Prob"
     },
     "Panels": {
-        "ExtruderControlPanel": {
-            "Allowed": "İzin Verildi",
-            "EstimatedExtrusion": "Ekstrüzyon:",
-            "Extrude": "Ekstrüzyon",
-            "ExtruderTempTooLow": "Ekstruder sıc. <",
-            "ExtrusionFactor": "Ekstrüzyon Faktörü",
-            "ExtrusionFeedrate": "Ekstrüzyon Besleme Hızı",
-            "FilamentLength": "Filament Uzunluğu",
-            "FirmwareRetractionSettings": {
-                "RetractLength": "Geri Çekme Uzunluğu",
-                "RetractSpeed": "Geri Çekme Hızı",
-                "UnretractExtraLength": "Geri Çekme Sonrası Ekstra Uzunluk",
-                "UnretractSpeed": "Geri Çekme Sonrası Hız"
-            },
-            "Headline": "Ekstruder",
-            "LoadFilament": "Filament Yükle",
-            "PressureAdvanceSettings": {
-                "Advance": "Basınç Artışı",
-                "Extruder": "Ekstruder",
-                "SmoothTime": "Pürüzsüzleştirme Süresi"
-            },
-            "Requested": "Talep Edildi",
-            "Retract": "Geri Çekme",
-            "TooLargeExtrusion": "Ekstrüzyon çok büyük!",
-            "UnloadFilament": "Filamenti Boşalt"
-        },
         "FarmPrinterPanel": {
             "ReconnectToPrinter": "Yazıcıya Yeniden Bağlan",
             "SwitchToPrinter": "Yazıcıya Geç",
@@ -671,18 +644,6 @@
             "TemperaturesInChart": "Sıcaklık [°C]",
             "TempTooHigh": "{name} için sıcaklık çok yüksek! (maks: {max})",
             "TempTooLow": "{name} için sıcaklık çok düşük! (min: {min})"
-        },
-        "ToolheadControlPanel": {
-            "Absolute": "mutlak",
-            "ALL": "TÜMÜ",
-            "Headline": "Araç Başlığı",
-            "PleaseConfigureSteps": "Lütfen adımları yapılandırın",
-            "Position": "Konum",
-            "QGL": "QGL",
-            "Relative": "göreceli",
-            "SettingsInterfaceControl": "Ayarlar > Arayüz > Kontrol",
-            "SpeedFactor": "Hız faktörü",
-            "ZTilt": "Z-Eğimi"
         },
         "WebcamPanel": {
             "All": "Tümü",
@@ -1024,20 +985,10 @@
         "UiSettingsTab": {
             "BedScrewsDialog": "Tabla Vidaları Diyaloğu",
             "BedScrewsDialogDescription": "BED_SCREWS_ADJUST için yardımcı diyaloğu göster",
-            "BoolBigThumbnail": "Büyük küçük resim",
-            "BoolBigThumbnailDescription": "Bir baskı sırasında durum panelinde büyük küçük resim göster",
-            "BoolHideUploadAndPrintButton": "Yükle ve Baskı Düğmesini Gizle",
-            "BoolHideUploadAndPrintButtonDescription": "Üst çubukta \"Yükle ve Baskı Yap\" düğmesini göster veya gizle",
             "ConfirmOnEmergencyStop": "Acil Durdurma Onayı Gerektir",
             "ConfirmOnEmergencyStopDescription": "Acil durdurma işleminde onaylama diyaloğunu göster",
             "ConfirmOnPowerDeviceChange": "Cihaz Güç Değişikliğinde Onay Gerektir",
             "ConfirmOnPowerDeviceChangeDescription": "Cihaz güç değişikliklerinde onaylama diyaloğunu göster",
-            "DisableFanAnimation": "Fan Animasyonunu Devre Dışı Bırak",
-            "DisableFanAnimationDescription": "Bu, tarayıcınızda bazı yükü azaltabilir.",
-            "DisplayCANCEL_PRINT": "CANCEL_PRINT'i Göster",
-            "DisplayCANCEL_PRINTDescription": "CANCEL_PRINT düğmesini sürekli göster - ikinci katman onayı gerekmez.",
-            "GcodeThumbnails": "G-Code küçük resimleri",
-            "GcodeThumbnailsDescription": "Kılavuzlara gitmek için düğmeye tıklayın.",
             "Guide": "Rehber",
             "HideSaveConfigButtonForBedMesh": "Tabla Mesh'ini Değiştirmek İçin KAYDET_CONFIG Düğmesini Gizle",
             "HideSaveConfigButtonForBedMeshDescription": "Sadece Tabla Mesh değişiklikleri bekleniyorsa KAYDET_CONFIG düğmesini gizle",
@@ -1048,8 +999,6 @@
             "LockSlidersDelayDescription": "Kaydırmalar belirli bir gecikmeden sonra kilitleyecektir. 0 olarak ayarlanırsa veya boş bırakılırsa, kaydırmalar yalnızca sayfa değiştirme/yeniden yükleme sırasında kilitleyecektir.",
             "LockSlidersDescription": "Dokunmatik ekranlardaki kaydırmaları değişiklik yapmadan önce kilitlemek gerekir.",
             "Logo": "Logo",
-            "ManualProbeDialog": "Manuel Prob Yardımcı Diyaloğu",
-            "ManualProbeDialogDescription": "PROBE_CALIBRATE veya Z_ENDSTOP_CALIBRATE için yardımcı diyaloğu göster",
             "NavigationStyle": "Navigasyon Stili",
             "NavigationStyleDescription": "Navigasyon görünümünü değiştir",
             "NavigationStyleIconsAndText": "Simge + Metin",

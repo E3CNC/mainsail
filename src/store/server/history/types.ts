@@ -1,4 +1,4 @@
-import { FileStateFileThumbnail } from '@/store/files/types'
+import type { FileStateFileThumbnail } from '@/store/files/types'
 
 export interface ServerHistoryState {
     jobs: ServerHistoryStateJob[]
@@ -77,6 +77,8 @@ export interface ServerHistoryStateAllPrintStatusEntry {
     name: string
     displayName: string
     value: number
+    valueFilament?: number
+    valueTime?: number
     showInTable: boolean
     itemStyle: {
         opacity: number
@@ -95,6 +97,8 @@ export type HistoryListPanelColValue = Extract<
 >
 
 export interface HistoryListPanelCol {
+    title?: string
+    key?: string
     text: string
     value: HistoryListPanelColValue
     align: string

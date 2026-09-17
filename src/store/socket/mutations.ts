@@ -1,84 +1,75 @@
-import Vue from 'vue'
 import { getDefaultState } from './index'
 import { MutationTree } from 'vuex'
 import { SocketState } from '@/store/socket/types'
 
 export const mutations: MutationTree<SocketState> = {
-    reset(state) {
+    reset(state: SocketState) {
         const defaults = getDefaultState()
 
-        Vue.set(state, 'initializationList', defaults.initializationList)
+        state.initializationList = defaults.initializationList
     },
 
-    setConnected(state) {
-        Vue.set(state, 'isConnected', true)
-        Vue.set(state, 'isConnecting', false)
-        Vue.set(state, 'connectingFailed', false)
+    setConnected(state: SocketState) {
+        state.isConnected = true
+        state.isConnecting = false
+        state.connectingFailed = false
     },
 
-    setDisconnected(state, message?: string) {
-        Vue.set(state, 'isConnected', false)
-        Vue.set(state, 'isConnecting', false)
-        Vue.set(state, 'connectingFailed', true)
-        Vue.set(state, 'connection_id', null)
+    setDisconnected(state: SocketState, message?: string) {
+        state.isConnected = false
+        state.isConnecting = false
+        state.connectingFailed = true
+        state.connection_id = null
 
-        if (message) Vue.set(state, 'connectionFailedMessage', message)
+        if (message) state.connectionFailedMessage = message
     },
 
-    setData(state, payload) {
+    setReconnecting(state: SocketState, val: boolean) {
+        state.reconnecting = val
+        state.reconnectAttempts = val ? state.reconnectAttempts + 1 : 0
+    },
+
+    setData(state: SocketState, payload: any) {
         if ('socket' in payload) payload = payload.socket
 
         Object.entries(payload).forEach(([key, value]) => {
-            Vue.set(state, key, value)
+            ;(state as Record<string, any>)[key] = value
         })
     },
 
-    addLoading(state, payload) {
+    addLoading(state: SocketState, payload: any) {
         state.loadings.push(payload.name)
     },
 
-    removeLoading(state, payload) {
+    removeLoading(state: SocketState, payload: any) {
         const index = state.loadings.indexOf(payload.name)
         if (index > -1) state.loadings.splice(index, 1)
     },
 
-    clearLoadings(state) {
-        if (state.loadings.length) Vue.set(state, 'loadings', [])
+    clearLoadings(state: SocketState) {
+        if (state.loadings.length) state.loadings = []
     },
 
-    addInitModule(state, payload) {
+    addInitModule(state: SocketState, payload: any) {
         const list = [...state.initializationList]
         const index = list.indexOf(payload)
         if (index > -1) return
 
         list.push(payload)
-        Vue.set(state, 'initializationList', list)
+        state.initializationList = list
     },
 
-    removeInitModule(state, payload) {
+    removeInitModule(state: SocketState, payload: any) {
         const list = [...state.initializationList]
         const index = list.indexOf(payload)
         if (index === -1) return
 
         list.splice(index, 1)
-        Vue.set(state, 'initializationList', list)
+        state.initializationList = list
     },
 
-    removeInitComponent(state, payload) {
-        const list = [...state.initializationList]
-
-        // remove all components witch starts with payload
-        const indexes = list.reduce((acc: number[], item, index) => {
-            if (item.startsWith(payload)) acc.push(index)
-            return acc
-        }, [])
-
-        // stop if no items found
-        if (!indexes.length) return
-
-        // remove all items
-        indexes.forEach((index) => list.splice(index, 1))
-
-        Vue.set(state, 'initializationList', list)
+    removeInitComponent(state: SocketState, payload: any) {
+        // remove all components which start with payload
+        state.initializationList = state.initializationList.filter((item: string) => !item.startsWith(payload))
     },
 }

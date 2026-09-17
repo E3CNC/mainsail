@@ -2,9 +2,9 @@ import { GuiMacrosState } from '@/store/gui/macros/types'
 import { GuiConsoleState } from '@/store/gui/console/types'
 import { GuiPresetsState } from '@/store/gui/presets/types'
 import { GuiRemoteprintersState } from '@/store/gui/remoteprinters/types'
-import { ServerHistoryStateJob } from '@/store/server/history/types'
+import type { ServerHistoryStateJob } from '@/store/server/history/types'
 import { GuiNotificationState } from '@/store/gui/notifications/types'
-import { FileStateFile, FileStateGcodefile } from '@/store/files/types'
+import type { FileStateFile, FileStateGcodefile } from '@/store/files/types'
 import { GuiNavigationState } from '@/store/gui/navigation/types'
 
 export interface GuiState {
@@ -21,7 +21,7 @@ export interface GuiState {
     control: {
         style: 'bars' | 'circle' | 'cross'
         hideDuringPrint: boolean
-        actionButton: null | 'm84' | 'qgl' | 'ztilt'
+        actionButton: null | 'm84' | 'qgl'
         enableXYHoming: boolean
         feedrateXY: number
         stepsXY: number[]
@@ -33,16 +33,12 @@ export interface GuiState {
         stepsCircleXY: number[]
         stepsCircleZ: number[]
         selectedCrossStep: null | number
+        selectedCncStepIndex: number
+        cncFeedrateXY: number
+        cncFeedrateZ: number
         reverseX: boolean
         reverseY: boolean
         reverseZ: boolean
-        extruder: {
-            feedamount: number
-            feedamounts: number[]
-            feedrate: number
-            feedrates: number[]
-            showEstimatedExtrusionInfo: boolean
-        }
     }
     dashboard: GuiStateDashboard
     editor: {
@@ -79,10 +75,9 @@ export interface GuiState {
             axis_maximum: number[] | null
         }
         showGCodePanel: boolean
-        cncMode: boolean
     }
     macros?: GuiMacrosState
-    navigation: GuiNavigationState
+    navigationSettings: GuiNavigationState
     notifications?: GuiNotificationState
     presets?: GuiPresetsState
     remoteprinters?: GuiRemoteprintersState
@@ -98,36 +93,19 @@ export interface GuiState {
         confirmOnCoolDown: boolean
         confirmOnPowerDeviceChange: boolean
         confirmOnCancelJob: boolean
-        boolBigThumbnail: boolean
-        bigThumbnailBackground: string
         boolWideNavDrawer: boolean
-        boolHideUploadAndPrintButton: boolean
         navigationStyle: 'iconsAndText' | 'iconsOnly'
         defaultNavigationStateSetting: 'alwaysOpen' | 'alwaysClosed' | 'lastState'
         powerDeviceName: string | null
         progressAsFavicon: boolean
-        hideSaveConfigForBedMash: boolean
-        disableFanAnimation: boolean
-        boolManualProbeDialog: boolean
-        boolBedScrewsDialog: boolean
-        boolScrewsTiltAdjustDialog: boolean
         tempchartHeight: number
         hideUpdateWarnings: boolean
-        printstatusThumbnailZoom: boolean
         dashboardFilesLimit: number
         dashboardFilesFilter: GuiStateUiSettingsDashboardFilesFilter[]
         dashboardHistoryLimit: number
         hideOtherInstances: boolean
     }
     view: {
-        afc: {
-            hiddenExtruders: string[]
-            hiddenUnits: string[]
-            showFilamentName: boolean
-            showLaneInfinite: boolean
-            showUnitIcons: boolean
-            showTd1Color: boolean
-        }
         blockFileUpload: boolean
         configfiles: {
             countPerPage: number
@@ -139,32 +117,17 @@ export interface GuiState {
             rootPath: string
             selectedFiles: FileStateFile[]
         }
-        extruder: {
-            showTools: boolean
-            showExtrusionFactor: boolean
-            showPressureAdvance: boolean
-            showFirmwareRetraction: boolean
-            showExtruderControl: boolean
-        }
         gcodefiles: {
             countPerPage: number
             search: string
             sortBy: string
             sortDesc: boolean
             showHiddenFiles: boolean
-            showPrintedFiles: boolean
+            showCompletedFiles: boolean
             hideMetadataColumns: string[]
             orderMetadataColumns: string[]
             currentPath: string
             selectedFiles: FileStateGcodefile[]
-        }
-        heightmap: {
-            probed: boolean
-            mesh: boolean
-            flat: boolean
-            wireframe: boolean
-            scaleGradient: boolean
-            scaleZMax: number
         }
         history: {
             countPerPage: number
@@ -196,13 +159,6 @@ export interface GuiState {
             currentPath: string
             selectedFiles: FileStateFile[]
         }
-        toolhead: {
-            showPosition: boolean
-            showCoordinates: boolean
-            showControl: boolean
-            showZOffset: boolean
-            showSpeedFactor: boolean
-        }
         webcam: {
             currentCam: {
                 dashboard: string
@@ -221,6 +177,14 @@ export interface GuiState {
     }
 }
 
+export interface PanelFloatingState {
+    x: number
+    y: number
+    width: number
+    height: number
+    zIndex: number
+}
+
 export interface GuiStateDashboard {
     nonExpandPanels: {
         [index: string]: string[]
@@ -233,9 +197,10 @@ export interface GuiStateDashboard {
     widescreenLayout1: GuiStateLayoutoption[]
     widescreenLayout2: GuiStateLayoutoption[]
     widescreenLayout3: GuiStateLayoutoption[]
+    floatingPanels: Record<string, PanelFloatingState>
 }
 
-export type GuiStateDashboardLayoutKey = Exclude<keyof GuiStateDashboard, 'nonExpandPanels'>
+export type GuiStateDashboardLayoutKey = Exclude<keyof GuiStateDashboard, 'nonExpandPanels' | 'floatingPanels'>
 
 export interface GuiStateLayoutoption {
     name: string
