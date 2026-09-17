@@ -144,7 +144,7 @@ export const getters: GetterTree<PrinterState, RootState> = {
 
     getMacros: (state) => {
         const array: PrinterStateMacro[] = []
-        const settings = state.configfile?.settings ?? null
+        const settings = state.configfile?.settings ?? {}
         const printerGcodes = state.gcode?.commands ?? {}
 
         const prefix = 'gcode_macro '
@@ -747,7 +747,7 @@ export const getters: GetterTree<PrinterState, RootState> = {
         }
 
         // fallback for older Klipper versions
-        const settings = state.configfile?.settings ?? null
+        const settings = state.configfile?.settings ?? {}
         if (settings) {
             return 'z_tilt' in settings
         }

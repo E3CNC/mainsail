@@ -9,6 +9,7 @@
     },
     "scripts": {
         "serve": "vite serve",
+        "mock": "node mock-moonraker.cjs",
         "build": "vite build && npm run build.zip",
         "format": "npm run format:base -- --write",
         "format:base": "prettier .",
@@ -106,7 +107,8 @@
         "vue-i18n-extract": "^2.0.7",
         "vue-router": "^3.5.2",
         "vue-template-compiler": "^2.7.16",
-        "workbox-core": "^7.0.0"
+        "workbox-core": "^7.0.0",
+        "ws": "^8.21.3"
     },
     "postcss": {
         "plugins": {
