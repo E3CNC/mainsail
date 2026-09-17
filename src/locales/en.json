@@ -612,6 +612,8 @@
     },
     "Panels": {
         "FarmPrinterPanel": {
+            "EmptyDescription": "Add machines under Settings → Remote Printers to monitor them here.",
+            "EmptyTitle": "No machines registered",
             "ReconnectToPrinter": "Reconnect",
             "SwitchToPrinter": "Switch to Machine",
             "WebcamOff": "Off"
