@@ -114,7 +114,8 @@ function routeHttp(req, res, url, body) {
             cncWcs.active = body.wcs
         }
         if (cncPath === 'wcs/set-zero' && req.method === 'POST') {
-            const machine = { X: 100, Y: 100, Z: 10 }
+            const pos = printerState.status.toolhead.position
+            const machine = { X: pos[0], Y: pos[1], Z: pos[2] }
             const axes = Array.isArray(body.axes) && body.axes.length ? body.axes : ['X', 'Y', 'Z']
             for (const axis of axes) {
                 if (axis in machine) cncWcs.offsets[cncWcs.active][axis] = machine[axis]
@@ -151,7 +152,8 @@ const printerState = {
     eventtime: 1000.5,
     status: {
         gcode: { commands: ['G28', 'G1', 'M104', 'M140', 'M109', 'M190'] },
-        toolhead: { homed_axes: 'xyz', position: [100, 100, 10, 0], max_velocity: 300, max_accel: 3000 },
+        toolhead: { homed_axes: 'xyz', position: [100, 100, 10, 0], axis_minimum: [0, 0, 0], axis_maximum: [165, 300, 50], max_velocity: 300, max_accel: 3000 },
+        gcode_move: { gcode_position: [100, 100, 10, 0], speed: 0, speed_factor: 1 },
         extruder: { temperature: 21.5, target: 0, power: 0, can_extrude: false },
         heater_bed: { temperature: 21.2, target: 0, power: 0 },
         print_stats: { state: 'standby', filename: '', total_duration: 0, print_duration: 0, filament_used: 0 },
@@ -179,6 +181,41 @@ function buildStatus(objects) {
         }
     }
     return out
+}
+
+function syncWorkPosition() {
+    const off = cncWcs.offsets[cncWcs.active] ?? { X: 0, Y: 0, Z: 0 }
+    const m = printerState.status.toolhead.position
+    printerState.status.gcode_move.gcode_position = [m[0] - off.X, m[1] - off.Y, m[2] - off.Z, m[3] ?? 0]
+}
+
+function applyGcodeScript(script) {
+    const lines = String(script ?? '').split('\n')
+    let relative = false
+    for (const raw of lines) {
+        const line = raw.split(';')[0].trim().toUpperCase()
+        if (!line) continue
+        if (/\bG28\b/.test(line)) {
+            printerState.status.toolhead.homed_axes = 'xyz'
+            continue
+        }
+        if (/\bG91\b/.test(line)) { relative = true; continue }
+        if (/\bG90\b/.test(line) || /\bG53\b/.test(line)) { if (/\bG90\b/.test(line)) relative = false; continue }
+        // Motion line: G0/G1 with axis words
+        if (!/\bG0*0\b/.test(line) && !/\bG0*1\b/.test(line)) continue
+        const pos = printerState.status.toolhead.position
+        const min = printerState.status.toolhead.axis_minimum
+        const max = printerState.status.toolhead.axis_maximum
+        const axes = { X: 0, Y: 1, Z: 2 }
+        for (const [letter, idx] of Object.entries(axes)) {
+            const m = line.match(new RegExp(`${letter}(-?\\d+(?:\\.\\d+)?)`))
+            if (!m) continue
+            const v = Number(m[1])
+            pos[idx] = relative ? pos[idx] + v : v
+            pos[idx] = Math.max(min[idx], Math.min(max[idx], pos[idx]))
+        }
+    }
+    syncWorkPosition()
 }
 
 function handleMethod(method, params = {}) {
@@ -248,6 +285,8 @@ function handleMethod(method, params = {}) {
         case 'server.files.get_directory':
             return { dirs: [], files: [], disk_usage: { total: 0, used: 0, free: 0 }, root_info: { name: params.root ?? 'gcodes' } }
         case 'printer.gcode.script':
+            applyGcodeScript(params.script)
+            return 'ok'
         case 'printer.emergency_stop':
         case 'printer.print.start':
         case 'printer.print.pause':
@@ -264,17 +303,33 @@ function reply(ws, id, result) {
 
 const wss = new WSServer({ server: httpServer, path: '/websocket' })
 
+function statusBroadcast() {
+    printerState.eventtime += 0.5
+    printerState.status.extruder.temperature = 21.5 + Math.sin(Date.now() / 8000) * 0.4
+    printerState.status.heater_bed.temperature = 21.2 + Math.cos(Date.now() / 10000) * 0.3
+    return {
+        jsonrpc: '2.0',
+        method: 'notify_status_update',
+        params: [
+            {
+                extruder: { ...printerState.status.extruder },
+                heater_bed: { ...printerState.status.heater_bed },
+                toolhead: { ...printerState.status.toolhead, position: [...printerState.status.toolhead.position] },
+                gcode_move: { ...printerState.status.gcode_move, gcode_position: [...printerState.status.gcode_move.gcode_position] },
+            },
+            printerState.eventtime,
+        ],
+    }
+}
+
 wss.on('connection', (ws, req) => {
     const myId = connectionId++
     console.log(`[mock-moonraker] client #${myId} connected: ${req.url}`)
     ws._mockId = myId
 
     const timer = setInterval(() => {
-        printerState.eventtime += 2
-        printerState.status.extruder.temperature = 21.5 + Math.sin(Date.now() / 8000) * 0.4
-        printerState.status.heater_bed.temperature = 21.2 + Math.cos(Date.now() / 10000) * 0.3
         try {
-            ws.send(JSON.stringify({ jsonrpc: '2.0', method: 'notify_status_update', params: [{ extruder: { ...printerState.status.extruder }, heater_bed: { ...printerState.status.heater_bed } }, printerState.eventtime] }))
+            ws.send(JSON.stringify(statusBroadcast()))
         } catch { /* ignore closed socket */ }
     }, 2000)
 
@@ -288,6 +343,9 @@ wss.on('connection', (ws, req) => {
             try {
                 const result = handleMethod(msg.method, msg.params ?? {})
                 if (msg.id !== undefined && msg.id !== null) reply(ws, msg.id, result)
+                if (msg.method === 'printer.gcode.script') {
+                    try { ws.send(JSON.stringify(statusBroadcast())) } catch { /* ignore */ }
+                }
             } catch (e) {
                 ws.send(JSON.stringify({ jsonrpc: '2.0', id: msg.id, error: { message: String(e) } }))
             }
