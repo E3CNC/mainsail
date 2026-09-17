@@ -19,7 +19,8 @@
     "scripts": {
         "serve": "vite serve",
         "dev": "tmux has-session -t e3cnc 2>/dev/null || tmux new-session -d -s e3cnc 'vite'",
-        "build": "vite build",
+        "build": "vite build && npm run build.zip",
+        "build.zip": "cd ./dist && zip -r mainsail.zip ./ -x '**.DS_Store' ./ && cd ..",
         "format": "npm run format:base -- --write",
         "format:base": "prettier .",
         "format:check": "npm run format:base -- --check",
