@@ -2,6 +2,37 @@
 # Changelog
 All notable changes to Mainsail will be documented in this file.
 
+## [0.3.0] - E3CNC Fork
+
+### Features
+
+- **Mock Moonraker**: Database persistence with namespaced storage, unflatten helper, and full HTTP + WebSocket CRUD (list, get, post, delete)
+- **Tests**: Unit tests for mock moonraker DB operations (13 tests) and FarmPrinterPanel component (4 tests)
+
+### Bug Fixes
+
+- **FarmPrinterPanel**: ResizeObserver null reference guard handles unmounted panel refs safely
+- **FarmPrinterPanel**: Fixed imports - sidebarBgImage moved to useTheme, Panel import added
+- **Mock Moonraker**: Stateful CNC WCS with 6 offset profiles, toolhead tracking, work coordinate calculation
+- **Mock Moonraker**: Toolhead motion simulation on printer.gcode.script (G0/G1/G28/G90/G91 parsing)
+- **i18n**: Rephrased Z-offset post-job hint for CNC focus
+
+### Testing
+
+- Extracted mock moonraker DB logic into testable module (src/utils/mockMoonrakerDb.ts)
+- Rewrote mock moonraker tests using direct module imports
+- Added FarmPrinterPanel component tests with mocked composables
+
+### Config
+
+- ESLint switched to Vue 3 recommended rules
+- Legacy peer deps set for Vite 7 / plugin-vue conflict
+
+### Build
+
+- Added dist zip step on build
+- Updated E3CNC Vue 3 fork documentation
+
 ## [2.17.0](https://github.com/mainsail-crew/mainsail/releases/tag/v2.17.0) - 2026-01-11
 ### Features
 
