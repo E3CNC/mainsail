@@ -11,7 +11,7 @@ export default defineConfigWithVueTs(
     },
 
     eslint.configs.recommended,
-    ...pluginVue.configs['flat/vue2-recommended'],
+    ...pluginVue.configs['flat/recommended'],
 
     // TypeScript setup
     // base = parser setup for .ts and .vue files
