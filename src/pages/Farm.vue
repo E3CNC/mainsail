@@ -6,10 +6,12 @@
             <farm-printer-panel :printer="printer"></farm-printer-panel>
         </v-col>
         <v-col v-if="printerCount === 0" class="v-col-12">
-            <v-empty-state
-                :icon="mdiServerOff"
-                :title="$t('Panels.FarmPrinterPanel.EmptyTitle')"
-                :text="$t('Panels.FarmPrinterPanel.EmptyDescription')" />
+            <div class="d-flex align-center justify-center text-center" style="min-height: 60vh">
+                <v-empty-state
+                    :icon="mdiServerOff"
+                    :title="$t('Panels.FarmPrinterPanel.EmptyTitle')"
+                    :text="$t('Panels.FarmPrinterPanel.EmptyDescription')" />
+            </div>
         </v-col>
     </v-row>
 </template>
