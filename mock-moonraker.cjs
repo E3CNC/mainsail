@@ -9,6 +9,18 @@ const PORT = process.env.MOCK_MOONRAKER_PORT ? Number(process.env.MOCK_MOONRAKER
 const startTime = Date.now()
 let connectionId = 1
 
+const cncWcs = {
+    active: 'G54',
+    offsets: {
+        G54: { X: 0, Y: 0, Z: 0 },
+        G55: { X: 10, Y: 0, Z: 0 },
+        G56: { X: 0, Y: 10, Z: 0 },
+        G57: { X: 0, Y: 0, Z: 10 },
+        G58: { X: -10, Y: 0, Z: 0 },
+        G59: { X: 0, Y: 0, Z: -10 },
+    },
+}
+
 const httpServer = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS')
@@ -19,6 +31,18 @@ const httpServer = http.createServer((req, res) => {
         return
     }
     const url = new URL(req.url, `http://${req.headers.host}`)
+    const chunks = []
+    req.on('data', (c) => chunks.push(c))
+    req.on('end', () => {
+        let body = {}
+        try {
+            if (chunks.length) body = JSON.parse(Buffer.concat(chunks).toString())
+        } catch { body = {} }
+        routeHttp(req, res, url, body)
+    })
+})
+
+function routeHttp(req, res, url, body) {
     if (url.pathname.startsWith('/server/history/totals')) {
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(JSON.stringify({ result: { job_totals: { total: 0, failed: 0, cancelled: 0, completed: 0, queued: 0, active: 0 } } }))
@@ -86,21 +110,19 @@ const httpServer = http.createServer((req, res) => {
             res.end(JSON.stringify({ result: { units: 'mm' } }))
             return
         }
+        if (cncPath === 'wcs/select' && req.method === 'POST' && typeof body.wcs === 'string' && body.wcs in cncWcs.offsets) {
+            cncWcs.active = body.wcs
+        }
+        if (cncPath === 'wcs/set-zero' && req.method === 'POST') {
+            const machine = { X: 100, Y: 100, Z: 10 }
+            const axes = Array.isArray(body.axes) && body.axes.length ? body.axes : ['X', 'Y', 'Z']
+            for (const axis of axes) {
+                if (axis in machine) cncWcs.offsets[cncWcs.active][axis] = machine[axis]
+            }
+        }
         if (cncPath === 'wcs' || cncPath === 'wcs/select' || cncPath === 'wcs/set-zero') {
             res.writeHead(200, { 'Content-Type': 'application/json' })
-            res.end(JSON.stringify({
-                result: {
-                    active: 'G54',
-                    offsets: {
-                        G54: { X: 0, Y: 0, Z: 0 },
-                        G55: { X: 10, Y: 0, Z: 0 },
-                        G56: { X: 0, Y: 10, Z: 0 },
-                        G57: { X: 0, Y: 0, Z: 10 },
-                        G58: { X: -10, Y: 0, Z: 0 },
-                        G59: { X: 0, Y: 0, Z: -10 },
-                    },
-                },
-            }))
+            res.end(JSON.stringify({ result: { active: cncWcs.active, offsets: cncWcs.offsets } }))
             return
         }
         if (cncPath === 'settings') {
@@ -119,7 +141,7 @@ const httpServer = http.createServer((req, res) => {
     }
     res.writeHead(404, { 'Content-Type': 'application/json' })
     res.end(JSON.stringify({ error: 'not found' }))
-})
+}
 
 httpServer.listen(PORT, '127.0.0.1', () => {
     console.log(`[mock-moonraker] listening on ws://127.0.0.1:${PORT}/websocket`)
