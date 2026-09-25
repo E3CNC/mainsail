@@ -2,8 +2,8 @@
     "defaultLocale": "en",
     "defaultMode": "dark",
     "defaultTheme": "e3cnc",
-    "hostname": "127.0.0.1",
-    "port": 7125,
+    "hostname": null,
+    "port": null,
     "path": null,
     "instancesDB": "moonraker",
     "instances": []
