@@ -29,7 +29,7 @@ machine pages.
 
 ## Releases
 
-Tagged `e3cnc-v*` releases ship `mainsail.zip`, built by the
+Tagged `e3cnc-mainsail-v*` releases ship `mainsail.zip`, built by the
 [E3CNC Release](.github/workflows/e3cnc-release.yml) workflow
 (`npm run build` produces `dist/mainsail.zip`). Latest:
 [releases](https://github.com/E3CNC/mainsail/releases).
