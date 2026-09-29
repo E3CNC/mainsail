@@ -13,7 +13,7 @@
   <a aria-label="Stars" href="https://github.com/E3CNC/mainsail/stargazers">
     <img src="https://img.shields.io/github/stars/E3CNC/mainsail?style=flat-square">
   </a>
-  <a aria-label="License" href="https://github.com/E3CNC/mainsail/blob/develop/LICENSE">
+  <a aria-label="License" href="https://github.com/E3CNC/mainsail/blob/master/LICENSE">
     <img src="https://img.shields.io/github/license/E3CNC/mainsail?style=flat-square">
   </a>
 </p>
@@ -56,13 +56,14 @@ VUE_APP_HOSTNAME=127.0.0.1
 VUE_APP_PORT=7125
 ```
 
-Other commands: `npm run build`, `npm run lint`, `npm run typecheck`,
-`npm run test:unit`, `npm run test:ui`.
+Other commands: `npm run build`, `npm run lint`, `npm run lint:fix`,
+`npm run format`, `npm run typecheck`, `npm run test:unit` (Vitest),
+`npm run test:ui` (Cypress).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). AI-agent conventions live in
-[AGENTS.md](AGENTS.md) and [agent_docs/](agent_docs/).
+See [CONTRIBUTING.md](CONTRIBUTING.md) (PRs go against `master`). AI-agent
+conventions live in [AGENTS.md](AGENTS.md) and [agent_docs/](agent_docs/).
 
 ## Credit
 
