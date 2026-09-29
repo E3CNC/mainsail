@@ -2,9 +2,9 @@
 
 ## Git Workflow
 
-Submit PRs against the `master` branch (the fork's active branch). The
-`develop` branch is a stale pre-Vue-3 remnant from upstream — do not use it
-as a base.
+Submit PRs against the `master` branch — the fork's active and default
+branch. There is no `develop` branch (the stale pre-Vue-3 remnant from
+upstream was deleted in 2026-09).
 
 PR titles are validated by CI and must follow Conventional Commits.
 
