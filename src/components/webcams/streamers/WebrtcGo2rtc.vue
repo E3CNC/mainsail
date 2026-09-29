@@ -52,26 +52,38 @@ const webcamStyle = computed(() => ({
 }))
 
 const url = computed(() => {
-    let u = new URL(location.href)
+    // parse against a dummy base, so relative stream URLs can be manipulated with the URL API
+    const parsed = new URL(props.camSettings.stream_url, 'http://dummy')
 
-    try {
-        const urlSearch = new URL(props.camSettings.stream_url).search.toString()
-        u = new URL('api/ws' + urlSearch, props.camSettings.stream_url)
-    } catch {
-        log('invalid url', props.camSettings.stream_url)
+    // if the url is /api/webrtc, it has to be changed to /api/ws
+    if (parsed.pathname.endsWith('/api/webrtc')) {
+        parsed.pathname = parsed.pathname.slice(0, -'webrtc'.length) + 'ws'
+    }
+    // fallback if the "stream url" is used (like http://<host>/stream.html?src=<source>)
+    else if (!parsed.pathname.endsWith('/api/ws')) {
+        parsed.pathname = parsed.pathname.replace(/[^/]*$/, '') + 'api/ws'
     }
 
+    // create media types array
     const media = ['video']
     if (enableAudio.value) media.push('audio')
 
-    u.searchParams.set('media', media.join('+'))
-    u.protocol = store.state.socket.protocol + ':'
+    parsed.searchParams.set('media', media.join('+'))
 
-    if (!u.searchParams.has('src')) {
+    // output a warning, if no src is set in the url
+    if (!parsed.searchParams.has('src')) {
         log('no src set in url')
     }
 
-    return convertUrl(u.toString(), props.printerUrl)
+    // keep user-entered absolute URLs, otherwise stay relative so convertUrl can resolve the host
+    const lower = props.camSettings.stream_url.toLowerCase()
+    const isAbsolute = lower.startsWith('http://') || lower.startsWith('https://')
+    const outputUrl = isAbsolute ? parsed.toString() : parsed.pathname + parsed.search
+
+    const wsUrl = new URL(convertUrl(outputUrl, props.printerUrl))
+    wsUrl.protocol = store.state.socket.protocol + ':'
+
+    return wsUrl.toString()
 })
 
 const enableAudio = computed(() => props.camSettings.extra_data?.enableAudio ?? false)
