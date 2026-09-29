@@ -51,6 +51,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'vue-toast-notification'
 import { useSocket } from '@/composables/useSocket'
@@ -59,6 +60,7 @@ import { useCncOffsets, offsetNames } from '@/composables/useCncOffsets'
 import type { FileStateGcodefile } from '@/store/files/types'
 
 const { t } = useI18n()
+const store = useStore()
 const toast = useToast()
 const socket = useSocket()
 const { klipperReadyForGui, printerIsPrinting, moonrakerComponents } = useBase()
@@ -115,6 +117,16 @@ watch(
     () => props.modelValue,
     async (open) => {
         if (!open) return
+
+        // pull metadata (thumbnails) when the dialog opens for a file without them yet,
+        // e.g. reprint from the history panel where the file was never listed in gcode files
+        if (props.file && !props.file.metadataPulled && !props.file.metadataRequested) {
+            const fullPath = ['gcodes']
+            if (props.currentPath) fullPath.push(props.currentPath.replace(/^\/+/, ''))
+            fullPath.push(props.file.filename)
+
+            store.dispatch('files/requestMetadata', [{ filename: fullPath.join('/') }])
+        }
 
         try {
             await refreshWcs()
