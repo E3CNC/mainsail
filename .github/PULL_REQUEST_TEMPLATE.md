@@ -21,12 +21,14 @@
   You can find more information about Conventional Commits here: https://www.conventionalcommits.org/en/v1.0.0/.
 
   Before submitting a Pull Request, please ensure you've done the following:
-  - 📖 Read the Mainsail Contributing Guidelines: https://github.com/mainsail-crew/mainsail/blob/HEAD/CONTRIBUTING.md#-submitting-a-pull-request-pr
-  - 📖 Read the Mainsail Code of Conduct: https://github.com/mainsail-crew/mainsail/blob/HEAD/.github/CODE_OF_CONDUCT.md
+  - 📖 Read the Contributing Guidelines: https://github.com/E3CNC/mainsail/blob/master/CONTRIBUTING.md#-submitting-a-pull-request
+  - 📖 Read the Code of Conduct: https://github.com/E3CNC/mainsail/blob/master/.github/CODE_OF_CONDUCT.md
+  - 🎯 Target the `master` branch (the fork's active branch — NOT `develop`, which is a stale upstream remnant)
   - 👷‍♀️ Create small Pull Requests that only address one issue or feature
-  - ✅ Provide tests for your changes
-  - 📝 Use descriptive commit messages
+  - ✅ Provide tests for your changes (Vitest, `tests/**/*.spec.ts`)
+  - 📝 Use descriptive commit messages, DCO sign-off (`git commit -s`)
   - 📗 Update any related documentation and include any relevant screenshots
+  - ✨ Introduce no new lint/prettier findings in the files you touch (repo-wide style CI has a pre-existing backlog; compare against `master`)
 -->
 
 ## Description

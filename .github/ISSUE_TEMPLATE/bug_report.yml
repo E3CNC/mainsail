@@ -11,18 +11,19 @@ body:
 
         * In case you want to make a feature request, please use the following
         form: [Feature
-        request](https://github.com/mainsail-crew/mainsail/issues/new?assignees=&labels=feature+request&template=feature_request.yml)
+        request](https://github.com/E3CNC/mainsail/issues/new?template=feature_request.yml)
 
-        * If you need general support, please visit us on
-        [Discord](https://discord.gg/mainsail)
+        * If you need general support for your E3CNC machine, use your E3CNC
+        support channels; for this web UI, ask in
+        [GitHub Discussions](https://github.com/E3CNC/mainsail/discussions).
 
         ---
   - type: input
     id: version
     attributes:
       label: 'Mainsail Version:'
-      description: Mainsail version where the issue occurs
-      placeholder: <your current mainsail version>
+      description: E3CNC Mainsail release tag where the issue occurs (e3cnc-mainsail-vX.Y.Z — see https://github.com/E3CNC/mainsail/releases)
+      placeholder: e3cnc-mainsail-v0.10.6
     validations:
       required: true
   - type: dropdown

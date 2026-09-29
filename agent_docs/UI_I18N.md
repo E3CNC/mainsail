@@ -18,7 +18,7 @@ Icon search: [Material Design Icons](https://pictogrammers.com/library/mdi/)
 All UI text must use `$t()` for localization.
 No hardcoded user-facing strings.
 
-Documentation: [vue-i18n](https://kazupon.github.io/vue-i18n/)
+Documentation: [vue-i18n v11](https://vue-i18n.intlify.dev/)
 
 ### Locale Files
 

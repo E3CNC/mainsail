@@ -10,10 +10,14 @@ body:
         #### This form is ONLY for feature requests related to Mainsail! 
 
         * In case you want to report an issue, please use the following
-        form: [Bug report](https://github.com/mainsail-crew/mainsail/issues/new?assignees=&labels=feature+request&template=bug_report.yml)
+        form: [Bug report](https://github.com/E3CNC/mainsail/issues/new?template=bug_report.yml)
 
-        * If you need general support, please visit us on
-        [Discord](https://discord.gg/mainsail)
+        * If you need general support for your E3CNC machine, use your E3CNC
+        support channels; for this web UI, ask in
+        [GitHub Discussions](https://github.com/E3CNC/mainsail/discussions).
+
+        Note: this fork targets CNC machines. Upstream 3D-printer features
+        (MMU/HappyHare/AFC/Spoolman) are out of scope here.
 
         ---
   - type: textarea
