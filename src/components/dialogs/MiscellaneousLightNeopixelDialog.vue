@@ -143,7 +143,7 @@ const showDialog = computed({
 const outputName = computed(() => convertName(props.name))
 
 const settings = computed(() => {
-    const settings = store.state.printer.configfile.settings ?? {}
+    const settings = store.state.printer.configfile?.settings ?? {}
 
     const key = `${props.type.toLowerCase()} ${props.name.toLowerCase()}`
     return settings[key] ?? {}

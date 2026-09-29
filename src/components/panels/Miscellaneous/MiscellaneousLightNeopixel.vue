@@ -70,7 +70,7 @@ const groups = computed(() => {
 })
 
 const settings = computed(() => {
-    const s = store.state.printer.configfile.settings ?? {}
+    const s = store.state.printer.configfile?.settings ?? {}
     const key = `${props.type.toLowerCase()} ${props.name.toLowerCase()}`
     return s[key] ?? {}
 })

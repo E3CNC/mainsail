@@ -268,11 +268,7 @@ export const getters: GetterTree<PrinterState, RootState> = {
                         max_power: undefined,
                     }
 
-                    if (
-                        'configfile' in state &&
-                        'settings' in state.configfile &&
-                        key.toLowerCase() in state.configfile.settings
-                    ) {
+                    if (state.configfile?.settings && key.toLowerCase() in state.configfile.settings) {
                         if ('off_below' in settings) tmp.off_below = settings?.off_below ?? 0
                         if ('max_power' in settings) tmp.max_power = settings?.max_power ?? 1
                     }
@@ -412,7 +408,7 @@ export const getters: GetterTree<PrinterState, RootState> = {
     },
 
     getPrinterConfigObjects: (state: PrinterState) => (objectNames: string[]) => {
-        const settings = state.configfile.settings
+        const settings = state.configfile?.settings
         if (!settings) return {}
 
         const output: Record<string, unknown> = {}
@@ -571,7 +567,7 @@ export const getters: GetterTree<PrinterState, RootState> = {
     },
 
     checkConfig: (state: PrinterState) => (configName: string) => {
-        if (!state.configfile.config) return false
+        if (!state.configfile?.config) return false
 
         const configObjects = Object.keys(state.configfile.config)
         return configObjects.findIndex((module) => module.toLowerCase() === configName.toLowerCase()) !== -1

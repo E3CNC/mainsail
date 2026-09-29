@@ -23,7 +23,7 @@ const props = defineProps<{
 const store = useStore()
 
 const config = computed(() => {
-    const settings = store.state.printer.configfile.settings
+    const settings = store.state.printer.configfile?.settings ?? {}
     const configname = `${props.type.toLowerCase()} ${props.name.toLowerCase()}`
     if (!(configname in settings)) return {}
     return settings[configname]
