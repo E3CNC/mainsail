@@ -1,86 +1,103 @@
-# Contributing to Mainsail
+# Contributing to Mainsail (E3CNC fork)
 
-If you are reading this document right now, you are probably considering contributing to Mainsail and making it better
-than it is today. Thank you for taking that initiative! Before submitting your contribution, please take a moment and
-make sure to read through our contribution guidelines:
+Thanks for your interest in improving the E3CNC web UI! This fork is maintained
+independently from [mainsail-crew/mainsail](https://github.com/mainsail-crew/mainsail)
+(see [agent_docs/ARCHITECTURE.md](agent_docs/ARCHITECTURE.md) for how it differs).
+Before submitting a contribution, make sure you've read:
 
-- [Code of Conduct](https://github.com/mainsail-crew/mainsail/blob/develop/.github/CODE_OF_CONDUCT.md)
-- [Question or Problem?](#question)
+- [Code of Conduct](.github/CODE_OF_CONDUCT.md)
 - [Issues and Bugs](#issue)
 - [Feature Requests](#feature)
 - [Submission Guidelines](#submit)
-  - [Submit an Issue](#submit-issue)
-  - [Submit a Pull Request](#submit-pr)
-- [Financial Contributions](#financial)
-- [Credits](https://docs.mainsail.xyz/credits)
+- [AI-agent conventions](#agents)
 
 ## <a name="question"></a> Got a Question or Problem?
 
-Please do not open issues for general support questions. We want to keep GitHub issues for bug reports and feature
-requests. Instead, please visit us on [Discord](https://discord.gg/mainsail) to ask support-related questions.
-
-Our Discord server is a much better place to ask general support questions. We take a right to close issues that are
-requests for generic support and redirect people to Discord.
+For support questions about the E3CNC machine itself, use your usual E3CNC
+support channels. For issues with this UI, use the
+[issue tracker](https://github.com/E3CNC/mainsail/issues) or
+[GitHub Discussions](https://github.com/E3CNC/mainsail/discussions).
 
 ## <a name="issue"></a> Found a Bug?
 
-If you find a bug in the source code or think that Mainsail is behaving odd in specific situations, you can help us fix
-that issue by [submitting an issue](https://github.com/mainsail-crew/mainsail/issues/new?assignees=&labels=%E2%9A%A1+Type%3A+Bug&template=bug_report.yml).
-If you have already fixed that issue, you can [submit a Pull Request](#submit-pr) with that fix.
+If you find a bug in this fork, you can help by
+[submitting an issue](https://github.com/E3CNC/mainsail/issues/new?template=bug_report.yml).
+If you have already fixed it, open a [pull request](#submit-pr) with the fix.
+
+Search the tracker first — if a ticket already covers your case, comment there
+instead of opening a new one. Include reproduction steps; without them we may
+not be able to fix the bug.
 
 ## <a name="feature"></a> Missing a Feature?
 
-You can request a new feature by [submitting a feature request](https://github.com/mainsail-crew/mainsail/issues/new?assignees=&labels=%F0%9F%92%A1+Type%3A+FR&template=feature_request.yml).
-If you would like to implement a new feature, please consider the scope of the change. For changes requiring a lot of
-work, it's best to outline a proposal first so it can be discussed. This allows us to prevent wasted time and effort and
-discuss how to bring your proposed feature into the project.
+Request it via a [feature request](https://github.com/E3CNC/mainsail/issues/new?template=feature_request.yml).
+For large changes, open an issue to discuss scope before writing code.
+
+Note: this fork targets CNC machines. Upstream 3D-printer features (MMU,
+HappyHare, AFC, Spoolman) are not tracked here; the fork removes or rewrites
+them as needed.
 
 ## <a name="submit"></a> Submission Guidelines
 
-### <a name="submit-issue"></a> Submitting an Issue
+### <a name="submit-pr"></a> Submitting a Pull Request
 
-Before you submit an issue, please search the issue tracker if your problem may already exist. If a ticket already
-covers your case, please refrain from opening a new ticket and instead contribute to the existing ticket. If you submit
-an issue, please provide the required information and reproduction steps. We need those to be able to try and reproduce
-the bug ourselves. Without proper instructions on how to reproduce the issue you are encountering, we might be unable to
-fix a possible bug.
-
-### <a name="submit-pr"></a> Submitting a Pull Request (PR)
-
-Before you work on a PR and submit it, please pay attention to the following guidelines:
-
-1. Search the [pull requests](https://github.com/mainsail-crew/mainsail/pulls) for an open or closed PR related to your submission.
-   - You don't want to duplicate existing efforts or work on something unlikely to be merged into the project.
-2. Do not submit PRs against the `master` branch. PRs need to be submitted against the `develop` branch.
-3. Follow our [Code Standards](https://docs.mainsail.xyz/overview/developement/code-standards)
-4. If there is an issue describing the problem you're fixing or a discussion of a feature you are implementing, make sure to link it in the PRs body.
-   - You can also add `fix #<id>` or `fixes #<id>` in the PR body where `<id>` is the issue id.
-   - Example PR title, body and sign-off:
+1. Search existing [pull requests](https://github.com/E3CNC/mainsail/pulls) to
+   avoid duplicated work.
+2. **Submit PRs against `master`** — the fork's active branch. `develop` is a
+   stale pre-Vue-3 remnant from upstream and is not the base for new work.
+3. Use [Conventional Commits](https://www.conventionalcommits.org/) for commit
+   and PR titles (`fix(scope): ...`, `feat(scope): ...`). PR titles are
+   validated by CI (`locale`, `docs`, `chore`, `build`, `ci`, `revert` also
+   allowed).
+4. Sign off every commit with the
+   [DCO](.github/DEVELOPER_CERTIFICATE_OF_ORIGIN.md):
 
    ```
-   fix: incorrect handling of click event
-
-   This PR will fix #123.
-   Fixes correct handling of click event when button [X] is clicked.
-
-   Signed-off-by: James Smith <james.smith@myvalidemail.com>
+   Signed-off-by: Your Name <your@email.example>
    ```
 
-5. If there is no issue describing the problem, create an issue first or provide a sufficient description of the bug/feature.
-   - Screenshots of your changes are welcome if you worked on UI-related code.
-6. The title of the PR should follow the [commit message convention](https://www.conventionalcommits.org/en/v1.0.0/).
-   - If the PR consists of multiple commits, it's good practice to follow the convention, although that is not necessarily required.
-   - Upon merging, we will squash all commits of the PR into a single commit for a clean history and release changelogs.
-7. Please sign off each commit and your PR. It must contain your real name and a current email address (see example in item 4).
-   - The sign-off should follow this pattern: `Signed-off-by: My Name <myemail@example.org>`
-   - The sign-off certifies that you agree with the [developer certificate of origin](https://github.com/mainsail-crew/mainsail/blob/develop/.github/DEVELOPER_CERTIFICATE_OF_ORIGIN.md).
-   - If you provide a translation, a sign-off is not necessarily required.
-8. When opening a pull request, keep `Allow edits and access to secrets by maintainers` **enabled**.
+   (Use `git commit -s`.)
 
-## <a name="financial"></a> Financial Contribution
+5. Link related issues in the PR body (`Fixes #123`).
+6. Before requesting review, run:
 
-As a community-driven project without primary corporate backing, we always welcome financial contributions. A list of
-options we offer to support us financially can be seen below.
+   ```bash
+   npm run format:check   # or: npm run format
+   npm run lint
+   npm run typecheck
+   npm run test:unit
+   ```
 
-- [Become a supporter on Patreon](https://patreon.com/meteyou) (monthly recurring)
-- [Donation via Ko-Fi](https://ko-fi.com/mainsail) (one time / monthly recurring)
+   New behavior should come with a Vitest regression test where practical
+   (jsdom, `tests/**/*.spec.ts`; the mock Moonraker in
+   [`mock-moonraker.cjs`](mock-moonraker.cjs) covers `/server/cnc/*` too).
+   E2E tests run via `npm run test:ui` (Cypress).
+
+7. UI changes: screenshots of before/after are welcome.
+
+> ⚠️ The repo-wide `eslint --max-warnings 0 .` and `prettier --check .` jobs in
+> the "Code style check" CI workflow currently fail on `master` itself (a
+> pre-existing lint backlog inherited from upstream). What CI must not see is
+> **new** findings: check the files you touched (`npx eslint <files>`,
+> `npx prettier --check <files>`) and compare against their state on `master`.
+
+### Code standards
+
+See [agent_docs/CODE_STYLE.md](agent_docs/CODE_STYLE.md) and
+[agent_docs/VUE_TYPESCRIPT.md](agent_docs/VUE_TYPESCRIPT.md). The short version:
+Vue 3 `<script setup>` + Composition API only — no class components,
+decorators, or mixins; shared logic lives in `src/composables/`.
+
+## <a name="agents"></a> AI Agents
+
+Contributions made (partly) by AI agents must follow
+[AGENTS.md](AGENTS.md) and the [agent_docs/](agent_docs/) guidelines. Humans
+opening PRs authored by agents remain responsible for DCO sign-off.
+
+## Upstream
+
+This fork builds on [mainsail-crew/mainsail](https://github.com/mainsail-crew/mainsail)
+(Vue 2.7). Upstream fixes are adopted selectively and re-implemented in Vue 3 —
+a bulk merge is not viable (framework-level divergence). Release notes ship with
+each [release](https://github.com/E3CNC/mainsail/releases) (tags
+`e3cnc-mainsail-vX.Y.Z`).

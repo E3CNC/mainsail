@@ -7,12 +7,21 @@ Mainsail is a Vue 3.5 + TypeScript web interface for Klipper-based CNC machines,
 
 ## Commands
 
-- `npm run serve` - Dev server (port 8080)
-- `npm run build` - Production build
-- `npm run lint:fix` - Fix linting
-- `npm run format` - Format code
-- `npm run test:unit` - Unit tests (Vitest)
+- `npm run mock` - Fake Moonraker on 127.0.0.1:7125 (WebSocket + HTTP + `/server/cnc/*`)
+- `npm run serve` - Dev server (port 8080; point it at the mock via `.env.development.local`)
+- `npm run build` - Production build (produces `dist/mainsail.zip`)
+- `npm run lint` / `npm run lint:fix` - ESLint on `src`
+- `npm run format` / `npm run format:check` - Prettier (repo-wide `--check` has pre-existing failures; verify only the files you touch)
+- `npm run typecheck` - vue-tsc
+- `npm run test:unit` - Unit tests (Vitest, `tests/**/*.spec.ts`)
 - `npm run test:ui` - E2E tests (Cypress)
+
+## Git Workflow
+
+The fork's active branch is `master` — submit PRs against `master`, never the
+stale pre-Vue-3 `develop`. Upstream mainsail-crew/mainsail is Vue 2.7: do NOT
+merge or cherry-pick it; re-implement upstream fixes in Composition API style.
+Commits need DCO sign-off (`git commit -s`) and Conventional Commits titles.
 
 ## Guidelines
 
