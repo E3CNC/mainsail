@@ -41,7 +41,7 @@ footer = """
 
 # postprocessors
 postprocessors = [
-    { pattern = '<REPO>', replace = "https://github.com/mainsail-crew/mainsail" }, # replace repository URL
+    { pattern = '<REPO>', replace = "https://github.com/E3CNC/mainsail" }, # replace repository URL
 ]
 
 
@@ -77,6 +77,6 @@ commit_preprocessors = [
 ]
 # filter out the commits that are not matched by commit parsers
 filter_commits = true
-ignore_tags="v*-(beta|rc)*"
+ignore_tags="e3cnc-mainsail-v.*-(beta|rc)"
 # glob pattern for matching git tags
-tag_pattern = "v[0-9]*"
+tag_pattern = "e3cnc-mainsail-v[0-9]*"

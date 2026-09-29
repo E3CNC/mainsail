@@ -91,7 +91,7 @@ jobs:
         id: latest_tag
         shell: bash
         run: |
-          echo "TAG_NAME=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$(git for-each-ref --sort=-v:refname --format='%(refname:short)' 'refs/tags/e3cnc-mainsail-v*' | head -1)" >> $GITHUB_OUTPUT
 
       - name: Generate a changelog
         uses: orhun/git-cliff-action@v4
@@ -105,8 +105,8 @@ jobs:
         id: create-release
         with:
           token: ${{ secrets.PAT }}
-          name: v${{ github.event.inputs.version }}
-          tag_name: v${{ github.event.inputs.version }}
+          name: e3cnc-mainsail-v${{ github.event.inputs.version }}
+          tag_name: e3cnc-mainsail-v${{ github.event.inputs.version }}
           files: ./mainsail.zip
           body: ${{ steps.generate-changelog.outputs.content }}
 
@@ -132,7 +132,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: 'develop'
+          ref: 'master'
           fetch-depth: 0
           token: ${{ secrets.PAT }}
 
@@ -140,14 +140,14 @@ jobs:
         id: latest_tag
         shell: bash
         run: |
-          echo "TAG_NAME=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=$(git for-each-ref --sort=-v:refname --format='%(refname:short)' 'refs/tags/e3cnc-mainsail-v*' | head -1)" >> $GITHUB_OUTPUT
 
       - name: Generate a changelog
         uses: orhun/git-cliff-action@v4
         id: git-cliff
         with:
           config: cliff.toml
-          args: v0.0.4..${{ steps.latest_tag.outputs.TAG_NAME }}
+          args: upstream-freeze-2026-06-05..${{ steps.latest_tag.outputs.TAG_NAME }}
         env:
           OUTPUT: ${{ github.workspace }}/CHANGELOG.md
 
