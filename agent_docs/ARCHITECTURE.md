@@ -4,20 +4,20 @@
 
 ## Project Structure
 
-| Directory                        | Purpose                                                                                        |
-| -------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `src/components/`                | Vue components by feature (dialogs/, panels/, inputs/, webcams/, console/, charts/)            |
-| `src/components/panels/Cnc/`     | CNC panels: WCS preview, DRO, jog, MDI, spindle & coolant, CNC status, host bash               |
-| `src/composables/`               | Vue 3 composables (state + logic, incl. `useCncOffsets`, `useCncProfile`)                      |
-| `src/pages/`                     | Page components (Dashboard, Console, Files, Viewer, History, Timelapse, Machine, Farm, Webcam) |
-| `src/store/`                     | Vuex modules                                                                                   |
-| `src/store/files/cncApi.ts`      | HTTP client for `/server/cnc/*` endpoints (spindle, coolant, WCS, settings, bash)              |
-| `src/store/files/cncMetadata.ts` | Parser for `.cnc-meta.json` job metadata                                                       |
-| `src/store/runtime.ts`           | Runtime socket/toast singletons                                                                |
-| `src/plugins/`                   | Vue plugins and utilities                                                                      |
-| `src/locales/`                   | Translation JSON files                                                                         |
-| `src/types/`                     | TypeScript type definitions                                                                    |
-| `src/utils/`                     | Standalone utilities (`cfgValidator`)                                                          |
+| Directory                        | Purpose                                                                                             |
+| -------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `src/components/`                | Vue components by feature (dialogs/, panels/, inputs/, webcams/, console/, charts/)                 |
+| `src/components/panels/Cnc/`     | CNC panels: WCS preview, DRO, jog, MDI, spindle & coolant, CNC status, host bash                    |
+| `src/composables/`               | Vue 3 composables (state + logic, incl. `useCncOffsets`, `useCncProfile`)                           |
+| `src/pages/`                     | Page components (Dashboard, Console, Files, Viewer, History, Timelapse, Machine, Farm, Webcam, 404) |
+| `src/store/`                     | Vuex modules                                                                                        |
+| `src/store/files/cncApi.ts`      | HTTP client for `/server/cnc/*` endpoints (spindle, coolant, WCS, settings, bash)                   |
+| `src/store/files/cncMetadata.ts` | Parser for `.cnc-meta.json` job metadata                                                            |
+| `src/store/runtime.ts`           | Runtime socket/toast singletons                                                                     |
+| `src/plugins/`                   | Vue plugins and utilities                                                                           |
+| `src/locales/`                   | Translation JSON files                                                                              |
+| `src/types/`                     | TypeScript type definitions                                                                         |
+| `src/utils/`                     | Standalone utilities (`cfgValidator`, `mockMoonrakerDb` for the dev mock)                           |
 
 ## Vuex Store Modules
 

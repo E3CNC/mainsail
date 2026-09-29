@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Mainsail Discord Server
-    url: https://discord.gg/mainsail
-    about: If you have questions or need general support, please visit us here.
+  - name: GitHub Discussions
+    url: https://github.com/E3CNC/mainsail/discussions
+    about: Questions and general support for this web UI happen here. For E3CNC machine support use your E3CNC support channels.
