@@ -22,7 +22,7 @@ export function useWebcam() {
 
         if (baseUrl.startsWith('http') || baseUrl.startsWith('://')) url = new URL(baseUrl)
 
-        if (baseUrl.startsWith('/webcam')) {
+        if (baseUrl.startsWith('/')) {
             const ports = [80]
             ports.push(store.state.server.config?.config?.server?.port ?? 7125)
             ports.push(store.state.server.config?.config?.server?.ssl_port ?? 7130)
