@@ -536,6 +536,8 @@ const currentPathForNavigation = computed(() => {
 
 function setCurrentPath(newVal: string) {
     store.dispatch('gui/saveSetting', { name: 'view.timelapse.currentPath', value: newVal })
+    // clear the selection when switching folders, it belongs to the previous directory
+    store.dispatch('gui/saveSetting', { name: 'view.timelapse.selectedFiles', value: [] })
 }
 
 const selectedFiles = computed(() => store.state.gui.view.timelapse.selectedFiles ?? [])
@@ -594,9 +596,7 @@ function clickRow(item: FileStateFile, force = false) {
     if (!contextMenu.shown || force) {
         if (force) contextMenu.shown = false
         if (item.isDirectory) {
-            const newPath = currentPath.value + '/' + item.filename
-            setCurrentPath(newPath)
-            store.dispatch('gui/saveSetting', { name: 'view.timelapse.currentPath', value: newPath })
+            setCurrentPath(currentPath.value + '/' + item.filename)
         } else if (item.filename.endsWith('zip')) {
             downloadFile(item.filename)
         } else if (item.filename.endsWith('mp4')) {
@@ -607,15 +607,11 @@ function clickRow(item: FileStateFile, force = false) {
 }
 
 function clickRowGoBack() {
-    const newPath = currentPath.value.slice(0, currentPath.value.lastIndexOf('/'))
-    setCurrentPath(newPath)
-    store.dispatch('gui/saveSetting', { name: 'view.timelapse.currentPath', value: newPath })
+    setCurrentPath(currentPath.value.slice(0, currentPath.value.lastIndexOf('/')))
 }
 
 function clickPathNavGoToDirectory(segment: { location: string }) {
-    const newPath = `${rootDirectory}${segment.location}`
-    setCurrentPath(newPath)
-    store.dispatch('gui/saveSetting', { name: 'view.timelapse.currentPath', value: newPath })
+    setCurrentPath(`${rootDirectory}${segment.location}`)
 }
 
 function showContextMenu(e: MouseEvent | LongpressEvent, item: FileStateFile) {
