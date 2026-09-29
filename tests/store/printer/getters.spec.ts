@@ -88,3 +88,43 @@ describe('printer/getEstimatedTimeETAFormat', () => {
         expect(runGetter(eta, true)).toBe('01:00 AM +1')
     })
 })
+
+describe('printer/configfile guards', () => {
+    const missingConfigfile = {} as PrinterState
+
+    it('getPrinterConfigObjects returns {} when configfile is not yet loaded', () => {
+        expect(getters.getPrinterConfigObjects(missingConfigfile)(['temperature_fan'])).toEqual({})
+    })
+
+    it('checkConfig returns false when configfile is not yet loaded', () => {
+        expect(getters.checkConfig(missingConfigfile)('probe')).toBe(false)
+    })
+
+    it('existsQGL returns false when configfile is not yet loaded', () => {
+        expect(getters.existsQGL(missingConfigfile)).toBe(false)
+    })
+
+    it('existsDeltaCalibrate returns false when configfile is not yet loaded', () => {
+        expect(getters.existsDeltaCalibrate(missingConfigfile)).toBe(false)
+    })
+
+    it('existsFirmwareRetraction returns false when configfile is not yet loaded', () => {
+        expect(getters.existsFirmwareRetraction(missingConfigfile)).toBe(false)
+    })
+
+    it('getPrinterConfigObjects still filters objects when loaded', () => {
+        const state = {
+            configfile: {
+                config: {},
+                settings: {
+                    'temperature_fan fan1': { max_power: 1 },
+                    'extruder extruder': { nozzle_diameter: 0.4 },
+                },
+            },
+        } as unknown as PrinterState
+
+        expect(getters.getPrinterConfigObjects(state)(['temperature_fan'])).toEqual({
+            'temperature_fan fan1': { max_power: 1 },
+        })
+    })
+})
