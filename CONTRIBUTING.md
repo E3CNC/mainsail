@@ -43,8 +43,9 @@ them as needed.
 
 1. Search existing [pull requests](https://github.com/E3CNC/mainsail/pulls) to
    avoid duplicated work.
-2. **Submit PRs against `master`** — the fork's active branch. `develop` is a
-   stale pre-Vue-3 remnant from upstream and is not the base for new work.
+2. **Submit PRs against `master`** — the fork's active branch and default
+   branch. (Upstream's `develop` convention does not apply here; the fork's
+   stale `develop` branch was deleted in 2026-09.)
 3. Use [Conventional Commits](https://www.conventionalcommits.org/) for commit
    and PR titles (`fix(scope): ...`, `feat(scope): ...`). PR titles are
    validated by CI (`locale`, `docs`, `chore`, `build`, `ci`, `revert` also

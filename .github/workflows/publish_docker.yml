@@ -3,12 +3,12 @@ name: Create and publish a Docker image
 on:
   push:
     branches:
-      - 'develop'
+      - 'master'
   release:
     types: [published]
   pull_request:
     branches:
-      - 'develop'
+      - 'master'
     paths:
       - '.docker/**'
       - '.dockerignore'
@@ -43,7 +43,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: &tags |
-            type=edge,branch=develop
+            type=edge,branch=master
             type=semver,pattern=v{{major}}
             type=semver,pattern=v{{major}}.{{minor}}
             type=semver,pattern=v{{major}}.{{minor}}.{{patch}}

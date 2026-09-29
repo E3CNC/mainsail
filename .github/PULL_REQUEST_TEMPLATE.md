@@ -23,7 +23,7 @@
   Before submitting a Pull Request, please ensure you've done the following:
   - 📖 Read the Contributing Guidelines: https://github.com/E3CNC/mainsail/blob/master/CONTRIBUTING.md#-submitting-a-pull-request
   - 📖 Read the Code of Conduct: https://github.com/E3CNC/mainsail/blob/master/.github/CODE_OF_CONDUCT.md
-  - 🎯 Target the `master` branch (the fork's active branch — NOT `develop`, which is a stale upstream remnant)
+  - 🎯 Target the `master` branch (the fork's active branch)
   - 👷‍♀️ Create small Pull Requests that only address one issue or feature
   - ✅ Provide tests for your changes (Vitest, `tests/**/*.spec.ts`)
   - 📝 Use descriptive commit messages, DCO sign-off (`git commit -s`)

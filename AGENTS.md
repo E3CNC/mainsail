@@ -18,8 +18,8 @@ Mainsail is a Vue 3.5 + TypeScript web interface for Klipper-based CNC machines,
 
 ## Git Workflow
 
-The fork's active branch is `master` — submit PRs against `master`, never the
-stale pre-Vue-3 `develop`. Upstream mainsail-crew/mainsail is Vue 2.7: do NOT
+The fork's active branch is `master` — submit all PRs against it (there is
+no `develop` branch). Upstream mainsail-crew/mainsail is Vue 2.7: do NOT
 merge or cherry-pick it; re-implement upstream fixes in Composition API style.
 Commits need DCO sign-off (`git commit -s`) and Conventional Commits titles.
 

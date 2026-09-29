@@ -17,10 +17,10 @@ jobs:
   push-version-number:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout develop branch
+      - name: Checkout master branch
         uses: actions/checkout@v6
         with:
-          ref: 'develop'
+          ref: 'master'
           token: ${{ secrets.PAT }}
 
       - name: get-npm-version
@@ -42,27 +42,8 @@ jobs:
           message: 'chore: push version number to v${{ github.event.inputs.version }}'
           push: true
 
-  update-master-branch:
-    needs: ['push-version-number']
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout master
-        uses: actions/checkout@v6
-        with:
-          ref: 'master'
-          token: ${{ secrets.PAT }}
-          fetch-depth: 0
-
-      - name: Fast-forward merge from develop
-        shell: bash
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git merge --ff-only origin/develop
-          git push origin master
-
   release:
-    needs: ['update-master-branch']
+    needs: ['push-version-number']
     name: Build and release
     runs-on: ubuntu-latest
     steps:
@@ -132,7 +113,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          ref: 'develop'
+          ref: 'master'
           fetch-depth: 0
           token: ${{ secrets.PAT }}
 
