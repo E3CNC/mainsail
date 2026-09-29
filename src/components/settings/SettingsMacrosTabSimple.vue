@@ -45,15 +45,13 @@ import type { PrinterStateMacro } from '@/store/printer/types'
 
 const store = useStore()
 
-const searchMacros = ref('')
+const searchMacros = ref<string | null>(null)
 
 const macros = computed(() => {
+    const search = (searchMacros.value ?? '').toLowerCase()
     const macrosList = store.getters['printer/getMacros'] ?? []
     return macrosList.filter((macro: PrinterStateMacro) => {
-        return (
-            macro.name.toLowerCase().includes(searchMacros.value.toLowerCase()) ||
-            macro.description?.toLowerCase().includes(searchMacros.value.toLowerCase())
-        )
+        return macro.name.toLowerCase().includes(search) || macro.description?.toLowerCase().includes(search)
     })
 })
 

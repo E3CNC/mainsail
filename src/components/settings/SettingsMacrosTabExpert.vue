@@ -485,7 +485,7 @@ const rules = {
 
 const boolFormEdit = ref(false)
 const editGroupId = ref<string | null>('')
-const searchMacros = ref('')
+const searchMacros = ref<string | null>(null)
 
 const groupColors = computed(() => [
     {
@@ -528,12 +528,10 @@ const macroColors = computed(() => {
 })
 
 const allMacros = computed(() => {
+    const search = (searchMacros.value ?? '').toLowerCase()
     const macros = store.getters['printer/getMacros'] ?? []
     return macros.filter((macro: PrinterStateMacro) => {
-        return (
-            macro.name.toLowerCase().includes(searchMacros.value.toLowerCase()) ||
-            macro.description?.toLowerCase().includes(searchMacros.value.toLowerCase())
-        )
+        return macro.name.toLowerCase().includes(search) || macro.description?.toLowerCase().includes(search)
     })
 })
 
@@ -623,12 +621,18 @@ function addMacroToGroup(macro: PrinterStateMacro) {
     })
 }
 
-function updateMacroFromGroup(macro: GuiMacrosStateMacrogroupMacro, option: string, value: boolean | string | number) {
+function updateMacroFromGroup(
+    macro: GuiMacrosStateMacrogroupMacro,
+    option: string,
+    value: boolean | string | number,
+    skipUpload: boolean = false
+) {
     store.dispatch('gui/macros/updateMacroFromMacrogroup', {
         id: editGroupId.value,
         macro: macro.name,
         option: option,
         value: value,
+        skipUpload,
     })
 }
 
@@ -637,11 +641,22 @@ function updateMacroOrder(output: DraggableChangeEvent<GuiMacrosStateMacrogroupM
 
     const oldIndex = output.moved.oldIndex
     const newIndex = output.moved.newIndex
-    const oldPos = editGroupMacros.value[oldIndex].pos
-    const newPos = editGroupMacros.value[newIndex].pos
 
-    updateMacroFromGroup(editGroupMacros.value[oldIndex], 'pos', newPos)
-    updateMacroFromGroup(editGroupMacros.value[newIndex], 'pos', oldPos)
+    // swap-only repositioning breaks when macros are dragged across more than one
+    // slot; reassign the full position list so every shifted macro is persisted
+    const sortedMacros = [...editGroupMacros.value]
+    const positions = sortedMacros.map((macro) => macro.pos)
+
+    const [movedMacro] = sortedMacros.splice(oldIndex, 1)
+    sortedMacros.splice(newIndex, 0, movedMacro)
+
+    sortedMacros.forEach((macro, index) => {
+        if (macro.pos === positions[index]) return
+
+        updateMacroFromGroup(macro, 'pos', positions[index], true)
+    })
+
+    store.dispatch('gui/macros/groupUpload', editGroupId.value)
 }
 
 function changeColorMacroFromGroup(macro: GuiMacrosStateMacrogroupMacro) {
