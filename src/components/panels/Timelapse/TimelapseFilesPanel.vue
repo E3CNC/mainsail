@@ -373,7 +373,7 @@ import { useStore } from 'vuex'
 import { useSocket } from '@/composables/useSocket'
 import { useBase } from '@/composables/useBase'
 import type { LongpressEvent } from '@/directives/longpress'
-import { escapePath, formatFilesize, sortFiles } from '@/plugins/helpers'
+import { escapePath, formatFilesize, generateTimestamp, sortFiles } from '@/plugins/helpers'
 import type { FileStateFile, FileStateGcodefile } from '@/store/files/types'
 import Panel from '@/components/ui/Panel.vue'
 import PathNavigation from '@/components/ui/PathNavigation.vue'
@@ -657,8 +657,7 @@ async function downloadSelectedFiles() {
     }
 
     await addElementToItems(currentPath.value, selectedFiles.value)
-    const date = new Date()
-    const timestamp = `${date.getFullYear()}${date.getMonth()}${date.getDate()}-${date.getHours()}${date.getMinutes()}${date.getSeconds()}`
+    const timestamp = generateTimestamp()
 
     socket.emit(
         'server.files.zip',
