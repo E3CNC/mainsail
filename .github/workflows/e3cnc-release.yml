@@ -6,16 +6,19 @@ name: E3CNC Release
 # release.yml, this uses the default GITHUB_TOKEN -- no PAT, no FTP/CDN deploy,
 # no semantic-release/version bumping -- so it runs on the fork as-is.
 #
+# Tag scheme: e3cnc-mainsail-vX.Y.Z (namespaced, distinct from upstream v* tags;
+# matches cliff.toml tag_pattern and the latest_tag lookup in release.yml).
+#
 # Trigger: Actions -> "E3CNC Release" -> Run workflow, give a tag (e.g.
-# e3cnc-v0.1.0). The tag is created at the commit this runs on.
+# e3cnc-mainsail-v0.10.7). The tag is created at the commit this runs on.
+# Bump package.json "version" to X.Y.Z in the release commit itself.
 
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag to create (e.g. e3cnc-v0.1.0)'
+        description: 'Release tag to create (e.g. e3cnc-mainsail-v0.10.7)'
         required: true
-        default: e3cnc-v0.1.0
 
 permissions:
   contents: write
