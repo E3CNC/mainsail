@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify'
 import type { FileStateFile } from '@/store/files/types'
 import { PrinterStateMacroParams } from '@/store/printer/types'
 import {
@@ -133,6 +134,8 @@ export function formatConsoleMessage(message: string): string {
     // replace linebreaks with html <br>
     message = message.replace('\n// ', '<br>')
     message = message.replace(/\r\n|\r|\n/g, '<br>')
+    // remove all dirty HTML code
+    message = DOMPurify.sanitize(message)
 
     return message.trim()
 }
