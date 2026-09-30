@@ -28,7 +28,7 @@
   - ✅ Provide tests for your changes (Vitest, `tests/**/*.spec.ts`)
   - 📝 Use descriptive commit messages, DCO sign-off (`git commit -s`)
   - 📗 Update any related documentation and include any relevant screenshots
-  - ✨ Keep touched files lint/prettier clean (repo-wide style CI was retired; compare against `master` to prove no new findings)
+  - ✨ CI enforces eslint, prettier and typecheck — and no new `any`: the legacy grandfather list in `eslint.config.mjs` only shrinks
 -->
 
 ## Description

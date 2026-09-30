@@ -76,11 +76,11 @@ them as needed.
 
 7. UI changes: screenshots of before/after are welcome.
 
-> ℹ️ Repo-wide style CI was retired (the inherited `eslint --max-warnings 0 .`
-> backlog from upstream's rules switch made it permanently red). Style is a
-> local gate now: run `npm run lint`, `npm run typecheck`, `npm run format:check`
-> and keep the files you touch clean — compare against `master` so you introduce
-> no new findings.
+> ℹ️ The repo-wide style gate is enforced in CI (`eslint .`, `prettier --check .`,
+> `npm run typecheck` run on every PR). `no-explicit-any` is a ratchet: new `any`
+> fails CI; ~89 legacy store files are grandfathered to warnings in an explicit
+> list in `eslint.config.mjs` — fixing a file means removing it from that list.
+> Never add files to it.
 
 ### Code standards
 
