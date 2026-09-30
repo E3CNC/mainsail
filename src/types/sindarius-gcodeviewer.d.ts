@@ -77,7 +77,7 @@ declare module '@sindarius/gcodeviewer' {
         bed: ViewerBed
         axes: ViewerAxes
         buildObjects: ViewerBuildObjects
-        scene: any
+        scene: import('@babylonjs/core/scene').Scene
 
         init(): Promise<void>
         resize(): void

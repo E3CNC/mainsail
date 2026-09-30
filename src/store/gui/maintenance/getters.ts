@@ -2,6 +2,11 @@ import { GetterTree } from 'vuex'
 import type { GuiMaintenanceState, GuiMaintenanceStateEntry } from '@/store/gui/maintenance/types'
 import { RootState } from '@/store/types'
 
+interface MaintenanceLocalGetters {
+    getEntries: GuiMaintenanceStateEntry[]
+    [key: string]: unknown
+}
+
 export const getters: GetterTree<GuiMaintenanceState, RootState> = {
     getEntries: (state: GuiMaintenanceState) => {
         const entries: GuiMaintenanceStateEntry[] = []
@@ -13,7 +18,7 @@ export const getters: GetterTree<GuiMaintenanceState, RootState> = {
         return entries
     },
 
-    getOverdueEntries: (state: GuiMaintenanceState, getters: any, rootState: RootState) => {
+    getOverdueEntries: (state: GuiMaintenanceState, getters: MaintenanceLocalGetters, rootState: RootState) => {
         const currentTotalPrintTime = rootState.server?.history?.job_totals.total_print_time ?? 0
         const currentTotalFilamentUsed = rootState.server?.history?.job_totals.total_filament_used ?? 0
         const currentDate = new Date().getTime() / 1000

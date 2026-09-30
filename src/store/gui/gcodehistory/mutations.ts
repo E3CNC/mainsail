@@ -7,7 +7,7 @@ export const mutations: MutationTree<GuiGcodehistoryState> = {
         Object.assign(state, getDefaultState())
     },
 
-    updateHistory(state: GuiGcodehistoryState, payload: any) {
+    updateHistory(state: GuiGcodehistoryState, payload: string[]) {
         state.entries = payload
     },
 }

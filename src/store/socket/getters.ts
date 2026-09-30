@@ -2,6 +2,10 @@ import { GetterTree } from 'vuex'
 import { SocketState } from '@/store/socket/types'
 import { RootState } from '@/store/types'
 
+interface SocketUrlGetters {
+    getUrl: string
+}
+
 export const getters: GetterTree<SocketState, RootState> = {
     getUrl: (state: SocketState) => {
         const port = state.port !== 80 ? ':' + state.port : ''
@@ -19,7 +23,7 @@ export const getters: GetterTree<SocketState, RootState> = {
         return `${protocol}://${state.hostname}/`
     },
 
-    getWebsocketUrl: (state: SocketState, getters: any) => {
+    getWebsocketUrl: (state: SocketState, getters: SocketUrlGetters) => {
         return state.protocol + ':' + getters['getUrl'] + '/websocket'
     },
 }

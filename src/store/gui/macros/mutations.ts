@@ -1,17 +1,17 @@
 import { getDefaultState } from './index'
 import { MutationTree } from 'vuex'
-import { GuiMacrosState, GuiMacrosStateMacrogroupMacro } from '@/store/gui/macros/types'
+import { GuiMacrosState, GuiMacrosStateMacrogroup, GuiMacrosStateMacrogroupMacro } from '@/store/gui/macros/types'
 
 export const mutations: MutationTree<GuiMacrosState> = {
     reset(state: GuiMacrosState) {
         Object.assign(state, getDefaultState())
     },
 
-    groupStore(state: GuiMacrosState, payload: any) {
+    groupStore(state: GuiMacrosState, payload: { id: string; values: GuiMacrosStateMacrogroup }) {
         state.macrogroups[payload.id] = payload.values
     },
 
-    groupUpdate(state: GuiMacrosState, payload: any) {
+    groupUpdate(state: GuiMacrosState, payload: { id: string; values: Partial<GuiMacrosStateMacrogroup> }) {
         if (payload.id in state.macrogroups) {
             const preset = { ...state.macrogroups[payload.id] }
             Object.assign(preset, payload.values)
@@ -20,7 +20,7 @@ export const mutations: MutationTree<GuiMacrosState> = {
         }
     },
 
-    addMacroToMacrogroup(state: GuiMacrosState, payload: any) {
+    addMacroToMacrogroup(state: GuiMacrosState, payload: { id: string; macro: string }) {
         const macros = [...(state.macrogroups[payload.id]?.macros ?? [])]
 
         const newMacro: GuiMacrosStateMacrogroupMacro = {
@@ -52,7 +52,7 @@ export const mutations: MutationTree<GuiMacrosState> = {
         state.macrogroups[payload.id].macros = macros
     },
 
-    removeMacroFromMacrogroup(state: GuiMacrosState, payload: any) {
+    removeMacroFromMacrogroup(state: GuiMacrosState, payload: { id: string; macro: string }) {
         const macros = [...(state.macrogroups[payload.id]?.macros ?? [])]
         const deletedMacroIndex = macros.findIndex((m: GuiMacrosStateMacrogroupMacro) => m.name === payload.macro)
         if (deletedMacroIndex !== -1) {
@@ -69,7 +69,7 @@ export const mutations: MutationTree<GuiMacrosState> = {
         state.macrogroups[payload.id].macros = macros
     },
 
-    groupDelete(state: GuiMacrosState, payload: any) {
+    groupDelete(state: GuiMacrosState, payload: string) {
         if (payload in state.macrogroups) {
             delete state.macrogroups[payload]
         }

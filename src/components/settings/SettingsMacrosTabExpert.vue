@@ -159,9 +159,11 @@
                                             <v-icon class="handle">{{ mdiDragVertical }}</v-icon>
                                         </div>
                                         <div class="macrogroup-item__content">
-                                            <div class="macrogroup-item__name">{{ (macro as any).name }}</div>
+                                            <div class="macrogroup-item__name">
+                                                {{ (macro as GuiMacrosStateMacrogroupMacro).name }}
+                                            </div>
                                             <div class="macrogroup-item__description">
-                                                {{ getMacroDescription((macro as any).name) }}
+                                                {{ getMacroDescription((macro as GuiMacrosStateMacrogroupMacro).name) }}
                                             </div>
                                         </div>
                                         <div class="macrogroup-item__actions">
@@ -173,7 +175,11 @@
                                                             variant="outlined"
                                                             v-bind="activatorProps"
                                                             class="minwidth-0 px-2"
-                                                            @click="changeColorMacroFromGroup(macro as any)">
+                                                            @click="
+                                                                changeColorMacroFromGroup(
+                                                                    macro as GuiMacrosStateMacrogroupMacro
+                                                                )
+                                                            ">
                                                             <v-icon size="small" start>{{ mdiPalette }}</v-icon>
                                                             {{ $t('Settings.MacrosTab.Group') }}
                                                         </v-btn>
@@ -187,12 +193,17 @@
                                                             variant="outlined"
                                                             v-bind="activatorProps"
                                                             class="minwidth-0 px-2"
-                                                            :color="(macro as any).showInStandby ? '' : 'secondary'"
+                                                            :color="
+                                                                (macro as GuiMacrosStateMacrogroupMacro).showInStandby
+                                                                    ? ''
+                                                                    : 'secondary'
+                                                            "
                                                             @click="
                                                                 updateMacroFromGroup(
                                                                     macro,
                                                                     'showInStandby',
-                                                                    !(macro as any).showInStandby
+                                                                    !(macro as GuiMacrosStateMacrogroupMacro)
+                                                                        .showInStandby
                                                                 )
                                                             ">
                                                             <v-icon size="small">{{ mdiSleep }}</v-icon>
@@ -207,12 +218,17 @@
                                                             variant="outlined"
                                                             v-bind="activatorProps"
                                                             class="minwidth-0 px-2"
-                                                            :color="(macro as any).showInPause ? '' : 'secondary'"
+                                                            :color="
+                                                                (macro as GuiMacrosStateMacrogroupMacro).showInPause
+                                                                    ? ''
+                                                                    : 'secondary'
+                                                            "
                                                             @click="
                                                                 updateMacroFromGroup(
                                                                     macro,
                                                                     'showInPause',
-                                                                    !(macro as any).showInPause
+                                                                    !(macro as GuiMacrosStateMacrogroupMacro)
+                                                                        .showInPause
                                                                 )
                                                             ">
                                                             <v-icon size="small">{{ mdiPause }}</v-icon>
@@ -227,12 +243,17 @@
                                                             variant="outlined"
                                                             v-bind="activatorProps"
                                                             class="minwidth-0 px-2"
-                                                            :color="(macro as any).showInPrinting ? '' : 'secondary'"
+                                                            :color="
+                                                                (macro as GuiMacrosStateMacrogroupMacro).showInPrinting
+                                                                    ? ''
+                                                                    : 'secondary'
+                                                            "
                                                             @click="
                                                                 updateMacroFromGroup(
                                                                     macro,
                                                                     'showInPrinting',
-                                                                    !(macro as any).showInPrinting
+                                                                    !(macro as GuiMacrosStateMacrogroupMacro)
+                                                                        .showInPrinting
                                                                 )
                                                             ">
                                                             <v-icon size="small">{{ mdiPrinter3dNozzle }}</v-icon>
@@ -249,7 +270,9 @@
                                                         v-bind="activatorProps"
                                                         class="minwidth-0 px-2"
                                                         color="error"
-                                                        @click="removeMacroFromGroup(macro as any)">
+                                                        @click="
+                                                            removeMacroFromGroup(macro as GuiMacrosStateMacrogroupMacro)
+                                                        ">
                                                         <v-icon size="small">{{ mdiDelete }}</v-icon>
                                                     </v-btn>
                                                 </template>
@@ -666,7 +689,7 @@ function changeColorMacroFromGroup(macro: GuiMacrosStateMacrogroupMacro) {
     if (index > maxIndex) index = 0
     const newColor = macroColors.value[index].value
 
-    updateMacroFromGroup(macro as any, 'color', newColor)
+    updateMacroFromGroup(macro, 'color', newColor)
 }
 
 function removeMacroFromGroup(macro: GuiMacrosStateMacrogroupMacro) {

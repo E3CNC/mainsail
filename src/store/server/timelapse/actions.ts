@@ -1,7 +1,31 @@
 import { ActionContext, ActionTree } from 'vuex'
 import { getSocket, $toast } from '@/store/runtime'
-import { ServerTimelapseState } from '@/store/server/timelapse/types'
+import { ServerTimelapseState, ServerTimelapseSettingsState } from '@/store/server/timelapse/types'
 import { RootState } from '@/store/types'
+
+interface TimelapseSettingsPayload extends Partial<ServerTimelapseSettingsState> {
+    requestParams?: unknown
+}
+
+interface TimelapseLastFramePayload {
+    framecount: number
+    lastframefile: string
+}
+
+interface TimelapseEventPayload {
+    action: string
+    frame: string
+    framefile: string
+    status: string
+    msg: string
+    progress?: number
+    filename?: string
+}
+
+interface TimelapseCamSettingsPayload {
+    oldName: string
+    newName: string
+}
 
 export const actions: ActionTree<ServerTimelapseState, RootState> = {
     reset({ commit }: ActionContext<ServerTimelapseState, RootState>) {
@@ -13,21 +37,24 @@ export const actions: ActionTree<ServerTimelapseState, RootState> = {
         getSocket().emit('machine.timelapse.lastframeinfo', {}, { action: 'server/timelapse/initLastFrameinfo' })
     },
 
-    async initSettings({ commit, dispatch }: ActionContext<ServerTimelapseState, RootState>, payload: any) {
+    async initSettings(
+        { commit, dispatch }: ActionContext<ServerTimelapseState, RootState>,
+        payload: TimelapseSettingsPayload
+    ) {
         if ('requestParams' in payload) delete payload.requestParams
 
         await commit('setSettings', payload)
         await dispatch('socket/removeInitModule', 'server/timelapse/init', { root: true })
     },
 
-    initLastFrameinfo({ commit }: ActionContext<ServerTimelapseState, RootState>, payload: any) {
+    initLastFrameinfo({ commit }: ActionContext<ServerTimelapseState, RootState>, payload: TimelapseLastFramePayload) {
         commit('setLastFrame', {
             count: payload.framecount,
             file: payload.lastframefile,
         })
     },
 
-    getEvent({ commit }: ActionContext<ServerTimelapseState, RootState>, payload: any) {
+    getEvent({ commit }: ActionContext<ServerTimelapseState, RootState>, payload: TimelapseEventPayload) {
         switch (payload.action) {
             case 'newframe':
                 commit('setLastFrame', {
@@ -48,11 +75,17 @@ export const actions: ActionTree<ServerTimelapseState, RootState> = {
         }
     },
 
-    saveSetting(_context: ActionContext<ServerTimelapseState, RootState>, payload: any) {
+    saveSetting(
+        _context: ActionContext<ServerTimelapseState, RootState>,
+        payload: Partial<ServerTimelapseSettingsState>
+    ) {
         getSocket().emit('machine.timelapse.post_settings', payload, { action: 'server/timelapse/initSettings' })
     },
 
-    updateCamSettings({ dispatch, state }: ActionContext<ServerTimelapseState, RootState>, payload: any) {
+    updateCamSettings(
+        { dispatch, state }: ActionContext<ServerTimelapseState, RootState>,
+        payload: TimelapseCamSettingsPayload
+    ) {
         // check if the changed webcam is the timelapse webcam, if not stop here
         if (state.settings.camera !== payload.oldName) return
 

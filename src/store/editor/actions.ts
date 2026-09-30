@@ -8,6 +8,14 @@ import i18n from '@/plugins/i18n'
 import { getSocket, $toast } from '@/store/runtime'
 import { escapePath, formatFilesize, windowBeforeUnloadFunction } from '@/plugins/helpers'
 
+interface EditorOpenFilePayload {
+    root: string
+    path: string
+    filename: string
+    permissions: string
+    size: number | null
+}
+
 export const actions: ActionTree<EditorState, RootState> = {
     reset({ commit }: ActionContext<EditorState, RootState>) {
         commit('reset')
@@ -25,7 +33,10 @@ export const actions: ActionTree<EditorState, RootState> = {
         })
     },
 
-    openFile({ state, dispatch, commit, rootGetters }: ActionContext<EditorState, RootState>, payload: any) {
+    openFile(
+        { state, dispatch, commit, rootGetters }: ActionContext<EditorState, RootState>,
+        payload: EditorOpenFilePayload
+    ) {
         const fullFilepathArray = []
         fullFilepathArray.push(payload.root)
         let path = payload.path
@@ -119,8 +130,9 @@ export const actions: ActionTree<EditorState, RootState> = {
 
             if (payload.restartServiceName !== null) dispatch('close')
             return true
-        } catch (error: any) {
-            window.console.log(error.response?.data.error)
+        } catch (error) {
+            const responseError = (error as { response?: { data?: { error?: unknown } } }).response?.data?.error
+            window.console.log(responseError)
             dispatch('clearLoader')
             $toast.error(i18n.global.t('Editor.FailedSave', { filename: state.filename }).toString())
             return false
@@ -151,7 +163,7 @@ export const actions: ActionTree<EditorState, RootState> = {
         window.removeEventListener('beforeunload', windowBeforeUnloadFunction)
     },
 
-    updateSourcecode({ commit }: ActionContext<EditorState, RootState>, payload: any) {
+    updateSourcecode({ commit }: ActionContext<EditorState, RootState>, payload: string) {
         commit('updateSourcecode', payload)
     },
 }

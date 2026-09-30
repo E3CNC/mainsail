@@ -4,12 +4,17 @@ import semver from 'semver'
 import { minKlipperVersion, minMoonrakerVersion } from '@/store/variables'
 import i18n from '@/plugins/i18n'
 
+interface TitleGetters {
+    'printer/getEstimatedTimeETAFormat': string
+    'printer/getPrintPercent': number
+}
+
 export const getters: GetterTree<RootState, RootState> = {
     getVersion: (state: RootState) => {
         return state.packageVersion
     },
 
-    getTitle: (state: RootState, getters: any) => {
+    getTitle: (state: RootState, getters: TitleGetters) => {
         if (!state.socket?.isConnected) return 'E3CNC'
         if (state.server?.klippy_state !== 'ready') return i18n.global.t('App.Titles.Error')
 

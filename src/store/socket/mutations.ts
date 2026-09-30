@@ -29,19 +29,19 @@ export const mutations: MutationTree<SocketState> = {
         state.reconnectAttempts = val ? state.reconnectAttempts + 1 : 0
     },
 
-    setData(state: SocketState, payload: any) {
-        if ('socket' in payload) payload = payload.socket
+    setData(state: SocketState, payload: Partial<SocketState> | { socket: Partial<SocketState> }) {
+        const data: Partial<SocketState> = 'socket' in payload ? payload.socket : payload
 
-        Object.entries(payload).forEach(([key, value]) => {
-            ;(state as Record<string, any>)[key] = value
+        Object.entries(data).forEach(([key, value]) => {
+            ;(state as unknown as Record<string, unknown>)[key] = value
         })
     },
 
-    addLoading(state: SocketState, payload: any) {
+    addLoading(state: SocketState, payload: { name: string }) {
         state.loadings.push(payload.name)
     },
 
-    removeLoading(state: SocketState, payload: any) {
+    removeLoading(state: SocketState, payload: { name: string }) {
         const index = state.loadings.indexOf(payload.name)
         if (index > -1) state.loadings.splice(index, 1)
     },
@@ -50,7 +50,7 @@ export const mutations: MutationTree<SocketState> = {
         if (state.loadings.length) state.loadings = []
     },
 
-    addInitModule(state: SocketState, payload: any) {
+    addInitModule(state: SocketState, payload: string) {
         const list = [...state.initializationList]
         const index = list.indexOf(payload)
         if (index > -1) return
@@ -59,7 +59,7 @@ export const mutations: MutationTree<SocketState> = {
         state.initializationList = list
     },
 
-    removeInitModule(state: SocketState, payload: any) {
+    removeInitModule(state: SocketState, payload: string) {
         const list = [...state.initializationList]
         const index = list.indexOf(payload)
         if (index === -1) return
@@ -68,7 +68,7 @@ export const mutations: MutationTree<SocketState> = {
         state.initializationList = list
     },
 
-    removeInitComponent(state: SocketState, payload: any) {
+    removeInitComponent(state: SocketState, payload: string) {
         // remove all components which start with payload
         state.initializationList = state.initializationList.filter((item: string) => !item.startsWith(payload))
     },

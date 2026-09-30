@@ -1,10 +1,24 @@
 import { GetterTree } from 'vuex'
 import type { ServerJobQueueState, ServerJobQueueStateJob } from '@/store/server/jobQueue/types'
+import type { FileStateFile } from '@/store/files/types'
 import { RootState } from '@/store/types'
 import { getSocket } from '@/store/runtime'
 
+interface JobQueueGettersProxy {
+    [key: string]: unknown
+}
+
+interface JobQueueRootGetters {
+    'files/getFile': (path: string) => (FileStateFile & { metadataPulled?: boolean }) | undefined
+}
+
 export const getters: GetterTree<ServerJobQueueState, RootState> = {
-    getJobs: (state: ServerJobQueueState, getters: any, rootState: RootState, rootGetters: any) => {
+    getJobs: (
+        state: ServerJobQueueState,
+        getters: JobQueueGettersProxy,
+        rootState: RootState,
+        rootGetters: JobQueueRootGetters
+    ) => {
         const jobs: ServerJobQueueStateJob[] = []
 
         state.queued_jobs.forEach((queuedJob) => {

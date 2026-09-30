@@ -16,7 +16,7 @@ export const actions: ActionTree<GuiNotificationState, RootState> = {
         })
     },
 
-    close({ dispatch }: ActionContext<GuiNotificationState, RootState>, payload: any) {
+    close({ dispatch }: ActionContext<GuiNotificationState, RootState>, payload: { id: string }) {
         const posFirstSlash = payload.id.indexOf('/')
         if (posFirstSlash === -1) return
 
@@ -31,7 +31,10 @@ export const actions: ActionTree<GuiNotificationState, RootState> = {
         })
     },
 
-    dismiss({ dispatch }: ActionContext<GuiNotificationState, RootState>, payload: any) {
+    dismiss(
+        { dispatch }: ActionContext<GuiNotificationState, RootState>,
+        payload: { id: string; type: string; time: number | null }
+    ) {
         const posFirstSlash = payload.id.indexOf('/')
         if (posFirstSlash === -1) return
 
@@ -64,7 +67,7 @@ export const actions: ActionTree<GuiNotificationState, RootState> = {
 
         if (
             state.dismiss.filter(
-                (dismiss: any) =>
+                (dismiss: GuiNotificationStateDismissEntry) =>
                     dismiss.id === newDismiss.id &&
                     dismiss.category === newDismiss.category &&
                     dismiss.type === newDismiss.type

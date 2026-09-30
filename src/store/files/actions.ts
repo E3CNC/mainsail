@@ -14,12 +14,42 @@ import axios, { AxiosResponse } from 'axios'
 import type { AxiosProgressEvent } from 'axios'
 import { BatchMessage } from '@/plugins/webSocketClient'
 
+interface FileMetadataPayload {
+    filename: string
+    [key: string]: unknown
+}
+
+interface FilelistChangedPayload {
+    action: string
+    source_item?: { path: string; root: string }
+    item: { path: string; root: string; modified?: number; size?: number; permissions?: string }
+    [key: string]: unknown
+}
+
+interface FileActionResponsePayload {
+    error?: { message: string }
+    requestParams: { dest: string; source: string; path: string }
+    [key: string]: unknown
+}
+
+interface FileDeleteResponsePayload {
+    error?: { message: string }
+    item: { path: string; root: string }
+    requestParams?: { path: string }
+    [key: string]: unknown
+}
+
+interface RolloverLogPayload {
+    rolled_over: string[]
+    failed: Record<string, string>
+}
+
 export const actions: ActionTree<FileState, RootState> = {
     reset({ commit }: ActionContext<FileState, RootState>) {
         commit('reset')
     },
 
-    initRootDirs({ state, commit }: ActionContext<FileState, RootState>, dirs: any) {
+    initRootDirs({ state, commit }: ActionContext<FileState, RootState>, dirs: string[]) {
         dirs.forEach((dirname: string) => {
             if (state.filetree.findIndex((tmp: FileStateFile) => tmp.filename === dirname) === -1) {
                 commit('createRootDir', {
@@ -184,7 +214,7 @@ export const actions: ActionTree<FileState, RootState> = {
         getSocket().emitBatch(messages)
     },
 
-    getMetadata({ commit, rootState }: ActionContext<FileState, RootState>, payload: any) {
+    getMetadata({ commit, rootState }: ActionContext<FileState, RootState>, payload: FileMetadataPayload) {
         if (payload === null || payload === undefined || payload.filename === '') return
 
         if (payload.filename === rootState?.printer?.print_stats?.filename) {
@@ -195,12 +225,12 @@ export const actions: ActionTree<FileState, RootState> = {
         commit('setMetadata', payload)
     },
 
-    getMetadataCurrentFile({ commit }: ActionContext<FileState, RootState>, payload: any) {
+    getMetadataCurrentFile({ commit }: ActionContext<FileState, RootState>, payload: unknown) {
         commit('printer/clearCurrentFile', null, { root: true })
         commit('printer/setData', { current_file: payload }, { root: true })
     },
 
-    async filelist_changed({ commit, dispatch }: ActionContext<FileState, RootState>, payload: any) {
+    async filelist_changed({ commit, dispatch }: ActionContext<FileState, RootState>, payload: FilelistChangedPayload) {
         switch (payload.action) {
             case 'create_file':
                 commit('setCreateFile', payload)
@@ -265,7 +295,7 @@ export const actions: ActionTree<FileState, RootState> = {
         }
     },
 
-    getMove(_context: ActionContext<FileState, RootState>, payload: any) {
+    getMove(_context: ActionContext<FileState, RootState>, payload: FileActionResponsePayload) {
         if (payload.error) {
             $toast.error(payload.error.message)
         } else {
@@ -280,7 +310,7 @@ export const actions: ActionTree<FileState, RootState> = {
         }
     },
 
-    getCreateDir(_context: ActionContext<FileState, RootState>, payload: any) {
+    getCreateDir(_context: ActionContext<FileState, RootState>, payload: FileActionResponsePayload) {
         if (payload.error) {
             $toast.error(payload.error.message)
         } else {
@@ -290,7 +320,7 @@ export const actions: ActionTree<FileState, RootState> = {
         }
     },
 
-    getDeleteDir(_context: ActionContext<FileState, RootState>, payload: any) {
+    getDeleteDir(_context: ActionContext<FileState, RootState>, payload: FileActionResponsePayload) {
         if (payload.error) {
             $toast.error(payload.error.message)
         } else {
@@ -300,7 +330,7 @@ export const actions: ActionTree<FileState, RootState> = {
         }
     },
 
-    getDeleteFile(_context: ActionContext<FileState, RootState>, payload: any) {
+    getDeleteFile(_context: ActionContext<FileState, RootState>, payload: FileDeleteResponsePayload) {
         if (payload.error) {
             $toast.error(payload.error.message)
         } else {
@@ -355,11 +385,11 @@ export const actions: ActionTree<FileState, RootState> = {
         })
     },
 
-    uploadSetShow({ commit }: ActionContext<FileState, RootState>, payload: any) {
+    uploadSetShow({ commit }: ActionContext<FileState, RootState>, payload: boolean) {
         commit('uploadSetShow', payload)
     },
 
-    uploadSetCurrentNumber({ commit }: ActionContext<FileState, RootState>, payload: any) {
+    uploadSetCurrentNumber({ commit }: ActionContext<FileState, RootState>, payload: number) {
         commit('uploadSetCurrentNumber', payload)
     },
 
@@ -367,17 +397,20 @@ export const actions: ActionTree<FileState, RootState> = {
         commit('uploadSetCurrentNumber', state.upload.currentNumber + 1)
     },
 
-    uploadSetMaxNumber({ commit }: ActionContext<FileState, RootState>, payload: any) {
+    uploadSetMaxNumber({ commit }: ActionContext<FileState, RootState>, payload: number) {
         commit('uploadSetMaxNumber', payload)
     },
 
-    downloadZip({ rootGetters }: ActionContext<FileState, RootState>, payload: any) {
+    downloadZip(
+        { rootGetters }: ActionContext<FileState, RootState>,
+        payload: { destination: { root: string; path: string } }
+    ) {
         const apiUrl = rootGetters['socket/getUrl']
         const url = `${apiUrl}/server/files/${payload.destination.root}/${encodeURI(payload.destination.path)}`
         window.open(url)
     },
 
-    rolloverLog(_context: ActionContext<FileState, RootState>, payload: any) {
+    rolloverLog(_context: ActionContext<FileState, RootState>, payload: RolloverLogPayload) {
         payload.rolled_over.forEach((name: string) => {
             $toast.success(<string>i18n.global.t('Machine.LogfilesPanel.RolloverToastSuccessful', { name }))
         })

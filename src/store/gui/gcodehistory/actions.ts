@@ -17,7 +17,7 @@ export const actions: ActionTree<GuiGcodehistoryState, RootState> = {
         })
     },
 
-    async addToHistory({ commit, dispatch, state }: ActionContext<GuiGcodehistoryState, RootState>, payload: any) {
+    async addToHistory({ commit, dispatch, state }: ActionContext<GuiGcodehistoryState, RootState>, payload: string) {
         const newHistory = [...state.entries]
         newHistory.push(payload)
 

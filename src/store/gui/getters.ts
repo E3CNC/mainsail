@@ -4,6 +4,21 @@ import { GuiMacrosStateMacrogroup } from '@/store/gui/macros/types'
 import { allDashboardPanels, defaultTheme, themes } from '@/store/variables'
 import { RootState, Theme } from '@/store/types'
 
+interface GuiGetters {
+    theme?: string
+    'macros/getAllMacrogroups'?: GuiMacrosStateMacrogroup[]
+    'webcams/getWebcams'?: unknown[]
+    getAllPossiblePanels?: string[]
+    getAllPanelsFromViewport?: (viewport: string) => GuiStateLayoutoption[]
+    [key: string]: unknown
+}
+
+interface GuiRootGetters {
+    'printer/getKinematics'?: string
+    'printer/existsQGL'?: boolean
+    [key: string]: unknown
+}
+
 export const getters: GetterTree<GuiState, RootState> = {
     theme: (state: GuiState): string => {
         const theme = state.uiSettings.theme
@@ -14,7 +29,7 @@ export const getters: GetterTree<GuiState, RootState> = {
         return theme
     },
 
-    getTheme: (state: GuiState, getters: any): Theme => {
+    getTheme: (state: GuiState, getters: GuiGetters): Theme => {
         return themes.find((theme: Theme) => theme.name === getters.theme) ?? themes[0]
     },
 
@@ -44,12 +59,12 @@ export const getters: GetterTree<GuiState, RootState> = {
         return true
     },
 
-    getAllPossiblePanels: (state: GuiState, getters: any, rootState: RootState, rootGetters: any) => {
+    getAllPossiblePanels: (state: GuiState, getters: GuiGetters, rootState: RootState, rootGetters: GuiRootGetters) => {
         let allPanels = [...allDashboardPanels]
 
         // remove macros panel and add macrogroups panels if macroMode === expert
         if (state.macros?.mode === 'expert') {
-            const macrogroups = getters['macros/getAllMacrogroups']
+            const macrogroups = getters['macros/getAllMacrogroups'] ?? []
 
             macrogroups.forEach((group: GuiMacrosStateMacrogroup) => {
                 allPanels.push('macrogroup_' + group.id)
@@ -71,7 +86,7 @@ export const getters: GetterTree<GuiState, RootState> = {
         }
 
         // remove webcam panel, if no webcam exists
-        const webcams = getters['webcams/getWebcams']
+        const webcams = getters['webcams/getWebcams'] ?? []
         if (webcams.length === 0) {
             allPanels = allPanels.filter((name) => name !== 'webcam')
         }
@@ -89,16 +104,16 @@ export const getters: GetterTree<GuiState, RootState> = {
     },
 
     getPanels:
-        (state: GuiState, getters: any, rootState: RootState) =>
+        (state: GuiState, getters: GuiGetters, rootState: RootState) =>
         (viewport: string, column: number, onlyVisible: boolean = false) => {
             const layoutName = (column ? `${viewport}Layout${column}` : `${viewport}Layout`) as keyof GuiStateDashboard
             let panels = state.dashboard[layoutName] as GuiStateLayoutoption[]
 
             panels = panels?.filter((element) => element !== null) ?? []
-            const allPossiblePanels = getters['getAllPossiblePanels']
+            const allPossiblePanels = getters['getAllPossiblePanels'] ?? []
 
             if (column < 2) {
-                const allViewportPanels = getters['getAllPanelsFromViewport'](viewport) as GuiStateLayoutoption[]
+                const allViewportPanels = getters['getAllPanelsFromViewport']?.(viewport) ?? []
                 const missingPanels: GuiStateLayoutoption[] = []
 
                 allPossiblePanels.forEach((panelname: string) => {
@@ -119,7 +134,7 @@ export const getters: GetterTree<GuiState, RootState> = {
                 panels = panels.filter((element) => !element.name.startsWith('macrogroup_'))
             else {
                 panels = panels.filter((element) => element.name !== 'macros')
-                const macrogroups = getters['macros/getAllMacrogroups']
+                const macrogroups = getters['macros/getAllMacrogroups'] ?? []
                 if (macrogroups.length) {
                     panels = panels.filter((element) => {
                         if (!element.name.startsWith('macrogroup_')) return true
@@ -155,7 +170,12 @@ export const getters: GetterTree<GuiState, RootState> = {
         return panels
     },
 
-    getDefaultControlActionButton: (state: GuiState, getters: any, rootState: RootState, rootGetters: any) => {
+    getDefaultControlActionButton: (
+        state: GuiState,
+        getters: GuiGetters,
+        rootState: RootState,
+        rootGetters: GuiRootGetters
+    ) => {
         if (rootGetters['printer/existsQGL']) return 'qgl'
 
         return 'm84'

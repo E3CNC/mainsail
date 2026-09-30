@@ -12,13 +12,19 @@ export const actions: ActionTree<ServerSensorState, RootState> = {
         getSocket().emit('server.sensors.list', {}, { action: 'server/sensor/getSensors' })
     },
 
-    getSensors({ commit, dispatch }: ActionContext<ServerSensorState, RootState>, payload: any) {
+    getSensors(
+        { commit, dispatch }: ActionContext<ServerSensorState, RootState>,
+        payload: { sensors: ServerSensorState['sensors'] }
+    ) {
         commit('setSensors', payload.sensors)
 
         dispatch('socket/removeInitModule', 'server/sensor/init', { root: true })
     },
 
-    updateSensors({ commit }: ActionContext<ServerSensorState, RootState>, payload: any) {
+    updateSensors(
+        { commit }: ActionContext<ServerSensorState, RootState>,
+        payload: Record<string, ServerSensorState['sensors'][string]['values']>
+    ) {
         Object.keys(payload).forEach((key) => {
             commit('updateSensor', { key, value: payload[key] })
         })

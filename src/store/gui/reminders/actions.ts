@@ -1,6 +1,6 @@
 import { ActionContext, ActionTree } from 'vuex'
 import { getSocket } from '@/store/runtime'
-import { GuiRemindersState } from '@/store/gui/reminders/types'
+import { GuiRemindersState, GuiRemindersStateReminder } from '@/store/gui/reminders/types'
 import { RootState } from '@/store/types'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -13,17 +13,26 @@ export const actions: ActionTree<GuiRemindersState, RootState> = {
         getSocket().emit('server.database.get_item', { namespace: 'reminders' }, { action: 'gui/reminders/initStore' })
     },
 
-    async initStore({ commit, dispatch }: ActionContext<GuiRemindersState, RootState>, payload: any) {
+    async initStore(
+        { commit, dispatch }: ActionContext<GuiRemindersState, RootState>,
+        payload: { value: GuiRemindersState['reminders'] }
+    ) {
         await commit('reset')
         await commit('initStore', payload)
         await dispatch('socket/removeInitModule', 'gui/reminders/init', { root: true })
     },
 
-    upload(_context: ActionContext<GuiRemindersState, RootState>, payload: any) {
+    upload(
+        _context: ActionContext<GuiRemindersState, RootState>,
+        payload: { id: string; value: GuiRemindersStateReminder }
+    ) {
         getSocket().emit('server.database.post_item', { namespace: 'reminders', key: payload.id, value: payload.value })
     },
 
-    store({ commit, dispatch, state }: ActionContext<GuiRemindersState, RootState>, payload: any) {
+    store(
+        { commit, dispatch, state }: ActionContext<GuiRemindersState, RootState>,
+        payload: { values: Omit<GuiRemindersStateReminder, 'id'> }
+    ) {
         const id = uuidv4()
 
         commit('store', { id, values: payload.values })
@@ -33,7 +42,10 @@ export const actions: ActionTree<GuiRemindersState, RootState> = {
         })
     },
 
-    update({ commit, dispatch, state }: ActionContext<GuiRemindersState, RootState>, payload: any) {
+    update(
+        { commit, dispatch, state }: ActionContext<GuiRemindersState, RootState>,
+        payload: { id: string } & Partial<GuiRemindersStateReminder>
+    ) {
         commit('update', payload)
         dispatch('upload', {
             id: payload.id,
@@ -41,12 +53,15 @@ export const actions: ActionTree<GuiRemindersState, RootState> = {
         })
     },
 
-    delete({ commit }: ActionContext<GuiRemindersState, RootState>, payload: any) {
+    delete({ commit }: ActionContext<GuiRemindersState, RootState>, payload: string) {
         commit('delete', payload)
         getSocket().emit('server.database.delete_item', { namespace: 'reminders', key: payload })
     },
 
-    repeat({ dispatch, getters, state, rootState }: ActionContext<GuiRemindersState, RootState>, payload: any) {
+    repeat(
+        { dispatch, getters, state, rootState }: ActionContext<GuiRemindersState, RootState>,
+        payload: { id: string }
+    ) {
         if (!(payload.id in state.reminders)) return
         const reminder = getters['getReminder'](payload.id)
         const new_start_time = rootState.server?.history?.job_totals.total_print_time || 0

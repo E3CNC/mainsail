@@ -87,7 +87,7 @@
                 v-model="selectedFiles"
                 :items="displayFiles"
                 class="files-table"
-                :headers="headers as any"
+                :headers="headers as unknown as DataTableHeader[]"
                 :custom-sort="sortFiles"
                 :sort-by="v3SortBy"
                 :items-per-page="countPerPage"
@@ -394,6 +394,7 @@ import {
 } from '@mdi/js'
 import ConfirmationDialog from '@/components/dialogs/ConfirmationDialog.vue'
 import type { FocusableRef } from '@/types/vuetify'
+import type { DataTableHeader } from 'vuetify'
 
 interface dialogRenameObject {
     show: boolean
@@ -479,7 +480,16 @@ function existsFilename(name: string) {
     return files.value.findIndex((file) => file.filename === name) >= 0
 }
 
-const headers = computed<any[]>(() => [
+interface TimelapseFileHeader {
+    title: string
+    key: string
+    align: string
+    configable: boolean
+    visible: boolean
+    sortable?: boolean
+}
+
+const headers = computed<TimelapseFileHeader[]>(() => [
     { title: '', key: '', align: 'left', configable: false, visible: true, sortable: false },
     { title: 'Name', key: 'filename', align: 'left', configable: false, visible: true },
     { title: 'Filesize', key: 'size', align: 'end' as const, configable: true, visible: true },

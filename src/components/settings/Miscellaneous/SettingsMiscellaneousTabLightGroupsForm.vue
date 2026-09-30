@@ -72,7 +72,12 @@ const emit = defineEmits<{
 
 const store = useStore()
 const { t } = useI18n()
-const form = ref<unknown>(null)
+
+interface LightGroupFormInstance {
+    validate?: () => unknown
+}
+
+const form = ref<LightGroupFormInstance | null>(null)
 const formValid = ref(false)
 const groupname = ref('')
 const start = ref(1)
@@ -144,7 +149,7 @@ function close() {
 
 function revalidateForm() {
     nextTick(() => {
-        ;(form.value as any)?.validate?.()
+        form.value?.validate?.()
     })
 }
 
@@ -176,6 +181,10 @@ function updateGroup() {
 }
 
 function existsGroupName(name: string) {
-    return groups.value.findIndex((g: any) => g.name === name && g.id !== props.groupId) >= 0
+    return (
+        groups.value.findIndex(
+            (g: GuiMiscellaneousStateEntryLightgroup) => g.name === name && g.id !== props.groupId
+        ) >= 0
+    )
 }
 </script>

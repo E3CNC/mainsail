@@ -7,15 +7,18 @@ export const actions: ActionTree<GcodeviewerState, RootState> = {
         commit('reset')
     },
 
-    setViewerBackup({ commit }: ActionContext<GcodeviewerState, RootState>, backup: any) {
+    setViewerBackup({ commit }: ActionContext<GcodeviewerState, RootState>, backup: GcodeviewerState['viewerBackup']) {
         commit('setViewerBackup', backup)
     },
 
-    setCanvasBackup({ commit }: ActionContext<GcodeviewerState, RootState>, backup: any) {
+    setCanvasBackup({ commit }: ActionContext<GcodeviewerState, RootState>, backup: GcodeviewerState['canvasBackup']) {
         commit('setCanvasBackup', backup)
     },
 
-    setLoadedFileBackup({ commit }: ActionContext<GcodeviewerState, RootState>, backup: any) {
+    setLoadedFileBackup(
+        { commit }: ActionContext<GcodeviewerState, RootState>,
+        backup: GcodeviewerState['loadedFileBackup']
+    ) {
         commit('setLoadedFileBackup', backup)
     },
 }

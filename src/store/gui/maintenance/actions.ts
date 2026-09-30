@@ -1,6 +1,6 @@
 import { ActionContext, ActionTree } from 'vuex'
 import { getSocket } from '@/store/runtime'
-import { GuiMaintenanceState, MaintenanceJson } from '@/store/gui/maintenance/types'
+import { GuiMaintenanceState, GuiMaintenanceStateEntry, MaintenanceJson } from '@/store/gui/maintenance/types'
 import { RootState } from '@/store/types'
 import { v4 as uuidv4 } from 'uuid'
 import { themeDir } from '@/store/variables'
@@ -105,7 +105,10 @@ export const actions: ActionTree<GuiMaintenanceState, RootState> = {
         })
     },
 
-    async initStore({ commit, dispatch }: ActionContext<GuiMaintenanceState, RootState>, payload: any) {
+    async initStore(
+        { commit, dispatch }: ActionContext<GuiMaintenanceState, RootState>,
+        payload: { value?: Record<string, GuiMaintenanceStateEntry> }
+    ) {
         await commit('reset')
 
         const entries = payload.value ?? {}
@@ -116,7 +119,10 @@ export const actions: ActionTree<GuiMaintenanceState, RootState> = {
         await dispatch('socket/removeInitModule', 'gui/maintenance/init', { root: true })
     },
 
-    upload(_context: ActionContext<GuiMaintenanceState, RootState>, payload: any) {
+    upload(
+        _context: ActionContext<GuiMaintenanceState, RootState>,
+        payload: { id: string; value: GuiMaintenanceStateEntry }
+    ) {
         getSocket().emit('server.database.post_item', {
             namespace: 'maintenance',
             key: payload.id,
@@ -124,7 +130,10 @@ export const actions: ActionTree<GuiMaintenanceState, RootState> = {
         })
     },
 
-    store({ commit, dispatch, state }: ActionContext<GuiMaintenanceState, RootState>, payload: any) {
+    store(
+        { commit, dispatch, state }: ActionContext<GuiMaintenanceState, RootState>,
+        payload: { entry: GuiMaintenanceStateEntry }
+    ) {
         const id = uuidv4()
 
         commit('store', { id, values: payload.entry })
@@ -134,7 +143,10 @@ export const actions: ActionTree<GuiMaintenanceState, RootState> = {
         })
     },
 
-    update({ commit, dispatch }: ActionContext<GuiMaintenanceState, RootState>, payload: any) {
+    update(
+        { commit, dispatch }: ActionContext<GuiMaintenanceState, RootState>,
+        payload: { id?: string } & Partial<GuiMaintenanceStateEntry>
+    ) {
         const id = payload.id
         delete payload.id
 
@@ -148,7 +160,7 @@ export const actions: ActionTree<GuiMaintenanceState, RootState> = {
         })
     },
 
-    delete({ commit }: ActionContext<GuiMaintenanceState, RootState>, payload: any) {
+    delete({ commit }: ActionContext<GuiMaintenanceState, RootState>, payload: string) {
         commit('delete', payload)
         getSocket().emit('server.database.delete_item', { namespace: 'maintenance', key: payload })
     },

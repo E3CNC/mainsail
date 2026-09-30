@@ -39,9 +39,17 @@
 </template>
 
 <script setup lang="ts">
+import type { ComputedRef } from 'vue'
 import { useBase } from '@/composables/useBase'
 import Panel from '@/components/ui/Panel.vue'
 import { mdiInformation, mdiAlertCircle } from '@mdi/js'
 
-const { klipperState, existsPrinterConfig, missingConfigs, mainsailCfgExists } = useBase() as any
+interface MinSettingsBase {
+    klipperState: ComputedRef<string>
+    existsPrinterConfig: ComputedRef<boolean>
+    missingConfigs: ComputedRef<string[]>
+    mainsailCfgExists: ComputedRef<boolean>
+}
+
+const { klipperState, existsPrinterConfig, missingConfigs, mainsailCfgExists } = useBase() as unknown as MinSettingsBase
 </script>

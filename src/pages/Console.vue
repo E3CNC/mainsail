@@ -105,8 +105,8 @@ const {
     clearConsole,
 } = useConsole()
 
-const consoleScroll = ref<unknown>(null)
-const gcodeCommandField = ref<unknown>(null)
+const consoleScroll = ref<{ osInstance?: () => { scroll?: (options: { y: string }) => void } | null } | null>(null)
+const gcodeCommandField = ref<{ setGcode?: (msg: string) => void } | null>(null)
 
 const events = computed(() => store.getters['server/getConsoleEvents'](consoleDirection.value === 'table'))
 
@@ -123,7 +123,7 @@ watch(autoscroll, (newVal: boolean) => {
 })
 
 function commandClick(msg: string): void {
-    ;(gcodeCommandField.value as any)?.setGcode(msg)
+    gcodeCommandField.value?.setGcode?.(msg)
 }
 
 onMounted(() => {
@@ -134,8 +134,8 @@ function scrollToBottom() {
     nextTick(() => {
         if (!consoleScroll.value) return
 
-        const overlayscroll = (consoleScroll.value as any).osInstance()
-        overlayscroll?.scroll({ y: '100%' })
+        const overlayscroll = consoleScroll.value?.osInstance?.()
+        overlayscroll?.scroll?.({ y: '100%' })
     })
 }
 </script>

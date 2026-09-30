@@ -3,6 +3,24 @@ import { SocketState } from '@/store/socket/types'
 import { RootState } from '@/store/types'
 import { getSocket, $toast } from '@/store/runtime'
 
+interface SocketDataPayload {
+    hostname?: string
+    port?: number
+    path?: string
+    [key: string]: unknown
+}
+
+interface SocketConnectionPayload {
+    hostname: string
+    port: number
+    path: string
+}
+
+interface SocketMessagePayload {
+    method: string
+    params: unknown[]
+}
+
 export const actions: ActionTree<SocketState, RootState> = {
     reset({ commit }: ActionContext<SocketState, RootState>) {
         commit('setDisconnected')
@@ -10,11 +28,11 @@ export const actions: ActionTree<SocketState, RootState> = {
         commit('reset')
     },
 
-    setData({ commit }: ActionContext<SocketState, RootState>, payload: any) {
+    setData({ commit }: ActionContext<SocketState, RootState>, payload: SocketDataPayload) {
         commit('setData', payload)
     },
 
-    async setSocket({ commit, state }: ActionContext<SocketState, RootState>, payload: any) {
+    async setSocket({ commit, state }: ActionContext<SocketState, RootState>, payload: SocketConnectionPayload) {
         commit('setData', payload)
 
         try {
@@ -58,7 +76,7 @@ export const actions: ActionTree<SocketState, RootState> = {
         dispatch('printer/init', null, { root: true })
     },
 
-    onMessage({ commit, dispatch }: ActionContext<SocketState, RootState>, payload: any) {
+    onMessage({ commit, dispatch }: ActionContext<SocketState, RootState>, payload: SocketMessagePayload) {
         switch (payload.method) {
             case 'notify_status_update':
                 dispatch('printer/getData', payload.params[0], { root: true })
@@ -160,11 +178,11 @@ export const actions: ActionTree<SocketState, RootState> = {
         commit('removeInitComponent', payload)
     },
 
-    reportDebug(_context: ActionContext<SocketState, RootState>, payload: any) {
+    reportDebug(_context: ActionContext<SocketState, RootState>, payload: unknown) {
         window.console.log(payload)
     },
 
-    setConnectionFailed({ commit }: ActionContext<SocketState, RootState>, payload: any) {
+    setConnectionFailed({ commit }: ActionContext<SocketState, RootState>, payload: string) {
         commit('setDisconnected', payload)
     },
 }

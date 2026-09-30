@@ -1,7 +1,26 @@
 import { printer } from '@/store/farm/printer'
-import { ActionContext, Module } from 'vuex'
+import { ActionContext, Module, Store } from 'vuex'
 import { FarmState } from '@/store/farm/types'
 import { RootState } from '@/store/types'
+
+interface FarmGetters {
+    [key: string]: unknown
+}
+
+interface RegisterPrinterPayload {
+    id: string
+    settings?: Record<string, unknown>
+    [key: string]: unknown
+}
+
+interface UpdatePrinterPayload {
+    id: string
+    values: {
+        hostname: string
+        port: number
+        path: string
+    }
+}
 
 export const getDefaultState = (): FarmState => {
     return {}
@@ -22,10 +41,10 @@ export const farm: Module<FarmState, RootState> = {
         getPrinters: (state: FarmState) => {
             return state
         },
-        getPrinterName: (state: FarmState, getters: any) => (namespace: string) => {
+        getPrinterName: (state: FarmState, getters: FarmGetters) => (namespace: string) => {
             return getters[namespace + '/getPrinterName']
         },
-        getPrinterSocketState: (state: FarmState, getters: any) => (namespace: string) => {
+        getPrinterSocketState: (state: FarmState, getters: FarmGetters) => (namespace: string) => {
             return (
                 getters[namespace + '/getPrinterSocketState'] ?? {
                     isConnecting: false,
@@ -38,9 +57,9 @@ export const farm: Module<FarmState, RootState> = {
         },
     },
     actions: {
-        registerPrinter({ commit, dispatch }: ActionContext<FarmState, RootState>, payload: any) {
-            if (!(this as any).hasModule(['farm', payload.id])) {
-                ;(this as any).registerModule(['farm', payload.id], printer)
+        registerPrinter({ commit, dispatch }: ActionContext<FarmState, RootState>, payload: RegisterPrinterPayload) {
+            if (!(this as unknown as Store<RootState>).hasModule(['farm', payload.id])) {
+                ;(this as unknown as Store<RootState>).registerModule(['farm', payload.id], printer)
                 commit('farm/' + payload.id + '/setSocketData', { ...payload, _namespace: payload.id }, { root: true })
 
                 if ('settings' in payload)
@@ -48,7 +67,7 @@ export const farm: Module<FarmState, RootState> = {
                 dispatch('farm/' + payload.id + '/connect', {}, { root: true })
             }
         },
-        updatePrinter({ dispatch, commit }: ActionContext<FarmState, RootState>, payload: any) {
+        updatePrinter({ dispatch, commit }: ActionContext<FarmState, RootState>, payload: UpdatePrinterPayload) {
             commit(payload.id + '/setSocketData', {
                 hostname: payload.values.hostname,
                 port: payload.values.port,
@@ -57,10 +76,10 @@ export const farm: Module<FarmState, RootState> = {
             })
             dispatch(payload.id + '/reconnect')
         },
-        unregisterPrinter({ state }: ActionContext<FarmState, RootState>, id: any) {
+        unregisterPrinter({ state }: ActionContext<FarmState, RootState>, id: string) {
             if (id in state) {
                 state[id].socket?.instance?.close()
-                ;(this as any).unregisterModule(['farm', id])
+                ;(this as unknown as Store<RootState>).unregisterModule(['farm', id])
             }
         },
     },

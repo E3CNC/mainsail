@@ -8,15 +8,17 @@ export const mutations: MutationTree<GcodeviewerState> = {
         Object.assign(state, getDefaultState())
     },
 
-    setViewerBackup(state: GcodeviewerState, backup: any) {
-        state.viewerBackup = markRaw(backup) /* viewer object is large and quite slow to proxy */
+    setViewerBackup(state: GcodeviewerState, backup: GcodeviewerState['viewerBackup']) {
+        // markRaw guards non-objects internally, so null passes through as before
+        state.viewerBackup =
+            backup === null ? null : markRaw(backup) /* viewer object is large and quite slow to proxy */
     },
 
-    setCanvasBackup(state: GcodeviewerState, backup: any) {
+    setCanvasBackup(state: GcodeviewerState, backup: GcodeviewerState['canvasBackup']) {
         state.canvasBackup = backup
     },
 
-    setLoadedFileBackup(state: GcodeviewerState, backup: any) {
+    setLoadedFileBackup(state: GcodeviewerState, backup: GcodeviewerState['loadedFileBackup']) {
         state.loadedFileBackup = backup
     },
 }

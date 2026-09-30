@@ -14,7 +14,7 @@
         <img
             v-if="(status === 'loading' || status === 'pending') && imgSrc"
             :src="imgSrc"
-            :crossorigin="(imgCrossOrigin ?? undefined) as any"
+            :crossorigin="crossOriginAttr"
             style="position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none"
             @load="onImageLoaded"
             @error="onImageError" />
@@ -29,16 +29,29 @@
  * extracting its src, and preloading it while showing the preloader slot.
  * Once loaded, the #image slot is displayed.
  */
-import { ref, useSlots, onMounted, type VNode } from 'vue'
+import { computed, ref, useSlots, onMounted, type VNode } from 'vue'
 
 const slots = useSlots()
 const status = ref<'pending' | 'loading' | 'loaded' | 'failed'>('pending')
 const imgSrc = ref<string | null>(null)
 const imgCrossOrigin = ref<string | null>(null)
 
+type CrossOriginAttr = '' | 'anonymous' | 'use-credentials' | undefined
+const crossOriginValues: CrossOriginAttr[] = ['', 'anonymous', 'use-credentials']
+const crossOriginAttr = computed<CrossOriginAttr>(() =>
+    crossOriginValues.includes(imgCrossOrigin.value as CrossOriginAttr)
+        ? (imgCrossOrigin.value as CrossOriginAttr)
+        : undefined
+)
+
 function extractSrcFromVNodes(vnodes: VNode[]): { src: string | null; crossOrigin: string | null } {
     for (const vnode of vnodes) {
-        if (typeof vnode.type === 'object' && (vnode.type as any).name === 'VueLoadImage') continue
+        if (
+            typeof vnode.type === 'object' &&
+            vnode.type !== null &&
+            (vnode.type as { name?: string }).name === 'VueLoadImage'
+        )
+            continue
         if (vnode.type === 'img') {
             const src = (vnode.props?.src as string) ?? (vnode.props?.['data-src'] as string) ?? null
             const crossOrigin = (vnode.props?.crossorigin as string) ?? (vnode.props?.crossOrigin as string) ?? null

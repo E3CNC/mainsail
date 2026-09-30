@@ -2,12 +2,16 @@ import router from '@/plugins/router'
 import { ActionContext, ActionTree } from 'vuex'
 import { ConfigJson, RootState } from './types'
 
+interface ChangePrinterPayload {
+    printer: string
+}
+
 export const actions: ActionTree<RootState, RootState> = {
     switchToDashboard() {
         if (router.currentRoute.value.fullPath !== '/') router.push('/')
     },
 
-    changePrinter({ dispatch, getters }: ActionContext<RootState, RootState>, payload: any) {
+    changePrinter({ dispatch, getters }: ActionContext<RootState, RootState>, payload: ChangePrinterPayload) {
         dispatch('files/reset')
         dispatch('gui/reset')
         dispatch('printer/reset')
@@ -23,7 +27,7 @@ export const actions: ActionTree<RootState, RootState> = {
         })
     },
 
-    setNaviDrawer({ commit }: ActionContext<RootState, RootState>, payload: any) {
+    setNaviDrawer({ commit }: ActionContext<RootState, RootState>, payload: RootState['naviDrawer']) {
         commit('setNaviDrawer', payload)
     },
 

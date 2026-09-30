@@ -228,7 +228,7 @@ async function e3cncUpdate() {
                     if (infoData?.result?.ok) {
                         // Update completed — refresh instance info
                         if (infoData.result.instances?.length) {
-                            const running = infoData.result.instances.find((i: any) => i.running)
+                            const running = infoData.result.instances.find((i: instanceInfo) => i.running)
                             const matched = running ?? infoData.result.instances[0]
                             matched.current_version = infoData.result.current_version
                             instanceInfo.value = matched

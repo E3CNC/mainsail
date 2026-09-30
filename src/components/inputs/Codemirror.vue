@@ -81,7 +81,7 @@ function initialize() {
     nextTick(() => {
         setCmValue(props.modelValue ?? props.code ?? props.value ?? content ?? '')
         syncAnnotations(props.validationErrors)
-        ;(emit as any)('ready', codemirror)
+        emit('ready', codemirror as EditorView)
     })
 }
 

@@ -239,14 +239,24 @@ const colorPickerWhiteOptions = computed(() => {
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
-function debounce(fn: (...args: unknown[]) => void, time: number) {
-    return (...args: unknown[]) => {
+function debounce<A extends unknown[]>(fn: (...args: A) => void, time: number) {
+    return (...args: A) => {
         if (debounceTimer) clearTimeout(debounceTimer)
         debounceTimer = setTimeout(() => fn(...args), time)
     }
 }
 
-const onColorRGBChanged = debounce((payload: any) => {
+interface IroRgbPayload {
+    red: number
+    green: number
+    blue: number
+}
+
+interface IroAlphaPayload {
+    alpha: number
+}
+
+const onColorRGBChanged = debounce((payload: IroRgbPayload) => {
     const color: ColorData = {
         red: payload.red,
         green: payload.green,
@@ -256,7 +266,7 @@ const onColorRGBChanged = debounce((payload: any) => {
     colorChanged(color)
 }, 250)
 
-const onColorWhiteChanged = debounce((payload: any) => {
+const onColorWhiteChanged = debounce((payload: IroAlphaPayload) => {
     const color: ColorData = {
         red: red.value,
         green: green.value,

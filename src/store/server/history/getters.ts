@@ -2,6 +2,15 @@ import { GetterTree } from 'vuex'
 import type { ServerHistoryState, ServerHistoryStateJob } from '@/store/server/history/types'
 import { RootState } from '@/store/types'
 
+interface HistoryAvgGetters {
+    getTotalCompletedPrintTime: number
+    getTotalCompletedJobsCount: number
+}
+
+interface HistoryGettersProxy {
+    [key: string]: unknown
+}
+
 export const getters: GetterTree<ServerHistoryState, RootState> = {
     getTotalPrintTime(state: ServerHistoryState) {
         let output = 0
@@ -51,7 +60,7 @@ export const getters: GetterTree<ServerHistoryState, RootState> = {
         return state.jobs.filter((job) => job.status === 'completed').length
     },
 
-    getAvgPrintTime(state: ServerHistoryState, getters: any) {
+    getAvgPrintTime(state: ServerHistoryState, getters: HistoryAvgGetters) {
         const totalCompletedPrintTime = getters.getTotalCompletedPrintTime
         const totalCompletedJobsCount = getters.getTotalCompletedJobsCount
 
@@ -112,7 +121,7 @@ export const getters: GetterTree<ServerHistoryState, RootState> = {
         return ''
     },
 
-    getFilteredJobList: (state: ServerHistoryState, getters: any, rootState: RootState) => {
+    getFilteredJobList: (state: ServerHistoryState, getters: HistoryGettersProxy, rootState: RootState) => {
         const hideStatus = rootState.gui?.view?.history?.hidePrintStatus ?? []
 
         return state.jobs.filter((job: ServerHistoryStateJob) => {

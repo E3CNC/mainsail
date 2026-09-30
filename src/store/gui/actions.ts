@@ -13,6 +13,56 @@ import { getDefaultState } from './index'
 import { excludeKeys, themeDir, themes } from '@/store/variables'
 import { deletePath, isRecord } from '@/plugins/helpers'
 
+interface GuiInitStoreValue {
+    remoteprinters?: { printers: unknown }
+    view?: {
+        gcodefiles?: { currentPath?: string }
+        configfiles?: { currentPath?: string }
+    }
+    cooldownGcode?: unknown
+    presets?: GuiPresetsStatePreset[]
+    dashboard?: Record<string, unknown>
+    [key: string]: unknown
+}
+
+interface GuiSaveSettingPayload {
+    name: string
+    value: unknown
+}
+
+interface GuiUpdateSettingsPayload {
+    keyName: string
+    newVal: unknown
+    value?: Record<string, unknown>
+}
+
+interface GuiExpandPanelPayload {
+    name: string
+    value: boolean
+    viewport: string
+}
+
+interface GuiRestoreDbPayload {
+    dbCheckboxes: string[]
+    restoreObjects: Record<string, Record<string, unknown>>
+}
+
+interface GuiTempchartSensorPayload {
+    objectName: string
+    dataset: string
+    value: boolean
+}
+
+interface GuiWebcamPayload {
+    page: string
+    value: string
+}
+
+interface GuiColumnTogglePayload {
+    name: string
+    value: boolean
+}
+
 export const actions: ActionTree<GuiState, RootState> = {
     reset({ commit, dispatch }: ActionContext<GuiState, RootState>) {
         commit('reset')
@@ -29,11 +79,14 @@ export const actions: ActionTree<GuiState, RootState> = {
         getSocket().emit('server.database.get_item', { namespace: 'mainsail' }, { action: 'gui/initStore' })
     },
 
-    async initStore({ commit, dispatch, rootGetters, rootState }: ActionContext<GuiState, RootState>, payload: any) {
+    async initStore(
+        { commit, dispatch, rootGetters, rootState }: ActionContext<GuiState, RootState>,
+        payload: { value: GuiInitStoreValue }
+    ) {
         const baseUrl = rootGetters['socket/getUrl'] + '/server/database/item'
         const mainsailUrl = baseUrl + '?namespace=mainsail'
 
-        if ('remoteprinters' in payload.value) {
+        if ('remoteprinters' in payload.value && isRecord(payload.value.remoteprinters)) {
             if (rootState.instancesDB === 'moonraker')
                 dispatch('remoteprinters/initStore', payload.value.remoteprinters.printers)
             delete payload.value.remoteprinters
@@ -73,7 +126,7 @@ export const actions: ActionTree<GuiState, RootState> = {
 
         //update nonExpandPanels from V2.1.x to V2.2.0
         if (
-            'dashboard' in payload.value &&
+            payload.value.dashboard &&
             'nonExpandPanels' in payload.value.dashboard &&
             Array.isArray(payload.value.dashboard.nonExpandPanels)
         ) {
@@ -86,8 +139,8 @@ export const actions: ActionTree<GuiState, RootState> = {
         }
 
         //update tools to temperatures panel from V2.1.x to V2.2.0
-        if ('dashboard' in payload.value) {
-            const dashboard = payload.value.dashboard as GuiStateDashboard
+        if (payload.value.dashboard) {
+            const dashboard = payload.value.dashboard as unknown as GuiStateDashboard
             const layouts: GuiStateDashboardLayoutKey[] = [
                 'mobileLayout',
                 'tabletLayout1',
@@ -182,7 +235,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         dispatch('init')
     },
 
-    saveSetting({ commit }: ActionContext<GuiState, RootState>, payload: any) {
+    saveSetting({ commit }: ActionContext<GuiState, RootState>, payload: GuiSaveSettingPayload) {
         commit('saveSetting', payload)
         if (excludeKeys.includes(payload.name)) return
 
@@ -205,21 +258,27 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    updateSettings(_context: ActionContext<GuiState, RootState>, payload: any) {
+    updateSettings(_context: ActionContext<GuiState, RootState>, payload: GuiUpdateSettingsPayload) {
         const keyName = payload.keyName
-        let newState = payload.newVal
+        let newState: unknown = payload.newVal
         if (
             'value' in payload &&
+            isRecord(payload.value) &&
             keyName in payload.value &&
             typeof payload.value[keyName] !== 'string' &&
             !Array.isArray(payload.value[keyName])
         )
-            newState = Object.assign(payload.value[keyName], { ...newState })
+            newState = Object.assign(payload.value[keyName] as Record<string, unknown>, {
+                ...(newState as Record<string, unknown>),
+            })
 
         getSocket().emit('server.database.post_item', { namespace: 'mainsail', key: keyName, value: newState })
     },
 
-    setGcodefilesMetadata({ commit, dispatch, state }: ActionContext<GuiState, RootState>, data: any) {
+    setGcodefilesMetadata(
+        { commit, dispatch, state }: ActionContext<GuiState, RootState>,
+        data: GuiColumnTogglePayload
+    ) {
         commit('setGcodefilesMetadata', data)
         dispatch('updateSettings', {
             keyName: 'view.gcodefiles.hideMetadataColumns',
@@ -227,7 +286,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    setGcodefilesShowHiddenFiles({ commit, dispatch, state }: ActionContext<GuiState, RootState>, data: any) {
+    setGcodefilesShowHiddenFiles({ commit, dispatch, state }: ActionContext<GuiState, RootState>, data: boolean) {
         commit('setGcodefilesShowHiddenFiles', data)
         dispatch('updateSettings', {
             keyName: 'view.gcodefiles.showHiddenFiles',
@@ -235,7 +294,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    setCurrentWebcam({ commit, dispatch, state }: ActionContext<GuiState, RootState>, payload: any) {
+    setCurrentWebcam({ commit, dispatch, state }: ActionContext<GuiState, RootState>, payload: GuiWebcamPayload) {
         commit('setCurrentWebcam', payload)
         dispatch('updateSettings', {
             keyName: 'view.webcam.currentCam',
@@ -245,7 +304,7 @@ export const actions: ActionTree<GuiState, RootState> = {
 
     setTempchartDatasetAdditionalSensorSetting(
         { commit, dispatch, state }: ActionContext<GuiState, RootState>,
-        payload: any
+        payload: GuiTempchartSensorPayload
     ) {
         commit('setTempchartDatasetAdditionalSensorSetting', payload)
         dispatch('updateSettings', {
@@ -254,7 +313,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    async resetMoonrakerDB({ rootGetters }: ActionContext<GuiState, RootState>, payload: any) {
+    async resetMoonrakerDB({ rootGetters }: ActionContext<GuiState, RootState>, payload: string[]) {
         const baseUrl = rootGetters['socket/getUrl'] + '/server/database/item'
 
         const urlDefault =
@@ -325,7 +384,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         window.location.reload()
     },
 
-    async backupMoonrakerDB({ rootGetters }: ActionContext<GuiState, RootState>, payload: any) {
+    async backupMoonrakerDB({ rootGetters }: ActionContext<GuiState, RootState>, payload: string[]) {
         const backup: Record<string, Record<string, unknown>> = {}
 
         const responseMainsail = await fetch(rootGetters['socket/getUrl'] + '/server/database/item?namespace=mainsail')
@@ -363,7 +422,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         document.body.removeChild(element)
     },
 
-    async restoreMoonrakerDB({ rootGetters }: ActionContext<GuiState, RootState>, payload: any) {
+    async restoreMoonrakerDB({ rootGetters }: ActionContext<GuiState, RootState>, payload: GuiRestoreDbPayload) {
         const baseUrl = rootGetters['socket/getUrl'] + '/server/database/item'
         const mainsailUrl = baseUrl + '?namespace=mainsail'
         const responseNamespaces = await fetch(rootGetters['socket/getUrl'] + '/server/database/list')
@@ -423,7 +482,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         window.location.reload()
     },
 
-    setHistoryColumns({ commit, dispatch, state }: ActionContext<GuiState, RootState>, data: any) {
+    setHistoryColumns({ commit, dispatch, state }: ActionContext<GuiState, RootState>, data: GuiColumnTogglePayload) {
         commit('setHistoryColumns', data)
         dispatch('updateSettings', {
             keyName: 'view.history',
@@ -431,7 +490,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    toggleStatusInHistoryList({ commit, dispatch, state }: ActionContext<GuiState, RootState>, name: any) {
+    toggleStatusInHistoryList({ commit, dispatch, state }: ActionContext<GuiState, RootState>, name: string) {
         const array: string[] = [...state.view.history.hidePrintStatus]
         const index = array.indexOf(name)
 
@@ -446,7 +505,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    saveExpandPanel({ commit, dispatch, state }: ActionContext<GuiState, RootState>, payload: any) {
+    saveExpandPanel({ commit, dispatch, state }: ActionContext<GuiState, RootState>, payload: GuiExpandPanelPayload) {
         if (!payload.value) commit('addClosePanel', { name: payload.name, viewport: payload.viewport })
         else commit('removeClosePanel', { name: payload.name, viewport: payload.viewport })
 
@@ -466,9 +525,9 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    updateGcodeviewerCache({ dispatch, state }: ActionContext<GuiState, RootState>, payload: any) {
+    updateGcodeviewerCache({ dispatch, state }: ActionContext<GuiState, RootState>, payload: Record<string, unknown>) {
         const klipperCache = state.gcodeViewer.klipperCache as Record<string, unknown>
-        const payloadCache = payload as Record<string, unknown>
+        const payloadCache = payload
 
         Object.keys(payloadCache).forEach((key) => {
             const value = payloadCache[key]
@@ -479,7 +538,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         })
     },
 
-    announcementDismissFlag(_context: ActionContext<GuiState, RootState>, payload: any) {
+    announcementDismissFlag(_context: ActionContext<GuiState, RootState>, payload: unknown) {
         window.console.log(payload)
     },
 

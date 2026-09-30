@@ -124,7 +124,7 @@ const props = defineProps<{
     printer: FarmPrinterState
 }>()
 
-const { convertWebcamIcon } = useWebcam() as any
+const { convertWebcamIcon } = useWebcam()
 const { sidebarBgImage } = useTheme()
 
 const store = useStore()

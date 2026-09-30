@@ -43,7 +43,7 @@ const internalOptions = computed(
             color: props.color ?? '#ffffff',
             borderWidth: 2,
             sliderSize: 16,
-        }) as any
+        }) as Partial<ColorPickerProps>
 )
 
 function emitColorChange(color: IroColor) {

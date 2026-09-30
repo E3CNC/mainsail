@@ -1,10 +1,68 @@
 import router from '@/plugins/router'
 import { getSocket, $toast } from '@/store/runtime'
 import { ActionContext, ActionTree } from 'vuex'
-import { ServerState, ServerStateEvent } from '@/store/server/types'
+import { ServerState, ServerStateEvent, ServerStateServiceState } from '@/store/server/types'
 import { camelize, formatConsoleMessage } from '@/plugins/helpers'
 import { RootState } from '@/store/types'
 import { initableServerComponents } from '@/store/variables'
+
+interface ServerDatabaseListPayload {
+    namespaces?: string[]
+}
+
+interface ServerInfoPayload {
+    plugins?: unknown
+    failed_plugins?: unknown
+    components?: string[]
+    registered_directories?: string[]
+    [key: string]: unknown
+}
+
+interface ServerProcStatsPayload {
+    throttled_state: ServerState['throttled_state'] | null
+    system_uptime: number
+}
+
+interface ServerUpdateProcStatsPayload {
+    cpu_temp?: ServerState['cpu_temp']
+    moonraker_stats?: ServerState['moonraker_stats']
+    network?: ServerState['network_stats']
+    system_cpu_usage?: ServerState['system_cpu_usage']
+}
+
+interface ServerKlippyConnectedPayload {
+    klippy_connected: boolean
+    klippy_state: string
+}
+
+interface ServerDataPayload {
+    requestParams?: unknown
+    [key: string]: unknown
+}
+
+interface ServerGcodeStorePayload {
+    gcode_store: ServerStateEvent[]
+}
+
+interface ServerAddRootDirectoryPayload {
+    item: {
+        root: string
+    }
+}
+
+interface ServerConsoleEventPayload {
+    type?: string
+    message?: string
+    result?: string
+    error?: {
+        message: string
+    }
+    [key: string]: unknown
+}
+
+interface ServerServiceStateChangedPayload {
+    [name: string]: ServerStateServiceState
+}
 
 export const actions: ActionTree<ServerState, RootState> = {
     reset({ commit, dispatch }: ActionContext<ServerState, RootState>) {
@@ -52,7 +110,7 @@ export const actions: ActionTree<ServerState, RootState> = {
         await dispatch('socket/removeInitModule', 'server', { root: true })
     },
 
-    checkDatabases({ dispatch, commit }: ActionContext<ServerState, RootState>, payload: any) {
+    checkDatabases({ dispatch, commit }: ActionContext<ServerState, RootState>, payload: ServerDatabaseListPayload) {
         if (payload.namespaces?.includes('mainsail')) {
             dispatch('socket/addInitModule', 'gui/init', { root: true })
             dispatch('gui/init', null, { root: true })
@@ -72,7 +130,7 @@ export const actions: ActionTree<ServerState, RootState> = {
         dispatch('socket/removeInitModule', 'server/databaseList', { root: true })
     },
 
-    initServerInfo({ dispatch, commit }: ActionContext<ServerState, RootState>, payload: any) {
+    initServerInfo({ dispatch, commit }: ActionContext<ServerState, RootState>, payload: ServerInfoPayload) {
         // delete old plugin entries
         if ('plugins' in payload) delete payload.plugins
         if ('failed_plugins' in payload) delete payload.failed_plugins
@@ -96,17 +154,20 @@ export const actions: ActionTree<ServerState, RootState> = {
         dispatch('socket/removeInitModule', 'server/info', { root: true })
     },
 
-    initServerConfig({ commit, dispatch }: ActionContext<ServerState, RootState>, payload: any) {
+    initServerConfig({ commit, dispatch }: ActionContext<ServerState, RootState>, payload: ServerState['config']) {
         commit('setConfig', payload)
         dispatch('socket/removeInitModule', 'server/config', { root: true })
     },
 
-    initSystemInfo({ commit, dispatch }: ActionContext<ServerState, RootState>, payload: any) {
+    initSystemInfo(
+        { commit, dispatch }: ActionContext<ServerState, RootState>,
+        payload: { system_info: ServerState['system_info'] }
+    ) {
         commit('setSystemInfo', payload.system_info)
         dispatch('socket/removeInitModule', 'server/systemInfo', { root: true })
     },
 
-    initProcStats({ commit, dispatch }: ActionContext<ServerState, RootState>, payload: any) {
+    initProcStats({ commit, dispatch }: ActionContext<ServerState, RootState>, payload: ServerProcStatsPayload) {
         if (payload.throttled_state !== null) {
             commit('setThrottledState', payload.throttled_state)
         }
@@ -119,7 +180,7 @@ export const actions: ActionTree<ServerState, RootState> = {
         dispatch('socket/removeInitModule', 'server/procStats', { root: true })
     },
 
-    updateProcStats({ commit }: ActionContext<ServerState, RootState>, payload: any) {
+    updateProcStats({ commit }: ActionContext<ServerState, RootState>, payload: ServerUpdateProcStatsPayload) {
         if ('cpu_temp' in payload) commit('setCpuTemp', payload.cpu_temp)
         if ('moonraker_stats' in payload) commit('setMoonrakerStats', payload.moonraker_stats)
         if ('network' in payload) commit('setNetworkStats', payload.network)
@@ -161,7 +222,10 @@ export const actions: ActionTree<ServerState, RootState> = {
         commit('setKlippyConnectedTimer', null)
     },
 
-    checkKlippyConnected({ commit, dispatch }: ActionContext<ServerState, RootState>, payload: any) {
+    checkKlippyConnected(
+        { commit, dispatch }: ActionContext<ServerState, RootState>,
+        payload: ServerKlippyConnectedPayload
+    ) {
         if (!payload.klippy_connected) {
             dispatch('startKlippyConnectedInterval')
 
@@ -207,11 +271,14 @@ export const actions: ActionTree<ServerState, RootState> = {
         dispatch('printer/init', null, { root: true })
     },
 
-    getData({ commit }: ActionContext<ServerState, RootState>, payload: any) {
+    getData({ commit }: ActionContext<ServerState, RootState>, payload: ServerDataPayload) {
         commit('setData', payload)
     },
 
-    getGcodeStore({ commit, dispatch, rootGetters }: ActionContext<ServerState, RootState>, payload: any) {
+    getGcodeStore(
+        { commit, dispatch, rootGetters }: ActionContext<ServerState, RootState>,
+        payload: ServerGcodeStorePayload
+    ) {
         commit('clearGcodeStore')
 
         let events: ServerStateEvent[] = payload.gcode_store
@@ -243,21 +310,21 @@ export const actions: ActionTree<ServerState, RootState> = {
         dispatch('socket/removeInitModule', 'server/gcode_store', { root: true })
     },
 
-    addRootDirectory({ commit, state }: ActionContext<ServerState, RootState>, data: any) {
+    addRootDirectory({ commit, state }: ActionContext<ServerState, RootState>, data: ServerAddRootDirectoryPayload) {
         if (!state.registered_directories.includes(data.item.root)) {
             commit('addRootDirectory', { name: data.item.root })
         }
     },
 
-    addEvent({ commit, rootGetters }: ActionContext<ServerState, RootState>, payload: any) {
-        let message = payload
+    addEvent({ commit, rootGetters }: ActionContext<ServerState, RootState>, payload: ServerConsoleEventPayload) {
+        let message: string = payload as unknown as string
         let type = 'response'
 
-        if (typeof payload === 'object' && 'type' in payload) type = payload.type
+        if (typeof payload === 'object' && 'type' in payload) type = payload.type as string
 
-        if ('message' in payload) message = payload.message
-        else if ('result' in payload) message = payload.result
-        else if ('error' in payload) message = message.error.message
+        if ('message' in payload) message = payload.message as string
+        else if ('result' in payload) message = payload.result as string
+        else if ('error' in payload) message = payload.error!.message
 
         let formatMessage = formatConsoleMessage(message)
         if (type === 'response') {
@@ -298,11 +365,11 @@ export const actions: ActionTree<ServerState, RootState> = {
         }
     },
 
-    serviceStateChanged({ commit }: ActionContext<ServerState, RootState>, payload: any) {
+    serviceStateChanged({ commit }: ActionContext<ServerState, RootState>, payload: ServerServiceStateChangedPayload) {
         commit('updateServiceState', payload)
     },
 
-    addFailedInitComponent({ commit }: ActionContext<ServerState, RootState>, payload: any) {
+    addFailedInitComponent({ commit }: ActionContext<ServerState, RootState>, payload: string) {
         commit('removeComponent', payload)
         commit('addFailedInitComponent', payload)
     },

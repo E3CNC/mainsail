@@ -1,7 +1,7 @@
 import { ActionContext, ActionTree } from 'vuex'
 import { RootState } from '@/store/types'
 import { v4 as uuidv4 } from 'uuid'
-import { GuiConsoleState } from '@/store/gui/console/types'
+import { GuiConsoleState, GuiConsoleStateFilter } from '@/store/gui/console/types'
 import { getSocket } from '@/store/runtime'
 
 export const actions: ActionTree<GuiConsoleState, RootState> = {
@@ -25,7 +25,7 @@ export const actions: ActionTree<GuiConsoleState, RootState> = {
         commit('server/setConsoleClearedThisSession', {}, { root: true })
     },
 
-    saveSetting({ dispatch }: ActionContext<GuiConsoleState, RootState>, payload: any) {
+    saveSetting({ dispatch }: ActionContext<GuiConsoleState, RootState>, payload: { name: string; value: unknown }) {
         dispatch(
             'gui/saveSetting',
             {
@@ -36,7 +36,10 @@ export const actions: ActionTree<GuiConsoleState, RootState> = {
         )
     },
 
-    filterUpload(_context: ActionContext<GuiConsoleState, RootState>, payload: any) {
+    filterUpload(
+        _context: ActionContext<GuiConsoleState, RootState>,
+        payload: { id: string; value: GuiConsoleStateFilter }
+    ) {
         getSocket().emit('server.database.post_item', {
             namespace: 'mainsail',
             key: 'console.consolefilters.' + payload.id,
@@ -44,7 +47,10 @@ export const actions: ActionTree<GuiConsoleState, RootState> = {
         })
     },
 
-    filterStore({ commit, dispatch, state }: ActionContext<GuiConsoleState, RootState>, payload: any) {
+    filterStore(
+        { commit, dispatch, state }: ActionContext<GuiConsoleState, RootState>,
+        payload: { values: GuiConsoleStateFilter }
+    ) {
         const id = uuidv4()
 
         commit('filterStore', { id, values: payload.values })
@@ -54,7 +60,10 @@ export const actions: ActionTree<GuiConsoleState, RootState> = {
         })
     },
 
-    filterUpdate({ commit, dispatch, state }: ActionContext<GuiConsoleState, RootState>, payload: any) {
+    filterUpdate(
+        { commit, dispatch, state }: ActionContext<GuiConsoleState, RootState>,
+        payload: { id: string; values: Partial<GuiConsoleStateFilter> }
+    ) {
         commit('filterUpdate', payload)
         dispatch('filterUpload', {
             id: payload.id,
@@ -62,7 +71,7 @@ export const actions: ActionTree<GuiConsoleState, RootState> = {
         })
     },
 
-    filterDelete({ commit }: ActionContext<GuiConsoleState, RootState>, payload: any) {
+    filterDelete({ commit }: ActionContext<GuiConsoleState, RootState>, payload: string) {
         commit('filterDelete', payload)
         getSocket().emit('server.database.delete_item', {
             namespace: 'mainsail',

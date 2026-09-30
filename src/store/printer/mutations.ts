@@ -1,6 +1,8 @@
 import { getDefaultState } from './index'
 import { MutationTree } from 'vuex'
-import { PrinterState } from '@/store/printer/types'
+import { EndstopItem, PrinterState } from '@/store/printer/types'
+
+type EndstopStatusEntry = Partial<EndstopItem> & Record<string, unknown>
 
 export const mutations: MutationTree<PrinterState> = {
     reset(state: PrinterState) {
@@ -17,7 +19,7 @@ export const mutations: MutationTree<PrinterState> = {
         }
     },
 
-    setData(state: PrinterState, payload: any) {
+    setData(state: PrinterState, payload: Record<string, unknown>) {
         Object.keys(payload).forEach((key) => {
             const value = payload[key]
 
@@ -27,8 +29,9 @@ export const mutations: MutationTree<PrinterState> = {
             }
 
             if (typeof value === 'object') {
-                Object.keys(value).forEach((subkey) => {
-                    state[key][subkey] = value[subkey]
+                const objectValue = value as Record<string, unknown>
+                Object.keys(objectValue).forEach((subkey) => {
+                    state[key][subkey] = objectValue[subkey]
                 })
             }
         })
@@ -38,13 +41,13 @@ export const mutations: MutationTree<PrinterState> = {
         state.current_file = {}
     },
 
-    setEndstopStatus(state: PrinterState, payload: any) {
+    setEndstopStatus(state: PrinterState, payload: Record<string, EndstopStatusEntry>) {
         delete payload.requestParams
 
         state.endstops = payload
     },
 
-    removeBedMeshProfile(state: PrinterState, payload: any) {
+    removeBedMeshProfile(state: PrinterState, payload: string) {
         if (state.bed_mesh?.profiles && payload in state.bed_mesh.profiles) {
             delete state.bed_mesh.profiles[payload]
             if (state.bed_mesh.profile_name === payload) {

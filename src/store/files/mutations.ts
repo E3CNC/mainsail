@@ -2,15 +2,36 @@ import { getDefaultState } from './index'
 import { getSocket } from '@/store/runtime'
 import { findDirectory } from '@/plugins/helpers'
 import { MutationTree } from 'vuex'
-import type { FileState, FileStateFile } from '@/store/files/types'
+import type { FileState, FileStateDiskUsage, FileStateFile } from '@/store/files/types'
 import { allowedMetadata } from '@/store/variables'
+import type { CancelTokenSource } from 'axios'
+
+interface FileItemPayload {
+    item: {
+        path: string
+        root: string
+        permissions: string
+        modified: number
+        size: number
+    }
+}
+
+interface FileMovePayload {
+    source_item: { path: string; root: string }
+    item: { path: string; root: string }
+}
+
+interface MetadataPayload {
+    filename: string
+    [key: string]: unknown
+}
 
 export const mutations: MutationTree<FileState> = {
     reset(state: FileState) {
         Object.assign(state, getDefaultState())
     },
 
-    createRootDir(state: FileState, payload: any) {
+    createRootDir(state: FileState, payload: { name: string; permissions: string }) {
         state.filetree.push({
             isDirectory: true,
             filename: payload.name,
@@ -25,7 +46,7 @@ export const mutations: MutationTree<FileState> = {
         })
     },
 
-    setMetadataRequested(state: FileState, payload: any) {
+    setMetadataRequested(state: FileState, payload: MetadataPayload) {
         let filename = 'gcodes/' + payload.filename
         const dirArray = filename.split('/')
         filename = dirArray[dirArray.length - 1]
@@ -40,7 +61,7 @@ export const mutations: MutationTree<FileState> = {
         } else window.console.error('file not found in filetree: ' + payload.filename)
     },
 
-    setMetadata(state: FileState, payload: any) {
+    setMetadata(state: FileState, payload: MetadataPayload) {
         let filename = 'gcodes/' + payload.filename
         const dirArray = filename.split('/')
         filename = dirArray[dirArray.length - 1]
@@ -59,7 +80,7 @@ export const mutations: MutationTree<FileState> = {
         } else window.console.error('file not found in filetree: ' + payload.filename)
     },
 
-    setCreateFile(state: FileState, payload: any) {
+    setCreateFile(state: FileState, payload: FileItemPayload) {
         let filename = payload.item.path
         if (payload.item.path.lastIndexOf('/') >= 0)
             filename = payload.item.path.substr(payload.item.path.lastIndexOf('/')).replace('/', '')
@@ -101,7 +122,7 @@ export const mutations: MutationTree<FileState> = {
         }
     },
 
-    setMoveFile(state: FileState, payload: any) {
+    setMoveFile(state: FileState, payload: FileMovePayload) {
         let filenameOld = payload.source_item.path
         let pathnameOld = payload.source_item.root
 
@@ -139,7 +160,7 @@ export const mutations: MutationTree<FileState> = {
         newPath?.push(file)
     },
 
-    setModifyFile(state: FileState, payload: any) {
+    setModifyFile(state: FileState, payload: FileItemPayload) {
         let filename = payload.item.path
         let filepath = payload.item.root
 
@@ -164,7 +185,7 @@ export const mutations: MutationTree<FileState> = {
         }
     },
 
-    setMoveDir(state: FileState, payload: any) {
+    setMoveDir(state: FileState, payload: FileMovePayload) {
         let dirnameOld = payload.source_item.path
         let pathnameOld = payload.source_item.root
 
@@ -195,16 +216,21 @@ export const mutations: MutationTree<FileState> = {
         }
     },
 
-    setDeleteFile(state: FileState, payload: any) {
-        let currentPath = payload.item.path.substr(0, payload.item.path.lastIndexOf('/'))
+    setDeleteFile(state: FileState, payload: { item: { path: string; root: string } }) {
+        const pathStr = payload.item.path.substr(0, payload.item.path.lastIndexOf('/'))
         const delPath = payload.item.path.substr(payload.item.path.lastIndexOf('/') + 1)
-        currentPath = findDirectory(state.filetree, (payload.item.root + '/' + currentPath).split('/'))
+        const currentPath = findDirectory(state.filetree, (payload.item.root + '/' + pathStr).split('/'))
+
+        if (!currentPath) return
         const index = currentPath.findIndex((element: FileStateFile) => element.filename === delPath)
 
         if (index >= 0 && currentPath[index]) currentPath.splice(index, 1)
     },
 
-    setCreateDir(state: FileState, payload: any) {
+    setCreateDir(
+        state: FileState,
+        payload: { item: { path: string; root: string; permissions: string; modified?: number | Date } }
+    ) {
         const dirname = payload.item.path.substr(payload.item.path.lastIndexOf('/') + 1)
         const path = payload.item.path.substr(0, payload.item.path.lastIndexOf('/'))
         const parent = findDirectory(state.filetree, (payload.item.root + '/' + path).split('/'))
@@ -213,30 +239,32 @@ export const mutations: MutationTree<FileState> = {
             parent.push({
                 isDirectory: true,
                 filename: dirname,
-                modified: payload.item.modified ?? new Date(),
+                modified: (payload.item.modified ?? new Date()) as Date,
                 permissions: payload.item.permissions,
                 childrens: [],
             })
         }
     },
 
-    setDeleteDir(state: FileState, payload: any) {
-        let currentPath = payload.item.path.substr(0, payload.item.path.lastIndexOf('/'))
+    setDeleteDir(state: FileState, payload: { item: { path: string; root: string } }) {
+        const pathStr = payload.item.path.substr(0, payload.item.path.lastIndexOf('/'))
         const delPath = payload.item.path.substr(payload.item.path.lastIndexOf('/') + 1)
-        currentPath = findDirectory(state.filetree, (payload.item.root + '/' + currentPath).split('/'))
+        const currentPath = findDirectory(state.filetree, (payload.item.root + '/' + pathStr).split('/'))
+
+        if (!currentPath) return
         const index = currentPath.findIndex((element: FileStateFile) => element.filename === delPath)
 
         if (index >= 0 && currentPath[index]) currentPath.splice(index, 1)
     },
 
-    setRootUpdate(state: FileState, payload: any) {
+    setRootUpdate(state: FileState, payload: { item: { root: string } }) {
         const index = state.filetree.findIndex((root) => root.filename === payload.item.root)
         if (index !== -1 && state.filetree[index].childrens?.length) {
             state.filetree[index].childrens?.splice(0, state.filetree[index].childrens?.length)
         }
     },
 
-    setDiskUsage(state: FileState, payload: any) {
+    setDiskUsage(state: FileState, payload: { path: string; disk_usage: FileStateDiskUsage }) {
         const parentPath = payload.path.substr(0, payload.path.lastIndexOf('/'))
         const pathName = payload.path.substr(payload.path.lastIndexOf('/') + 1)
         const parent = findDirectory(state.filetree, parentPath.split('/'))
@@ -245,7 +273,7 @@ export const mutations: MutationTree<FileState> = {
         if (directory) directory.disk_usage = payload.disk_usage
     },
 
-    setRootPermissions(state: FileState, payload: any) {
+    setRootPermissions(state: FileState, payload: { name: string; permissions: string }) {
         const rootState = state.filetree.find((dir: FileStateFile) => dir.filename === payload.name)
         if (rootState) rootState.permissions = payload.permissions
     },
@@ -261,31 +289,31 @@ export const mutations: MutationTree<FileState> = {
         state.upload = upload
     },
 
-    uploadSetShow(state: FileState, payload: any) {
+    uploadSetShow(state: FileState, payload: boolean) {
         state.upload.show = payload
     },
 
-    uploadSetFilename(state: FileState, payload: any) {
+    uploadSetFilename(state: FileState, payload: string) {
         state.upload.filename = payload
     },
 
-    uploadSetCancelTokenSource(state: FileState, payload: any) {
+    uploadSetCancelTokenSource(state: FileState, payload: CancelTokenSource | null) {
         state.upload.cancelTokenSource = payload
     },
 
-    uploadSetCurrentNumber(state: FileState, payload: any) {
+    uploadSetCurrentNumber(state: FileState, payload: number) {
         state.upload.currentNumber = payload
     },
 
-    uploadSetMaxNumber(state: FileState, payload: any) {
+    uploadSetMaxNumber(state: FileState, payload: number) {
         state.upload.maxNumber = payload
     },
 
-    uploadSetPercent(state: FileState, payload: any) {
+    uploadSetPercent(state: FileState, payload: number) {
         if (state.upload.percent !== payload) state.upload.percent = payload
     },
 
-    uploadSetSpeed(state: FileState, payload: any) {
+    uploadSetSpeed(state: FileState, payload: number) {
         if (state.upload.speed !== payload) state.upload.speed = payload
     },
 }

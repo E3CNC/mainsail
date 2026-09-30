@@ -15,7 +15,7 @@ export const getters: GetterTree<GuiConsoleState, RootState> = {
         return caseInsensitiveSort(consolefilters, 'name')
     },
 
-    getConsolefilterRules: (state: GuiConsoleState, getters: any, rootState: RootState) => {
+    getConsolefilterRules: (state: GuiConsoleState, getters: Record<string, unknown>, rootState: RootState) => {
         const output = []
 
         if (rootState.gui?.console?.hideWaitTemperatures) output.push('^(?:ok\\s+)?(B|C|T\\d*):')

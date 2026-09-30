@@ -13,13 +13,16 @@ export const actions: ActionTree<GuiWebcamState, RootState> = {
         getSocket().emit('server.webcams.list', {}, { action: 'gui/webcams/initStore' })
     },
 
-    async initStore({ commit, dispatch }: ActionContext<GuiWebcamState, RootState>, payload: any) {
+    async initStore(
+        { commit, dispatch }: ActionContext<GuiWebcamState, RootState>,
+        payload: { webcams: GuiWebcamStateWebcam[] }
+    ) {
         await commit('reset')
         await commit('initStore', payload.webcams)
         await dispatch('socket/removeInitModule', 'gui/webcam/init', { root: true })
     },
 
-    store(_context: ActionContext<GuiWebcamState, RootState>, payload: any) {
+    store(_context: ActionContext<GuiWebcamState, RootState>, payload: GuiWebcamStateWebcam) {
         getSocket().emit('server.webcams.post_item', payload)
     },
 

@@ -2,7 +2,7 @@
     <div :style="wrapperStyle" class="panel-wrapper">
         <v-card
             :ref="
-                (el: any) => {
+                (el: unknown) => {
                     if (el) setPanelRef(el)
                 }
             "
@@ -89,7 +89,7 @@ const slots = useSlots()
 let panelEl: HTMLElement | null = null
 
 function setPanelRef(el: unknown) {
-    panelEl = (el as any)?.$el ?? (el as any) ?? null
+    panelEl = (el as { $el?: HTMLElement | null } | null)?.$el ?? (el as HTMLElement | null) ?? null
 }
 
 const floatingData = computed<PanelFloatingState | null>(
@@ -314,7 +314,7 @@ function onResizeEnd() {
 // --- Store helpers ---
 function nextZIndex(): number {
     const panels = store.state.gui.dashboard.floatingPanels
-    return Math.max(0, ...Object.values(panels).map((p: any) => p.zIndex)) + 1
+    return Math.max(0, ...Object.values(panels).map((p: unknown) => (p as PanelFloatingState).zIndex)) + 1
 }
 
 function bringToFront() {

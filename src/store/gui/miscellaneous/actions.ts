@@ -13,7 +13,7 @@ export const actions: ActionTree<GuiMiscellaneousState, RootState> = {
         commit('reset')
     },
 
-    upload({ state }: ActionContext<GuiMiscellaneousState, RootState>, id: any) {
+    upload({ state }: ActionContext<GuiMiscellaneousState, RootState>, id: string) {
         getSocket().emit('server.database.post_item', {
             namespace: 'mainsail',
             key: 'miscellaneous.entries.' + id,

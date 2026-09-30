@@ -263,6 +263,10 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector'
 import { CreateLineSystem } from '@babylonjs/core/Meshes/Builders/linesBuilder'
 import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder'
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
+import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh'
+import type { LinesMesh } from '@babylonjs/core/Meshes/linesMesh'
+import type { Mesh } from '@babylonjs/core/Meshes/mesh'
+import type { TransformNode } from '@babylonjs/core/Meshes/transformNode'
 import type { GCodeViewerInstance } from '@/store/gcodeviewer/types'
 import {
     mdiCameraRetake,
@@ -317,6 +321,22 @@ interface CamWcsOrigin {
     Z: CamWcsOriginAxis
 }
 
+interface ViewerSceneInternals {
+    activeCamera?: { radius?: number } | null
+    meshes?: AbstractMesh[] | null
+}
+
+interface ViewerAxesInternals {
+    axesMesh?: Mesh | null
+}
+
+interface ViewerInternals {
+    scene?: ViewerSceneInternals | null
+    axes?: ViewerAxesInternals | null
+    toolCursor?: TransformNode | null
+    toolCursorMesh?: Mesh | null
+}
+
 const store = useStore()
 const route = useRoute()
 const { t } = useI18n()
@@ -332,7 +352,7 @@ const viewerCanvasContainer = ref<HTMLElement | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
 let viewer: GCodeViewerInstance | null = null
-let stockBoxMesh: any | null = null
+let stockBoxMesh: LinesMesh | null = null
 
 const isBusy = ref(false)
 const loading = ref(false)
@@ -704,7 +724,7 @@ function resetCamera() {
 function zoomOutInitialCamera() {
     if (!viewer || initialCameraAdjusted.value) return
 
-    const activeCamera = (viewer as any)?.scene?.activeCamera
+    const activeCamera = (viewer as unknown as ViewerInternals)?.scene?.activeCamera
     if (!activeCamera || typeof activeCamera.radius !== 'number') return
 
     activeCamera.radius *= 1.2
@@ -892,7 +912,7 @@ function applyPreviewOffset(force = false) {
     )
         return
 
-    viewer.scene?.meshes?.forEach((mesh: any) => {
+    viewer.scene?.meshes?.forEach((mesh: AbstractMesh) => {
         if (mesh?.renderingGroupId !== 2 || mesh?.name === 'JRNozzle' || mesh?.name === 'SimpleToolCursorCylinder')
             return
         if (!mesh?.position) return
@@ -902,7 +922,7 @@ function applyPreviewOffset(force = false) {
         mesh.position.z += deltaY
     })
 
-    const axesMesh = (viewer as any)?.axes?.axesMesh
+    const axesMesh = (viewer as unknown as ViewerInternals)?.axes?.axesMesh
     if (axesMesh?.position) {
         axesMesh.position.x += axesDeltaX
         axesMesh.position.y += axesDeltaZ
@@ -910,7 +930,7 @@ function applyPreviewOffset(force = false) {
     }
 
     if (!tracking.value) {
-        const toolCursor = (viewer as any)?.toolCursor
+        const toolCursor = (viewer as unknown as ViewerInternals)?.toolCursor
         if (toolCursor?.position) {
             toolCursor.position.x += toolDeltaX
             toolCursor.position.y += toolDeltaZ
@@ -942,9 +962,9 @@ function applyPrimaryToolColor() {
 function syncToolCursorCylinder(forceRender = true) {
     if (!viewer) return
 
-    const viewerAny = viewer as any
-    const toolCursor = viewerAny?.toolCursor
-    const cylinder = viewerAny?.toolCursorMesh
+    const viewerInternals = viewer as unknown as ViewerInternals
+    const toolCursor = viewerInternals?.toolCursor
+    const cylinder = viewerInternals?.toolCursorMesh
 
     if (!toolCursor?.getAbsolutePosition || cylinder?.name !== 'SimpleToolCursorCylinder') return
 
@@ -957,9 +977,9 @@ function syncToolCursorCylinder(forceRender = true) {
 function replaceToolCursorWithCylinder(attempt = 0) {
     if (!viewer?.scene) return
 
-    const viewerAny = viewer as any
-    const toolCursor = viewerAny?.toolCursor
-    const existingMesh = viewerAny?.toolCursorMesh
+    const viewerInternals = viewer as unknown as ViewerInternals
+    const toolCursor = viewerInternals?.toolCursor
+    const existingMesh = viewerInternals?.toolCursorMesh
     const childMeshes = typeof toolCursor?.getChildMeshes === 'function' ? toolCursor.getChildMeshes() : []
 
     if ((!toolCursor || (!existingMesh && childMeshes.length === 0)) && attempt < 10) {
@@ -974,7 +994,7 @@ function replaceToolCursorWithCylinder(attempt = 0) {
     }
 
     const wasVisible = existingMesh?.isVisible ?? showCursor.value
-    childMeshes.forEach((mesh: any) => mesh?.dispose?.(false, true))
+    childMeshes.forEach((mesh: AbstractMesh) => mesh?.dispose?.(false, true))
 
     const cylinder = CreateCylinder(
         'SimpleToolCursorCylinder',
@@ -989,14 +1009,14 @@ function replaceToolCursorWithCylinder(attempt = 0) {
     cylinder.isPickable = false
     cylinder.isVisible = wasVisible
 
-    viewerAny.toolCursorMesh = cylinder
+    viewerInternals.toolCursorMesh = cylinder
     syncToolCursorCylinder()
 }
 
 function reapplyPreviewOffsetToToolCursor() {
     if (!viewer) return
 
-    const toolCursor = (viewer as any)?.toolCursor
+    const toolCursor = (viewer as unknown as ViewerInternals)?.toolCursor
     if (!toolCursor?.position) return
 
     const Z = camWcsOrigin.value?.Z.fromMin ?? (stockBoxBounds.value ? -stockBoxBounds.value.zMin : 0)
@@ -1350,7 +1370,7 @@ watch(primaryViewerColor, async (newVal: string) => {
     viewer.setProgressColor(newVal)
     if (stockBoxMesh) stockBoxMesh.color = toColor3(newVal)
 
-    const toolCursorMesh = (viewer as any)?.toolCursorMesh
+    const toolCursorMesh = (viewer as unknown as ViewerInternals)?.toolCursorMesh
     const toolCursorMaterial = toolCursorMesh?.material as StandardMaterial | undefined
     if (toolCursorMesh?.name === 'SimpleToolCursorCylinder' && toolCursorMaterial) {
         toolCursorMaterial.diffuseColor = toColor3(newVal)

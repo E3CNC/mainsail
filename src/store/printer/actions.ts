@@ -2,6 +2,28 @@ import { ActionContext, ActionTree } from 'vuex'
 import { getSocket } from '@/store/runtime'
 import { PrinterState } from '@/store/printer/types'
 import { RootState } from '@/store/types'
+import { EndstopItem } from '@/store/printer/types'
+
+type EndstopStatusEntry = Partial<EndstopItem> & Record<string, unknown>
+
+interface PrinterInfoPayload {
+    state?: string
+    state_message?: string
+    app?: string
+    hostname?: string
+    software_version?: string
+    cpu_info?: Record<string, unknown>
+    [key: string]: unknown
+}
+
+interface PrinterStatusPayload {
+    status?: Record<string, unknown>
+    requestParams?: unknown
+    webhooks?: { state: string; state_message: string }
+    configfile?: { settings?: { printer?: { kinematics?: string } } }
+    toolhead?: { axis_maximum?: number[]; axis_minimum?: number[] }
+    [key: string]: unknown
+}
 
 export const actions: ActionTree<PrinterState, RootState> = {
     reset({ commit }: ActionContext<PrinterState, RootState>) {
@@ -25,7 +47,7 @@ export const actions: ActionTree<PrinterState, RootState> = {
         dispatch('initSubscripts')
     },
 
-    getInfo({ commit, dispatch }: ActionContext<PrinterState, RootState>, payload: any) {
+    getInfo({ commit, dispatch }: ActionContext<PrinterState, RootState>, payload: PrinterInfoPayload) {
         commit(
             'server/setData',
             {
@@ -72,50 +94,50 @@ export const actions: ActionTree<PrinterState, RootState> = {
         dispatch('socket/removeInitModule', 'printer/initSubscripts', { root: true })
     },
 
-    getData({ commit, dispatch }: ActionContext<PrinterState, RootState>, payload: any) {
-        if ('status' in payload) payload = payload.status
-        if ('requestParams' in payload) delete payload.requestParams
+    getData({ commit, dispatch }: ActionContext<PrinterState, RootState>, payload: PrinterStatusPayload) {
+        const data: PrinterStatusPayload = 'status' in payload ? (payload.status as PrinterStatusPayload) : payload
+        if ('requestParams' in data) delete data.requestParams
 
-        if ('webhooks' in payload) {
+        if ('webhooks' in data && data.webhooks) {
             this.dispatch(
                 'server/getData',
-                { klippy_state: payload.webhooks.state, klippy_message: payload.webhooks.state_message },
+                { klippy_state: data.webhooks.state, klippy_message: data.webhooks.state_message },
                 { root: true }
             )
-            delete payload.webhooks
+            delete data.webhooks
         }
 
-        if (payload.configfile?.settings?.printer?.kinematics) {
+        if (data.configfile?.settings?.printer?.kinematics) {
             dispatch(
                 'gui/updateGcodeviewerCache',
                 {
-                    kinematics: payload.configfile?.settings?.printer?.kinematics,
+                    kinematics: data.configfile?.settings?.printer?.kinematics,
                 },
                 { root: true }
             )
         }
 
-        if (payload.toolhead?.axis_maximum) {
+        if (data.toolhead?.axis_maximum) {
             dispatch(
                 'gui/updateGcodeviewerCache',
                 {
-                    axis_maximum: payload.toolhead?.axis_maximum,
+                    axis_maximum: data.toolhead?.axis_maximum,
                 },
                 { root: true }
             )
         }
 
-        if (payload.toolhead?.axis_minimum) {
+        if (data.toolhead?.axis_minimum) {
             dispatch(
                 'gui/updateGcodeviewerCache',
                 {
-                    axis_minimum: payload.toolhead?.axis_minimum,
+                    axis_minimum: data.toolhead?.axis_minimum,
                 },
                 { root: true }
             )
         }
 
-        commit('setData', payload)
+        commit('setData', data)
     },
 
     async initGcodes({ commit }: ActionContext<PrinterState, RootState>) {
@@ -136,15 +158,15 @@ export const actions: ActionTree<PrinterState, RootState> = {
         dispatch('getData', result.status)
     },
 
-    getEndstopStatus({ commit }: ActionContext<PrinterState, RootState>, payload: any) {
+    getEndstopStatus({ commit }: ActionContext<PrinterState, RootState>, payload: Record<string, EndstopStatusEntry>) {
         commit('setEndstopStatus', payload)
     },
 
-    removeBedMeshProfile({ commit }: ActionContext<PrinterState, RootState>, payload: any) {
+    removeBedMeshProfile({ commit }: ActionContext<PrinterState, RootState>, payload: string) {
         commit('removeBedMeshProfile', payload)
     },
 
-    sendGcode({ dispatch }: ActionContext<PrinterState, RootState>, payload: any) {
+    sendGcode({ dispatch }: ActionContext<PrinterState, RootState>, payload: string) {
         dispatch('server/addEvent', { message: payload, type: 'command' }, { root: true })
 
         if (payload.toLowerCase().trim() === 'm112') {

@@ -9,8 +9,31 @@ import semver from 'semver'
 import { minBrowserVersions } from '@/store/variables'
 import type { GuiMaintenanceStateEntry } from '@/store/gui/maintenance/types'
 
+interface NotificationsLocalGetters {
+    getNotificationsFlags: GuiNotificationStateEntry[]
+    getNotificationsDependencies: GuiNotificationStateEntry[]
+    getNotificationsMoonrakerWarnings: GuiNotificationStateEntry[]
+    getNotificationsMoonrakerFailedComponents: GuiNotificationStateEntry[]
+    getNotificationsMoonrakerFailedInitComponents: GuiNotificationStateEntry[]
+    getNotificationsKlipperWarnings: GuiNotificationStateEntry[]
+    getNotificationsOverdueMaintenance: GuiNotificationStateEntry[]
+    getNotificationsBrowserWarnings: GuiNotificationStateEntry[]
+    getNotificationsOverheatDrivers: GuiNotificationStateEntry[]
+    getDismissByCategory: (category: string) => GuiNotificationStateDismissEntry[]
+    getDismiss: GuiNotificationStateDismissEntry[]
+    [key: string]: unknown
+}
+
+interface NotificationsRootGetters {
+    'server/getThrottledStateFlags': string[]
+    'gui/notifications/getDismissByCategory': (category: string) => GuiNotificationStateDismissEntry[]
+    getDependencies: RootStateDependency[]
+    'gui/maintenance/getOverdueEntries': GuiMaintenanceStateEntry[]
+    [key: string]: unknown
+}
+
 export const getters: GetterTree<GuiNotificationState, RootState> = {
-    getNotifications: (state: GuiNotificationState, getters: any) => {
+    getNotifications: (state: GuiNotificationState, getters: NotificationsLocalGetters) => {
         let notifications: GuiNotificationStateEntry[] = []
 
         // rpi flag notifications
@@ -54,7 +77,12 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         })
     },
 
-    getNotificationsFlags: (state: GuiNotificationState, getters: any, rootState: RootState, rootGetters: any) => {
+    getNotificationsFlags: (
+        state: GuiNotificationState,
+        getters: NotificationsLocalGetters,
+        rootState: RootState,
+        rootGetters: NotificationsRootGetters
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         // get all current flags
@@ -90,9 +118,9 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
 
     getNotificationsDependencies: (
         state: GuiNotificationState,
-        getters: any,
+        getters: NotificationsLocalGetters,
         rootState: RootState,
-        rootGetters: any
+        rootGetters: NotificationsRootGetters
     ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
@@ -138,9 +166,9 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
 
     getNotificationsMoonrakerWarnings: (
         state: GuiNotificationState,
-        getters: any,
+        getters: NotificationsLocalGetters,
         rootState: RootState,
-        rootGetters: any
+        rootGetters: NotificationsRootGetters
     ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
@@ -192,9 +220,9 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
 
     getNotificationsMoonrakerFailedComponents: (
         state: GuiNotificationState,
-        getters: any,
+        getters: NotificationsLocalGetters,
         rootState: RootState,
-        rootGetters: any
+        rootGetters: NotificationsRootGetters
     ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
@@ -233,9 +261,9 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
 
     getNotificationsMoonrakerFailedInitComponents: (
         state: GuiNotificationState,
-        getters: any,
+        getters: NotificationsLocalGetters,
         rootState: RootState,
-        rootGetters: any
+        rootGetters: NotificationsRootGetters
     ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
@@ -276,9 +304,9 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
 
     getNotificationsKlipperWarnings: (
         state: GuiNotificationState,
-        getters: any,
+        getters: NotificationsLocalGetters,
         rootState: RootState,
-        rootGetters: any
+        rootGetters: NotificationsRootGetters
     ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
@@ -304,12 +332,18 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
                 if (warning.type === 'deprecated_value') {
                     title = i18n.global.t('App.Notifications.KlipperWarnings.DeprecatedValueHeadline').toString()
                     description = i18n.global
-                        .t('App.Notifications.KlipperWarnings.DeprecatedValue', warning as any)
+                        .t(
+                            'App.Notifications.KlipperWarnings.DeprecatedValue',
+                            warning as unknown as Record<string, unknown>
+                        )
                         .toString()
                 } else if (warning.type === 'deprecated_option') {
                     title = i18n.global.t('App.Notifications.KlipperWarnings.DeprecatedOptionHeadline').toString()
                     description = i18n.global
-                        .t('App.Notifications.KlipperWarnings.DeprecatedOption', warning as any)
+                        .t(
+                            'App.Notifications.KlipperWarnings.DeprecatedOption',
+                            warning as unknown as Record<string, unknown>
+                        )
                         .toString()
                 } else if (warning.type === 'runtime_warning') {
                     title = i18n.global.t('App.Notifications.KlipperWarnings.KlipperRuntimeWarning').toString()
@@ -337,7 +371,11 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsBrowserWarnings: (state: GuiNotificationState, getters: any, rootState: RootState) => {
+    getNotificationsBrowserWarnings: (
+        state: GuiNotificationState,
+        getters: NotificationsLocalGetters,
+        rootState: RootState
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
 
         const browser = detect()
@@ -383,9 +421,9 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
 
     getNotificationsOverdueMaintenance: (
         state: GuiNotificationState,
-        getters: any,
+        getters: NotificationsLocalGetters,
         rootState: RootState,
-        rootGetters: any
+        rootGetters: NotificationsRootGetters
     ) => {
         const notifications: GuiNotificationStateEntry[] = []
         let entries: GuiMaintenanceStateEntry[] = rootGetters['gui/maintenance/getOverdueEntries']
@@ -401,7 +439,7 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         )
 
         // filter all dismissed reminders
-        entries = entries.filter((entry) => !remindersDismisses.includes(entry.id))
+        entries = entries.filter((entry) => !remindersDismisses.includes(entry.id as string))
 
         entries.forEach((entry) => {
             notifications.push({
@@ -419,7 +457,11 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return notifications
     },
 
-    getNotificationsOverheatDrivers: (state: GuiNotificationState, getters: any, rootState: RootState) => {
+    getNotificationsOverheatDrivers: (
+        state: GuiNotificationState,
+        getters: NotificationsLocalGetters,
+        rootState: RootState
+    ) => {
         const notifications: GuiNotificationStateEntry[] = []
         const date = rootState.server?.system_boot_at ?? new Date()
 
@@ -467,7 +509,7 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         })
     },
 
-    getDismiss: (state: GuiNotificationState, getters: any, rootState: RootState) => {
+    getDismiss: (state: GuiNotificationState, getters: NotificationsLocalGetters, rootState: RootState) => {
         const currentTime = new Date()
         const systemBootAt = rootState.server?.system_boot_at ?? new Date()
         let dismisses = [...state.dismiss]
@@ -486,7 +528,7 @@ export const getters: GetterTree<GuiNotificationState, RootState> = {
         return dismisses
     },
 
-    getDismissByCategory: (state: GuiNotificationState, getters: any) => (category: string) => {
+    getDismissByCategory: (state: GuiNotificationState, getters: NotificationsLocalGetters) => (category: string) => {
         let dismisses = getters.getDismiss
         dismisses = dismisses.filter((dismiss: GuiNotificationStateDismissEntry) => dismiss.category === category)
 

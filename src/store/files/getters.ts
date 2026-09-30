@@ -11,6 +11,25 @@ import type { ServerHistoryStateJob } from '@/store/server/history/types'
 import { escapePath } from '@/plugins/helpers'
 import { RootState } from '@/store/types'
 
+interface FilesGetters {
+    getDirectory: (requestedPath: string) => FileStateFile | null
+    getGcodeFiles: (path: string | null, showHiddenFiles: boolean, showCompletedFiles: boolean) => FileStateGcodefile[]
+    getThemeFileUrl: (acceptName: string, acceptExtensions: string[]) => string | null
+    [key: string]: unknown
+}
+
+interface FilesRootGetters {
+    'socket/getUrl': string
+    'server/history/getPrintJobsForGcodes': (
+        filename: string,
+        modified: number,
+        filesize: number | undefined,
+        uuid: string | null,
+        job_id: string | null | undefined
+    ) => ServerHistoryStateJob[]
+    [key: string]: unknown
+}
+
 export const getters: GetterTree<FileState, RootState> = {
     getDirectory: (state: FileState) => (requestedPath: string) => {
         if (requestedPath.startsWith('/')) requestedPath = requestedPath.substring(1)
@@ -34,7 +53,7 @@ export const getters: GetterTree<FileState, RootState> = {
         return findDirectory({ childrens: state.filetree } as FileStateFile, requestedPath.split('/'))
     },
 
-    getFile: (state: FileState, getters: any) => (requestedFilename: string) => {
+    getFile: (state: FileState, getters: FilesGetters) => (requestedFilename: string) => {
         const path = requestedFilename.slice(0, requestedFilename.lastIndexOf('/'))
         const filename = requestedFilename.slice(requestedFilename.lastIndexOf('/') + 1)
         const directory = getters['getDirectory'](path)
@@ -43,7 +62,7 @@ export const getters: GetterTree<FileState, RootState> = {
     },
 
     getGcodeFiles:
-        (state: FileState, getters: any, rootState: RootState, rootGetters: any) =>
+        (state: FileState, getters: FilesGetters, rootState: RootState, rootGetters: FilesRootGetters) =>
         (path: string | null, boolShowHiddenFiles: boolean, boolShowCompletedFiles: boolean) => {
             const rootGcodes = getters['getDirectory']('gcodes')
             if (rootGcodes === null) return []
@@ -135,7 +154,7 @@ export const getters: GetterTree<FileState, RootState> = {
                         (history: ServerHistoryStateJob) => history.status === 'completed'
                     )
 
-                    const last_history = [...histories].shift()
+                    const last_history = histories[0]
                     tmp.last_status = last_history.status
                     tmp.count_printed = histories_completed.length
                     tmp.last_start_time = new Date(last_history.start_time * 1000)
@@ -157,12 +176,12 @@ export const getters: GetterTree<FileState, RootState> = {
             return output
         },
 
-    getAllGcodes: (state: FileState, getters: any) => {
+    getAllGcodes: (state: FileState, getters: FilesGetters) => {
         return getters['getGcodeFiles'](null, false, true)
     },
 
     getThemeFileUrl:
-        (state: FileState, getters: any, rootState: RootState, rootGetters: any) =>
+        (state: FileState, getters: FilesGetters, rootState: RootState, rootGetters: FilesRootGetters) =>
         (acceptName: string, acceptExtensions: string[]) => {
             const directory = getters['getDirectory']('config/' + themeDir)
 
@@ -178,42 +197,42 @@ export const getters: GetterTree<FileState, RootState> = {
             }?timestamp=${file.modified.getTime()}`
         },
 
-    getSidebarLogo: (state: FileState, getters: any) => {
+    getSidebarLogo: (state: FileState, getters: FilesGetters) => {
         const acceptName = 'sidebar-logo'
         const acceptExtensions = ['svg', 'jpg', 'jpeg', 'png', 'gif']
 
         return getters['getThemeFileUrl'](acceptName, acceptExtensions) ?? ''
     },
 
-    getCustomSidebarBackground: (state: FileState, getters: any) => {
+    getCustomSidebarBackground: (state: FileState, getters: FilesGetters) => {
         const acceptName = 'sidebar-background'
         const acceptExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg']
 
         return getters['getThemeFileUrl'](acceptName, acceptExtensions) ?? null
     },
 
-    getMainBackground: (state: FileState, getters: any) => {
+    getMainBackground: (state: FileState, getters: FilesGetters) => {
         const acceptName = 'main-background'
         const acceptExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg']
 
         return getters['getThemeFileUrl'](acceptName, acceptExtensions)
     },
 
-    getCustomStylesheet: (state: FileState, getters: any) => {
+    getCustomStylesheet: (state: FileState, getters: FilesGetters) => {
         const acceptName = 'custom'
         const acceptExtensions = ['css']
 
         return getters['getThemeFileUrl'](acceptName, acceptExtensions) ?? null
     },
 
-    getCustomNaviPoints: (state: FileState, getters: any) => {
+    getCustomNaviPoints: (state: FileState, getters: FilesGetters) => {
         const acceptName = 'navi'
         const acceptExtensions = ['json']
 
         return getters['getThemeFileUrl'](acceptName, acceptExtensions) ?? null
     },
 
-    getCustomFavicons: (state: FileState, getters: any) => {
+    getCustomFavicons: (state: FileState, getters: FilesGetters) => {
         const acceptName16 = 'favicon-32x32'
         const acceptName32 = 'favicon-32x32'
         const acceptExtensions = ['png', 'svg']
@@ -238,7 +257,7 @@ export const getters: GetterTree<FileState, RootState> = {
         return null
     },
 
-    checkConfigFile: (state: FileState, getters: any) => (acceptName: string) => {
+    checkConfigFile: (state: FileState, getters: FilesGetters) => (acceptName: string) => {
         const directory = getters['getDirectory']('config')
 
         return (
@@ -249,7 +268,7 @@ export const getters: GetterTree<FileState, RootState> = {
     },
 
     getSmallThumbnail:
-        (state: FileState, getters: any, rootState: RootState, rootGetters: any) =>
+        (state: FileState, getters: FilesGetters, rootState: RootState, rootGetters: FilesRootGetters) =>
         (item: FileStateFile, currentPath: string) => {
             if ('thumbnails' in item && item.thumbnails?.length) {
                 const thumbnail = item.thumbnails.find(
@@ -271,7 +290,7 @@ export const getters: GetterTree<FileState, RootState> = {
         },
 
     getBigThumbnail:
-        (state: FileState, getters: any, rootState: RootState, rootGetters: any) =>
+        (state: FileState, getters: FilesGetters, rootState: RootState, rootGetters: FilesRootGetters) =>
         (item: FileStateFile, currentPath: string) => {
             if ('thumbnails' in item && item.thumbnails?.length) {
                 const thumbnail = item.thumbnails.find((thumb) => thumb.width >= thumbnailBigMin)

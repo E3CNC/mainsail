@@ -2,6 +2,12 @@ import { GetterTree } from 'vuex'
 import type { GuiMiscellaneousState, GuiMiscellaneousStateEntry } from '@/store/gui/miscellaneous/types'
 import { RootState } from '@/store/types'
 
+interface MiscellaneousLocalGetters {
+    getEntries: GuiMiscellaneousStateEntry[]
+    getEntry: (payload: { type: string; name: string }) => GuiMiscellaneousStateEntry | undefined
+    [key: string]: unknown
+}
+
 export const getters: GetterTree<GuiMiscellaneousState, RootState> = {
     getEntries: (state: GuiMiscellaneousState) => {
         const output: GuiMiscellaneousStateEntry[] = []
@@ -19,13 +25,17 @@ export const getters: GetterTree<GuiMiscellaneousState, RootState> = {
         return output
     },
 
-    getEntry: (state: GuiMiscellaneousState, getters: any) => (payload: { type: string; name: string }) => {
-        return getters.getEntries.find(
-            (entry: GuiMiscellaneousStateEntry) => entry.name === payload.name && entry.type === payload.type
-        ) as GuiMiscellaneousStateEntry
-    },
+    getEntry:
+        (state: GuiMiscellaneousState, getters: MiscellaneousLocalGetters) =>
+        (payload: { type: string; name: string }) => {
+            return getters.getEntries.find(
+                (entry: GuiMiscellaneousStateEntry) => entry.name === payload.name && entry.type === payload.type
+            ) as GuiMiscellaneousStateEntry
+        },
 
-    getId: (state: GuiMiscellaneousState, getters: any) => (payload: { type: string; name: string }) => {
-        return getters.getEntry(payload)?.id ?? null
-    },
+    getId:
+        (state: GuiMiscellaneousState, getters: MiscellaneousLocalGetters) =>
+        (payload: { type: string; name: string }) => {
+            return getters.getEntry(payload)?.id ?? null
+        },
 }

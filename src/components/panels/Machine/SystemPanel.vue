@@ -34,6 +34,7 @@ import { caseInsensitiveSort } from '@/plugins/helpers'
 import { mdiMemory, mdiUsb } from '@mdi/js'
 import SystemPanelHost from '@/components/panels/Machine/SystemPanelHost.vue'
 import SystemPanelMcu from '@/components/panels/Machine/SystemPanelMcu.vue'
+import type { PrinterStateMcu } from '@/store/printer/types'
 
 const { klipperReadyForGui } = useBase()
 const store = useStore()
@@ -42,8 +43,8 @@ const dialogDevices = ref(false)
 
 const mcus = computed(() => {
     if (!klipperReadyForGui.value) return []
-    const mcusList = store.getters['printer/getMcus'] ?? []
-    return caseInsensitiveSort(mcusList, 'name') as any
+    const mcusList: PrinterStateMcu[] = store.getters['printer/getMcus'] ?? []
+    return caseInsensitiveSort(mcusList, 'name')
 })
 
 const hostStats = computed(() => store.getters['server/getHostStats'] ?? null)

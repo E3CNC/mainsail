@@ -2,25 +2,40 @@ import { getDefaultState } from './index'
 import { MutationTree } from 'vuex'
 import { EditorState } from '@/store/editor/types'
 import { sha256 } from 'js-sha256'
+import type { CancelTokenSource } from 'axios'
+
+interface EditorOpenFilePayload {
+    filename: string
+    fileroot: string
+    filepath: string
+    file: string
+}
+
+interface EditorLoaderPayload {
+    direction: 'downloading' | 'uploading'
+    loaded: number
+    total: number
+    speed: string
+}
 
 export const mutations: MutationTree<EditorState> = {
     reset(state: EditorState) {
         Object.assign(state, getDefaultState())
     },
 
-    updateCancelTokenSource(state: EditorState, source: any) {
+    updateCancelTokenSource(state: EditorState, source: CancelTokenSource | null) {
         state.cancelToken = source
     },
 
-    updateLoaderState(state: EditorState, value: any) {
+    updateLoaderState(state: EditorState, value: boolean) {
         state.loaderBool = value
     },
 
-    updateLoader(state: EditorState, payload: any) {
+    updateLoader(state: EditorState, payload: EditorLoaderPayload) {
         state.loaderProgress = payload
     },
 
-    openFile(state: EditorState, payload: any) {
+    openFile(state: EditorState, payload: EditorOpenFilePayload) {
         state.filename = payload.filename
         state.fileroot = payload.fileroot
         state.filepath = payload.filepath
@@ -39,11 +54,11 @@ export const mutations: MutationTree<EditorState> = {
         state.bool = true
     },
 
-    setFilename(state: EditorState, filename: any) {
+    setFilename(state: EditorState, filename: string) {
         state.filename = filename
     },
 
-    setPermissions(state: EditorState, filename: any) {
+    setPermissions(state: EditorState, filename: string) {
         state.permissions = filename
     },
 
@@ -51,7 +66,7 @@ export const mutations: MutationTree<EditorState> = {
         state.bool = false
     },
 
-    updateSourcecode(state: EditorState, payload: any) {
+    updateSourcecode(state: EditorState, payload: string) {
         state.sourcecode = payload
 
         // To check if a file has been changed by the user, we need to calculate a hash
@@ -68,7 +83,7 @@ export const mutations: MutationTree<EditorState> = {
         state.changed = sha256(payload) != state.loadedHash
     },
 
-    updateLoadedHash(state: EditorState, payload: any) {
+    updateLoadedHash(state: EditorState, payload: string) {
         state.loadedHash = sha256(payload.replace(/(?:\r\n|\r|\n)/g, '\n'))
         state.changed = false
     },

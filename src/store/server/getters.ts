@@ -3,6 +3,18 @@ import { ServerState, ServerStateNetworkInterface } from '@/store/server/types'
 import { formatConsoleMessage, formatFilesize } from '@/plugins/helpers'
 import { RootState } from '@/store/types'
 
+interface ServerGettersProxy {
+    [key: string]: unknown
+}
+
+interface ServerRootGetters {
+    'printer/getHostTempSensor': {
+        temperature: number
+        measured_min_temp: number | null
+        measured_max_temp: number | null
+    } | null
+}
+
 export const getters: GetterTree<ServerState, RootState> = {
     getConsoleEvents:
         (state: ServerState) =>
@@ -39,7 +51,12 @@ export const getters: GetterTree<ServerState, RootState> = {
         return null
     },
 
-    getHostStats: (state: ServerState, getters: any, rootState: RootState, rootGetters: any) => {
+    getHostStats: (
+        state: ServerState,
+        getters: ServerGettersProxy,
+        rootState: RootState,
+        rootGetters: ServerRootGetters
+    ) => {
         interface HostStats {
             cpuName: string | null
             cpuDesc: string | null
@@ -62,10 +79,10 @@ export const getters: GetterTree<ServerState, RootState> = {
             memUsage: null | number
             memUsageColor: string
             tempSensor: {
-                temperature: number
+                temperature: number | string
                 measured_min_temp: number | null
                 measured_max_temp: number | null
-            }
+            } | null
         }
 
         let output: HostStats | null = null
@@ -111,7 +128,7 @@ export const getters: GetterTree<ServerState, RootState> = {
             if (memUsage && memUsage > 95) memUsageColor = 'error'
             else if (memUsage && memUsage > 80) memUsageColor = 'warning'
 
-            let tempSensor = rootGetters['printer/getHostTempSensor']
+            let tempSensor: HostStats['tempSensor'] | null = rootGetters['printer/getHostTempSensor']
             if (tempSensor === null && state.cpu_temp !== null) {
                 tempSensor = {
                     temperature: state.cpu_temp?.toFixed(0),

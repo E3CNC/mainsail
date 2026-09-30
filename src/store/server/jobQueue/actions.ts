@@ -3,6 +3,16 @@ import { getSocket } from '@/store/runtime'
 import { RootState } from '@/store/types'
 import type { ServerJobQueueState, ServerJobQueueStateJob } from '@/store/server/jobQueue/types'
 
+interface JobQueueEventPayload {
+    updated_queue?: ServerJobQueueStateJob[] | null
+    queue_state?: string
+}
+
+interface JobQueueStatusPayload {
+    queued_jobs?: ServerJobQueueStateJob[]
+    queue_state?: string
+}
+
 export const actions: ActionTree<ServerJobQueueState, RootState> = {
     reset({ commit }: ActionContext<ServerJobQueueState, RootState>) {
         commit('reset')
@@ -12,12 +22,15 @@ export const actions: ActionTree<ServerJobQueueState, RootState> = {
         getSocket().emit('server.job_queue.status', {}, { action: 'server/jobQueue/getStatus' })
     },
 
-    getEvent({ commit }: ActionContext<ServerJobQueueState, RootState>, payload: any) {
+    getEvent({ commit }: ActionContext<ServerJobQueueState, RootState>, payload: JobQueueEventPayload) {
         if ('updated_queue' in payload && payload.updated_queue !== null) commit('setQueuedJobs', payload.updated_queue)
         if ('queue_state' in payload) commit('setQueueState', payload.queue_state)
     },
 
-    async getStatus({ commit, dispatch }: ActionContext<ServerJobQueueState, RootState>, payload: any) {
+    async getStatus(
+        { commit, dispatch }: ActionContext<ServerJobQueueState, RootState>,
+        payload: JobQueueStatusPayload
+    ) {
         if ('queued_jobs' in payload) commit('setQueuedJobs', payload.queued_jobs)
         if ('queue_state' in payload) commit('setQueueState', payload.queue_state)
 
