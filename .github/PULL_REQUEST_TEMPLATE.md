@@ -28,7 +28,7 @@
   - ✅ Provide tests for your changes (Vitest, `tests/**/*.spec.ts`)
   - 📝 Use descriptive commit messages, DCO sign-off (`git commit -s`)
   - 📗 Update any related documentation and include any relevant screenshots
-  - ✨ Introduce no new lint/prettier findings in the files you touch (repo-wide style CI has a pre-existing backlog; compare against `master`)
+  - ✨ Keep touched files lint/prettier clean (repo-wide style CI was retired; compare against `master` to prove no new findings)
 -->
 
 ## Description

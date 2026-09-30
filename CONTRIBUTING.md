@@ -76,11 +76,11 @@ them as needed.
 
 7. UI changes: screenshots of before/after are welcome.
 
-> ⚠️ The repo-wide `eslint --max-warnings 0 .` and `prettier --check .` jobs in
-> the "Code style check" CI workflow currently fail on `master` itself (a
-> pre-existing lint backlog inherited from upstream). What CI must not see is
-> **new** findings: check the files you touched (`npx eslint <files>`,
-> `npx prettier --check <files>`) and compare against their state on `master`.
+> ℹ️ Repo-wide style CI was retired (the inherited `eslint --max-warnings 0 .`
+> backlog from upstream's rules switch made it permanently red). Style is a
+> local gate now: run `npm run lint`, `npm run typecheck`, `npm run format:check`
+> and keep the files you touch clean — compare against `master` so you introduce
+> no new findings.
 
 ### Code standards
 
