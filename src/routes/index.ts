@@ -8,8 +8,6 @@ import Timelapse from '../pages/Timelapse.vue'
 import Machine from '../pages/Machine.vue'
 import { Component, defineAsyncComponent } from 'vue'
 
-import type { RouteRecordRaw } from 'vue-router'
-
 import {
     mdiMonitorDashboard,
     mdiWebcam,

@@ -30,7 +30,7 @@ export const actions: ActionTree<SocketState, RootState> = {
         }
     },
 
-    onOpen({ commit, dispatch, rootState }: ActionContext<SocketState, RootState>) {
+    onOpen({ commit, dispatch }: ActionContext<SocketState, RootState>) {
         //set socket connection to connected
         commit('setConnected')
 
@@ -42,7 +42,7 @@ export const actions: ActionTree<SocketState, RootState> = {
         commit('setDisconnected')
     },
 
-    onReconnecting({ commit, dispatch }: ActionContext<SocketState, RootState>) {
+    onReconnecting({ commit }: ActionContext<SocketState, RootState>) {
         commit('setReconnecting', true)
         $toast.info('Connection lost — reconnecting...', { duration: 4000 })
     },

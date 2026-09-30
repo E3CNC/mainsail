@@ -1,6 +1,6 @@
 <template>
     <panel
-        ref="panel"
+        ref="panelRef"
         :icon="mdiPrinter3d"
         :title="printer_name"
         card-class="farmprinter-panel"
@@ -133,7 +133,7 @@ const imageHeight = ref(200)
 let resizeObserver: ResizeObserver | null = null
 
 const imageDiv = ref<{ $el: HTMLElement } | null>(null)
-const panel = ref<{ $el: HTMLElement } | null>(null)
+const panelRef = ref<{ $el: HTMLElement } | null>(null)
 
 const printerUrl = computed(() => {
     const thisUrl = window.location.href.split('/')
@@ -209,7 +209,7 @@ onMounted(() => {
     calcImageHeight()
 
     resizeObserver = new ResizeObserver(() => handleResize())
-    const el = panel.value?.$el ?? null
+    const el = panelRef.value?.$el ?? null
     if (el instanceof Element) resizeObserver.observe(el)
 })
 

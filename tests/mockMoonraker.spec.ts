@@ -16,7 +16,7 @@ describe('mock-moonraker database', () => {
 
     describe('unflatten', () => {
         it('reconstructs nested objects from flat dot-notation keys', () => {
-            const flat = { 'a.b.c': 1, 'a.b.d': 2, 'x': 3 }
+            const flat = { 'a.b.c': 1, 'a.b.d': 2, x: 3 }
             const result = unflatten(flat)
             expect(result).toEqual({ a: { b: { c: 1, d: 2 } }, x: 3 })
         })
@@ -31,7 +31,7 @@ describe('mock-moonraker database', () => {
         })
 
         it('creates intermediate objects when parent key conflicts with a leaf', () => {
-            const flat = { 'a': 1, 'a.b': 2 }
+            const flat = { a: 1, 'a.b': 2 }
             const result = unflatten(flat)
             expect(result.a).toEqual({ b: 2 })
         })

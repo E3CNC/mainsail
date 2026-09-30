@@ -58,7 +58,6 @@ import { useStore } from 'vuex'
 import { useI18n } from 'vue-i18n'
 import SettingsRow from '@/components/settings/SettingsRow.vue'
 import { caseInsensitiveSort } from '@/plugins/helpers'
-import { GuiMacrosStateMacrogroup } from '@/store/gui/macros/types'
 import type { GuiMiscellaneousStateEntryLightgroup } from '@/store/gui/miscellaneous/types'
 
 const props = defineProps({

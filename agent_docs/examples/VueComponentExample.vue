@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v-btn :disabled="isLoading" @click="handleClick">
+        <v-btn :title="formattedTitle" :disabled="isLoading || !isValid" @click="handleClick">
             <v-icon start>{{ mdiCheck }}</v-icon>
             {{ $t('Common.Save') }}
         </v-btn>

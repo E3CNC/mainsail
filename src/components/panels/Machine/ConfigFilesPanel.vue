@@ -110,6 +110,7 @@
             <v-divider />
             <v-data-table
                 v-if="!showMissingConfigRootWarning"
+                :key="files.length"
                 v-model="selectedFiles"
                 v-model:page="currentPage"
                 v-model:items-per-page="countPerPage"
@@ -118,7 +119,6 @@
                 :headers="headers"
                 disable-sort
                 :items-per-page-options="itemsPerPageOptions as any"
-                :key="files.length"
                 :mobile-breakpoint="0"
                 item-key="filename">
                 <template #header.filename>

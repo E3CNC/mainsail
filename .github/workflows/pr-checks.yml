@@ -5,6 +5,33 @@ on:
     types: [synchronize, opened, reopened]
 
 jobs:
+  code-style:
+    name: Code style check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      # ESLint errors fail the build. no-explicit-any in the grandfathered
+      # legacy list (eslint.config.mjs) stays at `warn`: the ratchet makes new
+      # `any` an ERROR (red CI) while the 407-file backlog shrinks per fix.
+      - name: Run ESLint
+        run: npx eslint .
+
+      - name: Run Prettier
+        run: npx prettier --check .
+
+      - name: Typecheck
+        run: npm run typecheck
+
   check-translations:
     name: Check translations
     runs-on: ubuntu-latest
