@@ -62,8 +62,8 @@
                 </template>
                 <v-card-text class="pa-0 d-flex editor-content-area">
                     <codemirror-async
-                        ref="codemirrorRef"
                         v-if="show"
+                        ref="codemirrorRef"
                         v-model="sourcecode"
                         :name="filename"
                         :file-extension="fileExtension"
@@ -227,10 +227,7 @@ import { klipperRepos } from '@/store/variables'
 import CodemirrorAsync from '@/components/inputs/CodemirrorAsync.vue'
 import { validateCfg, type CfgValidationError } from '@/utils/cfgValidator'
 import {
-    mdiAlert,
-    mdiAlertCircle,
     mdiClose,
-    mdiCloseCircle,
     mdiCloseThick,
     mdiContentSave,
     mdiFileDocumentOutline,

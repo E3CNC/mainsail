@@ -4,6 +4,7 @@ import { createStore } from 'vuex'
 import { createVuetify } from 'vuetify'
 import * as VuetifyComponents from 'vuetify/components'
 import FarmPrinterPanel from '@/components/panels/FarmPrinterPanel.vue'
+import { getDefaultState } from '@/store/farm/printer/index'
 
 beforeAll(() => {
     const MockResizeObserver = class {
@@ -102,9 +103,14 @@ const createTestWrapper = (overrides: Record<string, unknown> = {}) => {
             },
         },
         props: {
+            // build the fixture from the store's own defaults so it always
+            // satisfies FarmPrinterState, then override the fields under test
             printer: {
+                ...getDefaultState(),
                 _namespace: namespace,
                 socket: {
+                    ...getDefaultState().socket,
+                    instance: null,
                     hostname: '127.0.0.1',
                     port: 7125,
                     webPort: 80,

@@ -29,7 +29,7 @@
  * extracting its src, and preloading it while showing the preloader slot.
  * Once loaded, the #image slot is displayed.
  */
-import { ref, useSlots, onMounted, onBeforeUnmount, type VNode } from 'vue'
+import { ref, useSlots, onMounted, type VNode } from 'vue'
 
 const slots = useSlots()
 const status = ref<'pending' | 'loading' | 'loaded' | 'failed'>('pending')

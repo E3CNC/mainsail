@@ -10,7 +10,7 @@ import type {
 import { GuiPresetsStatePreset } from '@/store/gui/presets/types'
 import { RootState } from '@/store/types'
 import { getDefaultState } from './index'
-import { defaultLogoColor, defaultPrimaryColor, excludeKeys, themeDir, themes } from '@/store/variables'
+import { excludeKeys, themeDir, themes } from '@/store/variables'
 import { deletePath, isRecord } from '@/plugins/helpers'
 
 export const actions: ActionTree<GuiState, RootState> = {
@@ -182,7 +182,7 @@ export const actions: ActionTree<GuiState, RootState> = {
         dispatch('init')
     },
 
-    saveSetting({ commit, state }: ActionContext<GuiState, RootState>, payload: any) {
+    saveSetting({ commit }: ActionContext<GuiState, RootState>, payload: any) {
         commit('saveSetting', payload)
         if (excludeKeys.includes(payload.name)) return
 

@@ -172,7 +172,6 @@ import {
     mdiLoading,
     mdiPackageUp,
     mdiUndoVariant,
-    mdiRefresh,
 } from '@mdi/js'
 import TopCornerMenuService from '@/components/ui/TopCornerMenuService.vue'
 import ConfirmationDialog from '@/components/dialogs/ConfirmationDialog.vue'
@@ -188,7 +187,7 @@ interface instanceInfo {
 const store = useStore()
 const { t } = useI18n()
 const { klipperState, printer_state, printerIsPrinting, apiUrl } = useBase()
-const { hideOtherInstances, klipperInstance, moonrakerInstance } = useServices()
+const { klipperInstance, moonrakerInstance } = useServices()
 const socket = useSocket()
 
 const showMenu = ref(false)

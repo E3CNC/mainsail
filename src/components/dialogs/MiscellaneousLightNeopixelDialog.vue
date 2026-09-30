@@ -109,7 +109,6 @@ import { mdiCloseThick, mdiLightbulbOutline } from '@mdi/js'
 import { caseInsensitiveSort, convertName } from '@/plugins/helpers'
 import type { ColorPickerProps } from '@jaames/iro/dist/ColorPicker.d'
 import iro from '@jaames/iro'
-import type { IroColor } from '@irojs/iro-core'
 import type { GuiMiscellaneousStateEntry } from '@/store/gui/miscellaneous/types'
 
 interface ColorData {

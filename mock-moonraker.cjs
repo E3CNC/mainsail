@@ -37,7 +37,9 @@ const httpServer = http.createServer((req, res) => {
         let body = {}
         try {
             if (chunks.length) body = JSON.parse(Buffer.concat(chunks).toString())
-        } catch { body = {} }
+        } catch {
+            body = {}
+        }
         routeHttp(req, res, url, body)
     })
 })
@@ -45,12 +47,32 @@ const httpServer = http.createServer((req, res) => {
 function routeHttp(req, res, url, body) {
     if (url.pathname === '/server/info') {
         res.writeHead(200, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ result: { klippy_connected: true, klippy_state: 'ready', klippy_message: 'Printer is ready', components: [], failed_components: [], warnings: [], registered_directories: ['gcodes', 'config', 'logs'], websocket_count: 2, moonraker_version: 'v0.9.3-1', api_version: [1, 4, 0], api_version_string: '1.4.0' } }))
+        res.end(
+            JSON.stringify({
+                result: {
+                    klippy_connected: true,
+                    klippy_state: 'ready',
+                    klippy_message: 'Printer is ready',
+                    components: [],
+                    failed_components: [],
+                    warnings: [],
+                    registered_directories: ['gcodes', 'config', 'logs'],
+                    websocket_count: 2,
+                    moonraker_version: 'v0.9.3-1',
+                    api_version: [1, 4, 0],
+                    api_version_string: '1.4.0',
+                },
+            })
+        )
         return
     }
     if (url.pathname.startsWith('/server/history/totals')) {
         res.writeHead(200, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ result: { job_totals: { total: 0, failed: 0, cancelled: 0, completed: 0, queued: 0, active: 0 } } }))
+        res.end(
+            JSON.stringify({
+                result: { job_totals: { total: 0, failed: 0, cancelled: 0, completed: 0, queued: 0, active: 0 } },
+            })
+        )
         return
     }
     if (url.pathname === '/server/database/list') {
@@ -100,39 +122,49 @@ function routeHttp(req, res, url, body) {
     }
     if (url.pathname.startsWith('/machine/e3cnc/info')) {
         res.writeHead(200, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ result: { ok: true, current_version: '0.10.4-mock', instances: [{ name: 'mock-cnc', running: true, current_version: '0.10.4-mock' }] } }))
+        res.end(
+            JSON.stringify({
+                result: {
+                    ok: true,
+                    current_version: '0.10.4-mock',
+                    instances: [{ name: 'mock-cnc', running: true, current_version: '0.10.4-mock' }],
+                },
+            })
+        )
         return
     }
     if (url.pathname.startsWith('/server/cnc/')) {
         const cncPath = url.pathname.replace('/server/cnc/', '')
         if (cncPath === 'state') {
             res.writeHead(200, { 'Content-Type': 'application/json' })
-            res.end(JSON.stringify({
-                result: {
-                    profile: {
-                        name: 'Mock CNC',
-                        frontend: {
-                            show_machine_coords: true,
-                            show_work_coords: true,
-                            show_machine_health: true,
-                            reverse_y_preview: false,
+            res.end(
+                JSON.stringify({
+                    result: {
+                        profile: {
+                            name: 'Mock CNC',
+                            frontend: {
+                                show_machine_coords: true,
+                                show_work_coords: true,
+                                show_machine_health: true,
+                                reverse_y_preview: false,
+                            },
+                            capabilities: {
+                                spindle: { enabled: true },
+                                coolant: { channels: 2 },
+                                probe: { enabled: true },
+                                tool_setter: { enabled: false },
+                            },
+                            safety: {
+                                require_confirm_for_zero_reset: true,
+                                require_confirm_for_spindle_start: true,
+                                require_homing_before_offsets: true,
+                            },
                         },
-                        capabilities: {
-                            spindle: { enabled: true },
-                            coolant: { channels: 2 },
-                            probe: { enabled: true },
-                            tool_setter: { enabled: false },
-                        },
-                        safety: {
-                            require_confirm_for_zero_reset: true,
-                            require_confirm_for_spindle_start: true,
-                            require_homing_before_offsets: true,
-                        },
+                        state: 'ready',
+                        errors: [],
                     },
-                    state: 'ready',
-                    errors: [],
-                },
-            }))
+                })
+            )
             return
         }
         if (cncPath === 'spindle') {
@@ -150,7 +182,12 @@ function routeHttp(req, res, url, body) {
             res.end(JSON.stringify({ result: { units: 'mm' } }))
             return
         }
-        if (cncPath === 'wcs/select' && req.method === 'POST' && typeof body.wcs === 'string' && body.wcs in cncWcs.offsets) {
+        if (
+            cncPath === 'wcs/select' &&
+            req.method === 'POST' &&
+            typeof body.wcs === 'string' &&
+            body.wcs in cncWcs.offsets
+        ) {
             cncWcs.active = body.wcs
         }
         if (cncPath === 'wcs/set-zero' && req.method === 'POST') {
@@ -210,7 +247,14 @@ const printerState = {
     eventtime: 1000.5,
     status: {
         gcode: { commands: ['G28', 'G1', 'M104', 'M140', 'M109', 'M190'] },
-        toolhead: { homed_axes: 'xyz', position: [100, 100, 10, 0], axis_minimum: [0, 0, 0], axis_maximum: [165, 300, 50], max_velocity: 300, max_accel: 3000 },
+        toolhead: {
+            homed_axes: 'xyz',
+            position: [100, 100, 10, 0],
+            axis_minimum: [0, 0, 0],
+            axis_maximum: [165, 300, 50],
+            max_velocity: 300,
+            max_accel: 3000,
+        },
         gcode_move: { gcode_position: [100, 100, 10, 0], speed: 0, speed_factor: 1 },
         extruder: { temperature: 21.5, target: 0, power: 0, can_extrude: false },
         heater_bed: { temperature: 21.2, target: 0, power: 0 },
@@ -257,8 +301,14 @@ function applyGcodeScript(script) {
             printerState.status.toolhead.homed_axes = 'xyz'
             continue
         }
-        if (/\bG91\b/.test(line)) { relative = true; continue }
-        if (/\bG90\b/.test(line) || /\bG53\b/.test(line)) { if (/\bG90\b/.test(line)) relative = false; continue }
+        if (/\bG91\b/.test(line)) {
+            relative = true
+            continue
+        }
+        if (/\bG90\b/.test(line) || /\bG53\b/.test(line)) {
+            if (/\bG90\b/.test(line)) relative = false
+            continue
+        }
         // Motion line: G0/G1 with axis words
         if (!/\bG0*0\b/.test(line) && !/\bG0*1\b/.test(line)) continue
         const pos = printerState.status.toolhead.position
@@ -300,14 +350,41 @@ function handleMethod(method, params = {}) {
             return {
                 system_info: {
                     available_services: ['klipper', 'moonraker'],
-                    cpu_info: { bits: '64bit', cpu_count: 4, cpu_desc: 'Mock CPU', serial_number: 'mock123', hardware_desc: 'Mock board', memory_units: 'kB', model: 'MockPi', processor: 'armv7l', total_memory: 8000000 },
-                    distribution: { codename: 'bookworm', id: 'debian', like: 'debian', name: 'Debian GNU/Linux', version: '12', version_parts: { build_number: '', major: '12', minor: '' } },
+                    cpu_info: {
+                        bits: '64bit',
+                        cpu_count: 4,
+                        cpu_desc: 'Mock CPU',
+                        serial_number: 'mock123',
+                        hardware_desc: 'Mock board',
+                        memory_units: 'kB',
+                        model: 'MockPi',
+                        processor: 'armv7l',
+                        total_memory: 8000000,
+                    },
+                    distribution: {
+                        codename: 'bookworm',
+                        id: 'debian',
+                        like: 'debian',
+                        name: 'Debian GNU/Linux',
+                        version: '12',
+                        version_parts: { build_number: '', major: '12', minor: '' },
+                    },
                     network: {},
                     system_uptime: Math.floor((Date.now() - startTime) / 1000),
                     instance_ids: { moonraker: 'mock-moonraker', klipper: 'mock-klipper' },
                     service_state: {},
                     python: { version: [3, 9, 2], version_string: '3.9.2' },
-                    sd_info: { capacity: '0', manufacturer: 'mock', manufacturer_date: '', manufacturer_id: '', oem_id: '', product_name: 'mock', product_revision: '', serial_number: '', total_bytes: 0 },
+                    sd_info: {
+                        capacity: '0',
+                        manufacturer: 'mock',
+                        manufacturer_date: '',
+                        manufacturer_id: '',
+                        oem_id: '',
+                        product_name: 'mock',
+                        product_revision: '',
+                        serial_number: '',
+                        total_bytes: 0,
+                    },
                 },
             }
         case 'machine.proc_stats':
@@ -323,7 +400,13 @@ function handleMethod(method, params = {}) {
         case 'server.gcode_store':
             return { gcode_store: [{ time: Date.now() / 1000, type: 'response', message: 'Mock Moonraker ready' }] }
         case 'printer.info':
-            return { state: 'ready', state_message: 'Printer is ready', hostname: 'mock-printer', software_version: 'v0.12.0-mock', cpu_info: 'Mock CPU' }
+            return {
+                state: 'ready',
+                state_message: 'Printer is ready',
+                hostname: 'mock-printer',
+                software_version: 'v0.12.0-mock',
+                cpu_info: 'Mock CPU',
+            }
         case 'printer.objects.list':
             return { objects: Object.keys(printerState.status) }
         case 'server.webcams.list':
@@ -362,7 +445,12 @@ function handleMethod(method, params = {}) {
             }
         case 'server.files.list':
         case 'server.files.get_directory':
-            return { dirs: [], files: [], disk_usage: { total: 0, used: 0, free: 0 }, root_info: { name: params.root ?? 'gcodes' } }
+            return {
+                dirs: [],
+                files: [],
+                disk_usage: { total: 0, used: 0, free: 0 },
+                root_info: { name: params.root ?? 'gcodes' },
+            }
         case 'printer.gcode.script':
             applyGcodeScript(params.script)
             return 'ok'
@@ -394,7 +482,10 @@ function statusBroadcast() {
                 extruder: { ...printerState.status.extruder },
                 heater_bed: { ...printerState.status.heater_bed },
                 toolhead: { ...printerState.status.toolhead, position: [...printerState.status.toolhead.position] },
-                gcode_move: { ...printerState.status.gcode_move, gcode_position: [...printerState.status.gcode_move.gcode_position] },
+                gcode_move: {
+                    ...printerState.status.gcode_move,
+                    gcode_position: [...printerState.status.gcode_move.gcode_position],
+                },
             },
             printerState.eventtime,
         ],
@@ -409,12 +500,18 @@ wss.on('connection', (ws, req) => {
     const timer = setInterval(() => {
         try {
             ws.send(JSON.stringify(statusBroadcast()))
-        } catch { /* ignore closed socket */ }
+        } catch {
+            /* ignore closed socket */
+        }
     }, 2000)
 
     ws.on('message', (raw) => {
         let data
-        try { data = JSON.parse(raw.toString()) } catch { return }
+        try {
+            data = JSON.parse(raw.toString())
+        } catch {
+            return
+        }
         const messages = Array.isArray(data) ? data : [data]
         for (const msg of messages) {
             if (msg.method === undefined) continue
@@ -423,7 +520,11 @@ wss.on('connection', (ws, req) => {
                 const result = handleMethod(msg.method, msg.params ?? {})
                 if (msg.id !== undefined && msg.id !== null) reply(ws, msg.id, result)
                 if (msg.method === 'printer.gcode.script') {
-                    try { ws.send(JSON.stringify(statusBroadcast())) } catch { /* ignore */ }
+                    try {
+                        ws.send(JSON.stringify(statusBroadcast()))
+                    } catch {
+                        /* ignore */
+                    }
                 }
             } catch (e) {
                 ws.send(JSON.stringify({ jsonrpc: '2.0', id: msg.id, error: { message: String(e) } }))
@@ -431,5 +532,8 @@ wss.on('connection', (ws, req) => {
         }
     })
 
-    ws.on('close', () => { clearInterval(timer); console.log(`[mock-moonraker] client #${ws._mockId} disconnected`) })
+    ws.on('close', () => {
+        clearInterval(timer)
+        console.log(`[mock-moonraker] client #${ws._mockId} disconnected`)
+    })
 })

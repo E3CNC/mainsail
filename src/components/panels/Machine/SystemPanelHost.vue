@@ -183,22 +183,18 @@
                     <OverlayScrollbarsComponent style="height: 350px" class="px-6">
                         <template v-if="systemInfo.length">
                             <div v-for="(entry, index) in systemInfo" :key="entry[0]">
-                                <template>
-                                    <v-row :class="index > 0 ? 'mt-5' : ''">
-                                        <v-col>
-                                            <span class="headline">{{ entry[0] }}</span>
-                                        </v-col>
+                                <v-row :class="index > 0 ? 'mt-5' : ''">
+                                    <v-col>
+                                        <span class="headline">{{ entry[0] }}</span>
+                                    </v-col>
+                                </v-row>
+                                <div v-for="(value, key2) in entry[1] as Record<string, string>" :key="key2">
+                                    <v-divider v-if="Object.keys(entry[1]).indexOf(key2) > 0" class="my-3"></v-divider>
+                                    <v-row>
+                                        <v-col>{{ key2 }}</v-col>
+                                        <v-col class="text-right">{{ value }}</v-col>
                                     </v-row>
-                                    <div v-for="(value, key2) in entry[1] as Record<string, string>" :key="key2">
-                                        <v-divider
-                                            v-if="Object.keys(entry[1]).indexOf(key2) > 0"
-                                            class="my-3"></v-divider>
-                                        <v-row>
-                                            <v-col>{{ key2 }}</v-col>
-                                            <v-col class="text-right">{{ value }}</v-col>
-                                        </v-row>
-                                    </div>
-                                </template>
+                                </div>
                             </div>
                         </template>
                         <template v-else>

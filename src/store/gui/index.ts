@@ -4,13 +4,7 @@ import { Module } from 'vuex'
 import { actions } from '@/store/gui/actions'
 import { mutations } from '@/store/gui/mutations'
 import { getters } from '@/store/gui/getters'
-import {
-    defaultTheme,
-    defaultLogoColor,
-    defaultPrimaryColor,
-    defaultBigThumbnailBackground,
-    defaultMode,
-} from '@/store/variables'
+import { defaultTheme, defaultLogoColor, defaultPrimaryColor, defaultMode } from '@/store/variables'
 
 // load modules
 import { console } from '@/store/gui/console'

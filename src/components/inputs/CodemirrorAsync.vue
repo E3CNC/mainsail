@@ -1,12 +1,12 @@
 <template>
-    <component ref="codemirrorRef" :is="CodemirrorComp" :validation-errors="validationErrors" v-bind="$attrs" />
+    <component :is="CodemirrorComp" ref="codemirrorRef" :validation-errors="validationErrors" v-bind="$attrs" />
 </template>
 
 <script setup lang="ts">
 import { ref, shallowRef, onMounted } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 
-const props = defineProps<{
+defineProps<{
     validationErrors?: { line: number; severity: 'error' | 'warning' }[]
 }>()
 

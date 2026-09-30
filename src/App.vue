@@ -25,8 +25,8 @@
                 color="primary"
                 class="scroll-to-top-btn"
                 elevation="4"
-                @click="scrollToTop"
-                aria-label="Scroll to top">
+                aria-label="Scroll to top"
+                @click="scrollToTop">
                 <v-icon>{{ mdiChevronUp }}</v-icon>
             </v-btn>
         </v-fade-transition>
