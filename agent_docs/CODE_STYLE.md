@@ -4,7 +4,7 @@
 
 Prettier enforces: 4-space indent, single quotes, no semicolons, 120 char width.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for commands.
+See [AGENTS.md](../AGENTS.md) for commands.
 
 ## Naming
 

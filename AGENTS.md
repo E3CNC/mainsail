@@ -18,10 +18,13 @@ Mainsail is a Vue 3.5 + TypeScript web interface for Klipper-based CNC machines,
 
 ## Git Workflow
 
-The fork's active branch is `master` — submit all PRs against it (there is
-no `develop` branch). Upstream mainsail-crew/mainsail is Vue 2.7: do NOT
-merge or cherry-pick it; re-implement upstream fixes in Composition API style.
-Commits need DCO sign-off (`git commit -s`) and Conventional Commits titles.
+Push directly to `master` (the fork's active and default branch — there is
+no `develop` branch and no PR flow; there is no CONTRIBUTING.md). Upstream
+mainsail-crew/mainsail is Vue 2.7: do NOT merge or cherry-pick it;
+re-implement upstream fixes in Composition API style. Commits need DCO
+sign-off (`git commit -s`) and Conventional Commits titles. Before pushing,
+run the full gate locally: `npm run lint` (0 errors), `npm run format:check`,
+`npm run typecheck`, `npm run test:unit`.
 
 ## Guidelines
 
@@ -32,4 +35,4 @@ Commits need DCO sign-off (`git commit -s`) and Conventional Commits titles.
 | Formatting, naming, patterns      | [agent_docs/CODE_STYLE.md](agent_docs/CODE_STYLE.md)         |
 | Vuetify, icons, i18n              | [agent_docs/UI_I18N.md](agent_docs/UI_I18N.md)               |
 | Code review checklist             | [agent_docs/CODE_REVIEW.md](agent_docs/CODE_REVIEW.md)       |
-| Git workflow & PRs                | [agent_docs/CONTRIBUTING.md](agent_docs/CONTRIBUTING.md)     |
+| Git workflow & agent conventions  | [agent_docs/CONTRIBUTING.md](agent_docs/CONTRIBUTING.md)     |

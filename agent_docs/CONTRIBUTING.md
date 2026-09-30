@@ -2,11 +2,13 @@
 
 ## Git Workflow
 
-Submit PRs against the `master` branch — the fork's active and default
-branch. There is no `develop` branch (the stale pre-Vue-3 remnant from
-upstream was deleted in 2026-09).
+Push directly to `master` — the fork's active and default branch. There is
+no `develop` branch (the stale pre-Vue-3 remnant from upstream was deleted
+in 2026-09) and no PR review flow.
 
-PR titles are validated by CI and must follow Conventional Commits.
+Use a local feature branch only when a change needs room to stack or be
+dropped before landing; fast-forward it into `master` when done
+(`git push origin <branch>:master`), then delete the branch.
 
 Sign off commits with DCO (`git commit -s`):
 
@@ -41,7 +43,7 @@ upstream PR diff (`gh pr diff N --repo mainsail-crew/mainsail`), verify the
 bug still applies to this fork's rewritten components, then re-implement it
 in `<script setup>` Composition API style.
 
-## Before Submitting
+## Before Pushing
 
 ```bash
 npm run format        # prettier (check with `npm run format:check`)
@@ -50,10 +52,12 @@ npm run typecheck     # vue-tsc
 npm run test:unit     # vitest
 ```
 
-Note: CI enforces style (`eslint .`, `prettier --check .`, `npm run typecheck`).
-`no-explicit-any` is a ratchet — `error` by default, ~89 legacy store files
-grandfathered to `warn` in `eslint.config.mjs`. Never add a file to that list;
-removing one is a contribution. In new code prefer payload interfaces or
+Note: CI enforces style (`eslint .`, `prettier --check .`, `npm run typecheck`)
+on every push to `master`.
+`no-explicit-any` is a ratchet — `error` by default, 7 legacy store files
+grandfathered to `warn` in `eslint.config.mjs` (farm/printer +
+printer/tempHistory). Never add a file to that list; removing one is a
+contribution. In new code prefer payload interfaces or
 `unknown` + narrowing over `any`.
 Add Vitest regression tests for new/changed behavior (`tests/**/*.spec.ts`,
 jsdom; `mock-moonraker.cjs` backs `/server/cnc/*`).

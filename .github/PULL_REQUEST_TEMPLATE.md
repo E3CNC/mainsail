@@ -21,7 +21,7 @@
   You can find more information about Conventional Commits here: https://www.conventionalcommits.org/en/v1.0.0/.
 
   Before submitting a Pull Request, please ensure you've done the following:
-  - 📖 Read the Contributing Guidelines: https://github.com/E3CNC/mainsail/blob/master/CONTRIBUTING.md#-submitting-a-pull-request
+  - 📖 Read the Git workflow & conventions: https://github.com/E3CNC/mainsail/blob/master/agent_docs/CONTRIBUTING.md
   - 📖 Read the Code of Conduct: https://github.com/E3CNC/mainsail/blob/master/.github/CODE_OF_CONDUCT.md
   - 🎯 Target the `master` branch (the fork's active branch)
   - 👷‍♀️ Create small Pull Requests that only address one issue or feature

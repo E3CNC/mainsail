@@ -62,7 +62,7 @@ Other commands: `npm run build`, `npm run lint`, `npm run lint:fix`,
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) (PRs go against `master`). AI-agent
+The fork lands changes directly on `master` — no PR flow. AI-agent
 conventions live in [AGENTS.md](AGENTS.md) and [agent_docs/](agent_docs/).
 
 ## Credit
