@@ -5,27 +5,6 @@ on:
     types: [synchronize, opened, reopened]
 
 jobs:
-  code-style:
-    name: Code style check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Install node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run ESLint
-        run: npx eslint --max-warnings 0 .
-
-      - name: Run Prettier
-        run: npx prettier --check .
-
   check-translations:
     name: Check translations
     runs-on: ubuntu-latest

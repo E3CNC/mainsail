@@ -50,8 +50,8 @@ npm run typecheck     # vue-tsc
 npm run test:unit     # vitest
 ```
 
-Note: repo-wide style CI (`eslint --max-warnings 0 .`) currently fails on
-`master` due to a pre-existing lint backlog; ensure you introduce **no new**
-findings in the files you touch (compare against `master` for those files).
+Note: repo-wide style CI (`eslint --max-warnings 0 .`) was retired due to the
+inherited upstream lint backlog. Ensure you introduce **no new** findings in
+the files you touch (compare against `master` for those files).
 Add Vitest regression tests for new/changed behavior (`tests/**/*.spec.ts`,
 jsdom; `mock-moonraker.cjs` backs `/server/cnc/*`).

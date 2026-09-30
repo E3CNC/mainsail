@@ -1,4 +1,4 @@
-<!-- THIS FILE IS UPDATED AUTOMATICALLY, ANY CHANGES WILL BE OVERRIDDEN -->
+<!-- Maintained manually with git-cliff at release time (see RELEASES.md). -->
 # Changelog
 All notable changes to Mainsail will be documented in this file.
 
