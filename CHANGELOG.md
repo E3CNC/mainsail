@@ -3,6 +3,32 @@
 All notable changes to Mainsail will be documented in this file.
 
 
+## [0.10.7](https://github.com/E3CNC/mainsail/releases/tag/e3cnc-mainsail-v0.10.7) - 2026-10-01
+### Bug Fixes and Improvements
+
+- **StartPrintDialog**: Pull gcode metadata for thumbnails on open
+- **console**: Sanitize console messages with DOMPurify
+- **macros**: Keep expert mode usable after clear and fix drag sorting
+- **release**: Unify fork on e3cnc-mainsail-vX.Y.Z tag scheme
+- **store**: Guard configfile access when not yet loaded
+- **timelapse**: Use generateTimestamp for selected-files zip name
+- **timelapse**: Clear file selection on folder switch
+- **webcam**: Resolve relative go2rtc stream URLs to the websocket API
+
+### Documentation
+
+- **readme**: Point releases section at the unified e3cnc-mainsail-v* scheme
+- Align contributing and agent docs with fork reality
+- Retarget GitHub templates, CI triggers and examples to the fork
+- Record the restored style gate and the any-ratchet policy
+- Drop root CONTRIBUTING.md, align docs with direct-push workflow
+
+### Other
+
+- **lint**: Eliminate the eslint error backlog and ratchet new code
+- **lint**: Re-type 82 legacy files off the any-ratchet list
+
+
 ## [0.10.6](https://github.com/E3CNC/mainsail/releases/tag/e3cnc-mainsail-v0.10.6) - 2026-09-25
 ### Bug Fixes and Improvements
 

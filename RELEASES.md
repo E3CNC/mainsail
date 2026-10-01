@@ -21,6 +21,25 @@ Before this scheme was unified, two collided: the Vue 3 frontend swap
 tag also sat on a package.json still at 0.10.4. These tags are left as-is;
 from v0.10.6 on, tag and manifest match.
 
+## [e3cnc-mainsail-v0.10.7] - 2026-10-01
+
+### Bug Fixes
+
+- **console**: Sanitize console messages with DOMPurify (90a77686) — XSS hardening, upstream port
+- **store**: Guard configfile access when not yet loaded (22c72f1c)
+- **timelapse**: generateTimestamp for selected-files zip name (e88fdcf6); clear file selection on folder switch (27b22d81)
+- **webcam**: Resolve relative go2rtc stream URLs to the websocket API (fcf8b126)
+- **macros**: Expert mode stays usable after clear; drag sorting fixed (da705ada)
+- **StartPrintDialog**: Pull gcode metadata for thumbnails on open (79e318ac)
+
+### Tooling & Docs
+
+- ESLint error backlog eliminated; code-style CI gate reinstated with the `no-explicit-any` ratchet (a39efe0a)
+- Ratchet list shrunk 89 -> 7 files, 346 `any` sites re-typed (96be0a80)
+- Dead CI pipelines removed; workflows retargeted to master (b11d4f54, c9cb8682)
+- Release tag scheme unified on e3cnc-mainsail-vX.Y.Z (41c7e7a8)
+- Docs aligned with fork reality; root CONTRIBUTING.md dropped for the direct-push workflow (6599395b)
+
 ## [e3cnc-mainsail-v0.10.6] - 2026-09-25
 
 ### Bug Fixes
