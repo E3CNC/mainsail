@@ -3,3 +3,10 @@ dist/
 public/
 components.d.ts
 CHANGELOG.md
+
+# Files Prettier cannot parse (config/non-code) — see PRD ci-workflows-style-gate
+.gitignore
+docker/nginx.conf
+docker/Dockerfile
+docker/entrypoint.sh
+docker/moonraker.conf

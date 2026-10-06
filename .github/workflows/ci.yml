@@ -8,6 +8,33 @@ on:
   workflow_dispatch:
 
 jobs:
+  code-style:
+    name: Code Style
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Lint (errors fail the build; the legacy `any` list warns), format,
+      # and typecheck — the same gate the local `npm run lint`/`format:check`
+      # run, now enforced on push to master (see docs/prd/ci-workflows-style-gate.md).
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Typecheck
+        run: npm run typecheck
+
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -33,7 +60,7 @@ jobs:
           path: dist/mainsail.zip
 
   cypress:
-    name: Cypress Tests
+    name: E2E (Docker harness)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -50,10 +77,24 @@ jobs:
       - name: Build the application
         run: npm run build
 
-      - name: Cypress run
+      # Boot the Docker dev harness: built frontend served by nginx against a
+      # real (containerized) Moonraker 0.11.0.
+      - name: Start Docker harness
+        run: |
+          cd docker
+          docker compose up -d --wait
+
+      - name: Cypress run (against harness at :8080)
         uses: cypress-io/github-action@v6
         with:
-          start: npm run preview
+          config-file: cypress.config.ts
+          env: baseUrl=http://localhost:8080
+
+      - name: Tear down Docker harness
+        if: always()
+        run: |
+          cd docker
+          docker compose down -v
 
   vitest:
     name: Vitest

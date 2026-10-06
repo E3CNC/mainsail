@@ -35,6 +35,26 @@ jobs:
         with:
           node-version: 20
 
+      - name: Validate tag matches package.json version
+        run: |
+          # Invariant: the requested tag e3cnc-mainsail-vX.Y.Z must match the
+          # package.json "version" (X.Y.Z). See docs/prd/release-version-drift-guard.md.
+          if ! [[ "${{ inputs.tag }}" =~ ^e3cnc-mainsail-v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            echo "::error::Release tag must match e3cnc-mainsail-vX.Y.Z (got: ${{ inputs.tag }})"
+            exit 1
+          fi
+          TAG_VERSION="${BASH_REMATCH[1]}"
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          echo "tag version: $TAG_VERSION, package.json version: $PKG_VERSION"
+          if [[ "$TAG_VERSION" != "$PKG_VERSION" ]]; then
+            echo "::error::Tag version $TAG_VERSION does not match package.json version $PKG_VERSION. Bump package.json \"version\" in the release commit first."
+            exit 1
+          fi
+          # Soft check (non-fatal): warn if docs don't carry a matching header
+          if ! grep -qE "^## \[e3cnc-mainsail-v$TAG_VERSION\]" RELEASES.md CHANGELOG.md 2>/dev/null; then
+            echo "::warning::Neither RELEASES.md nor CHANGELOG.md has an 'e3cnc-mainsail-v$TAG_VERSION' header — you may want to add release notes."
+          fi
+
       - name: Install dependencies
         run: npm ci
 

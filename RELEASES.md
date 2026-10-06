@@ -21,6 +21,20 @@ Before this scheme was unified, two collided: the Vue 3 frontend swap
 tag also sat on a package.json still at 0.10.4. These tags are left as-is;
 from v0.10.6 on, tag and manifest match.
 
+### Release checklist (invariant, enforced)
+
+Before dispatching the "E3CNC Release" workflow, confirm:
+
+1. `package.json` `version` equals the `X.Y.Z` in the tag you're cutting
+   (`e3cnc-mainsail-vX.Y.Z`). The release workflow now **fails fast** — before
+   build — if the tag's version doesn't match `package.json`.
+2. Bump `package.json` `version` to `X.Y.Z` in the release commit itself if it
+   isn't already there.
+3. `RELEASES.md` and/or `CHANGELOG.md` have a `## [e3cnc-mainsail-vX.Y.Z]`
+   header with that release's notes (the workflow warns, non-fatally, if not).
+
+See `docs/prd/release-version-drift-guard.md` for the guard's full spec.
+
 ## [e3cnc-mainsail-v0.10.7] - 2026-10-01
 
 ### Bug Fixes
