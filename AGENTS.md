@@ -10,6 +10,7 @@ Mainsail is a Vue 3.5 + TypeScript web interface for Klipper-based CNC machines,
 - `npm run mock` - Fake Moonraker on 127.0.0.1:7125 (WebSocket + HTTP + `/server/cnc/*`)
 - `npm run serve` - Dev server (port 8080; point it at the mock via `.env.development.local`)
 - `npm run build` - Production build (produces `dist/mainsail.zip`)
+- Docker dev harness - `npm run build` then `cd docker && docker compose up -d` to serve the frontend against a containerized Moonraker (see [docker/README.md](docker/README.md))
 - `npm run lint` / `npm run lint:fix` - ESLint on `src`
 - `npm run format` / `npm run format:check` - Prettier (repo-wide `--check` has pre-existing failures; verify only the files you touch)
 - `npm run typecheck` - vue-tsc

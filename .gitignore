@@ -21,3 +21,10 @@ cypress/screenshots/
 cypress/videos/
 components.d.ts
 i18n-extract
+
+# Docker dev harness artifacts (docker/README.md)
+.playwright-mcp/
+docker/mainsail/
+docker/mainsail.zip
+docker/.env*
+
