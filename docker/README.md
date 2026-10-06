@@ -47,6 +47,15 @@ Access Mainsail at **http://localhost:8080**.
 | `docker compose logs -f moonraker`  | Follow Moonraker logs                                 |
 | `docker compose down`               | Stop and remove containers                            |
 
+## Use in CI
+
+This harness also backs the **E2E (Docker harness)** job in
+`.github/workflows/ci.yml`: CI builds the frontend, boots this stack with
+`docker compose up -d --wait`, and runs Cypress against `http://localhost:8080`
+before tearing the stack down with `docker compose down -v`. See
+`docs/prd/ci-e2e-and-cnc-coverage.md` for the e2e design and acceptance
+criteria.
+
 ## Connecting the Mainsail Dev Server (optional)
 
 For hot-reload development (instead of the built `dist/`), point the dev

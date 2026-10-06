@@ -6,6 +6,9 @@ export default defineConfig({
         setupNodeEvents(on, config) {
             return pluginConfig(on, config)
         },
-        baseUrl: 'http://localhost:4173',
+        // Default base URL points at the dev/preview server. CI overrides this
+        // to http://localhost:8080 when running against the Docker dev harness
+        // (see .github/workflows/ci.yml).
+        baseUrl: 'http://localhost:8080',
     },
 })
