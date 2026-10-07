@@ -1,34 +1,32 @@
-describe('Dashboard — E3CNC fork', () => {
-    it('establishes a Moonraker WebSocket connection', () => {
+// E2E: frontend served by the Docker dev harness (nginx) against a real
+// containerized Moonraker 0.11.0.
+//
+// HARNESS REALITY (verified empirically against the running harness):
+// - Real Moonraker has NO Klipper attached and NO E3CNC `/server/cnc/*`
+//   endpoints (those exist only in the mock). Jog/WCS/spindle/MDI belong in a
+//   spec run against `npm run mock`.
+// - The SPA connects to Moonraker over the proxied WebSocket, so
+//   `socketIsConnected && guiIsReady` becomes true and App.vue renders the
+//   full layout (sidebar + topbar + main), NOT the connecting or
+//   select-printer dialog. Because Klipper is absent, the app shows the
+//   "Moonraker can't connect to Klipper!" banner.
+describe('Harness bootstrap — E3CNC fork', () => {
+    it('serves the SPA from nginx and mounts the app', () => {
         cy.visit('/')
-        // Initial state: the connection dialog shows "Connecting to localhost"
-        cy.contains('Connecting to localhost', { timeout: 10000 }).should('be.visible')
-
-        // Once the WS connects, the dialog title transitions from "Connecting" to
-        // the hostname itself.  Real Moonraker 0.11 in the harness responds to
-        // /server/info and accepts WebSocket upgrade, but has **no Klipper**
-        // attached — the app's UI will still be mostly "connecting" / waiting.
-        // Assert that the WS handshake succeeds at the network level.
-        cy.contains('localhost:7125', { timeout: 15000 }).should('be.visible')
+        cy.get('#app', { timeout: 15000 }).should('exist')
     })
 
-    it('serves the frontend from nginx and the SPA routing works', () => {
+    it('renders the full layout once connected to Moonraker', () => {
         cy.visit('/')
-        // The connection dialog panel is rendered (always shown)
-        cy.get('.the-connection-dialog').should('be.visible')
+        // Sidebar + main content area appear once the socket is connected.
+        cy.get('.sidebar-shell', { timeout: 20000 }).should('exist')
+        cy.get('#page-container', { timeout: 20000 }).should('exist')
     })
 
-    it('readies the GUI after connection', () => {
+    it('surfaces the Klipper-disconnected state (no Klipper in the harness)', () => {
         cy.visit('/')
-        // After the WS connects and the GUI initialises, the dialog still shows
-        // but now reads the hostname instead of "Connecting to ...".
-        // It never *hides* in Mainsail — showDialog is always true.
-        cy.contains('localhost:7125', { timeout: 15000 }).should('be.visible')
+        cy.get('.sidebar-shell', { timeout: 20000 }).should('exist')
+        // With Moonraker up but no Klipper attached, the disconnect banner shows.
+        cy.contains("Moonraker can't connect to Klipper!", { timeout: 20000 }).should('be.visible')
     })
-
-    // TODO: file browser / gcode listing once gcodes are seeded in the harness
-    // (e.g. a fixture file mounted into moonraker_data at /data/gcodes/).
-    // Jog, WCS, spindle, coolant, and MDI assertions require the E3CNC mock
-    // Moonraker's /server/cnc/* endpoints, which the harness's real Moonraker
-    // does NOT expose — those belong in a separate spec run against the mock.
 })
