@@ -58,7 +58,9 @@ describe('CNC mock — E3CNC fork', () => {
 
     it('MDI console accepts and echoes input', () => {
         cy.visit(`${MOCK}/console`)
-        cy.get('.gcode-command-field textarea', { timeout: 20000 }).type('M117 E2E-PROBE-7{enter}')
+        // Two textareas can match (e.g. a hidden auto-grow mirror); the
+        // page-order first visible one is the main console input.
+        cy.get('.gcode-command-field textarea:visible', { timeout: 20000 }).first().type('M117 E2E-PROBE-7{enter}')
         cy.contains('M117 E2E-PROBE-7', { timeout: 15000 }).should('exist')
     })
 
