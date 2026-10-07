@@ -191,3 +191,7 @@ _None — resolved 2026-10-07: scoped floors (R1), start with R1 gate fix, Phase
   harness job pinned to `dashboard.cy.ts`.
 - **2026-10-07 — R5 done:** `ci.yml` `vitest` job switched from
   `test:unit` to `test:coverage` so the scoped floors gate.
+- **2026-10-07 — R4 verified green:** fixed two CI-only issues (mock job
+  needed `baseUrl` override; MDI input selector matched a hidden mirror
+  textarea). CI run 37634493292: all 5 jobs green, 6/6 mock specs passing.
+  All acceptance criteria met — PRD complete.
