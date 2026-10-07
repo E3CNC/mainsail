@@ -88,6 +88,7 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           config-file: cypress.config.ts
+          spec: cypress/e2e/dashboard.cy.ts
           env: baseUrl=http://localhost:8080
 
       - name: Tear down Docker harness
@@ -95,6 +96,43 @@ jobs:
         run: |
           cd docker
           docker compose down -v
+
+  cypress-mock:
+    name: E2E (Mock CNC)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the application
+        run: npm run build
+
+      # Boot the fake Moonraker, which also serves the built frontend from
+      # dist/ same-origin (see mock-moonraker.cjs). The cnc-mock spec uses
+      # absolute URLs against :7125, so no baseUrl override is needed.
+      - name: Start mock Moonraker
+        run: |
+          node mock-moonraker.cjs > /tmp/mock-moonraker.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:7125/server/info > /dev/null && break
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:7125/server/info > /dev/null
+          curl -sf http://127.0.0.1:7125/ > /dev/null
+
+      - name: Cypress run (against mock at :7125)
+        uses: cypress-io/github-action@v6
+        with:
+          config-file: cypress.config.ts
+          spec: cypress/e2e/cnc-mock.cy.ts
 
   vitest:
     name: Vitest
@@ -111,5 +149,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run unit tests
-        run: npm run test:unit
+      - name: Run unit tests with coverage floors
+        # Gates the scoped CNC floors + global backstop declared in
+        # vite.config.ts (see docs/prd/test-coverage-expansion.md R1/R5).
+        run: npm run test:coverage
