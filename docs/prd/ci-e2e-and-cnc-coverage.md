@@ -71,6 +71,14 @@ the splash screen against the containerized Moonraker:
 If real Moonraker state is needed that the harness doesn't seed, seed it via
 the same `mock-moonraker.cjs` helpers or a small fixture volume.
 
+**Done 2026-10-07 (split design):** harness specs assert bootstrap/layout
+only (`cypress/e2e/dashboard.cy.ts`) — real Moonraker has no Klipper and no
+`/server/cnc/*` endpoints, so jog/MDI/WCS-DRO/file-browser assertions live in
+a mock-backed spec (`cypress/e2e/cnc-mock.cy.ts`, run against
+`node mock-moonraker.cjs` which serves `dist/` same-origin plus deterministic
+WCS/motion state and a seeded gcode file). See
+docs/prd/test-coverage-expansion.md R4.
+
 ### R3 — CNC-critical unit coverage
 
 Add Vitest specs (`tests/**/*.spec.ts`) for:

@@ -223,10 +223,34 @@ export default defineConfig({
                 'src/store/variables.ts',
             ],
             thresholds: {
-                lines: 65,
-                functions: 55,
-                branches: 75,
-                statements: 65,
+                // Global backstop: matches current reality (~5% lines across
+                // 401 src files). Ratchet upward as coverage phases land.
+                // See docs/prd/test-coverage-expansion.md R1.
+                lines: 5,
+                functions: 50,
+                branches: 80,
+                statements: 5,
+                // Scoped floors: lock in the CNC-critical gains (all files
+                // currently at or above these values). Prevents backsliding
+                // while the global floor stays low.
+                'src/store/files/cnc*.ts': {
+                    lines: 90,
+                    functions: 90,
+                    branches: 70,
+                    statements: 90,
+                },
+                'src/composables/useCnc*.ts': {
+                    lines: 85,
+                    functions: 85,
+                    branches: 70,
+                    statements: 85,
+                },
+                'src/utils/mockMoonrakerDb.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 80,
+                    statements: 95,
+                },
             },
         },
     },

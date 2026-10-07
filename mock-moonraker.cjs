@@ -4,6 +4,51 @@
  */
 const { Server: WSServer } = require('ws')
 const http = require('http')
+const fs = require('fs')
+const path = require('path')
+
+// Optional static frontend serving for mock-backed e2e (see
+// cypress/e2e/cnc-mock.cy.ts). When `npm run build` has produced a dist/
+// tree, GET requests outside the Moonraker API namespaces are served from
+// it (SPA fallback to index.html), so the app connects same-origin to this
+// mock. When dist/ is absent, behavior is unchanged (API-only mock).
+const DIST_DIR = path.join(__dirname, 'dist')
+const API_PREFIXES = ['/server/', '/machine/', '/access/', '/api/', '/websocket']
+const MIME_TYPES = {
+    '.html': 'text/html; charset=utf-8',
+    '.js': 'text/javascript; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.json': 'application/json',
+    '.map': 'application/json',
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml',
+    '.ico': 'image/x-icon',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+    '.ttf': 'font/ttf',
+}
+
+function serveDist(req, res, pathname) {
+    if (req.method !== 'GET') return false
+    if (!fs.existsSync(DIST_DIR)) return false
+    if (API_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return false
+
+    let filePath = path.join(DIST_DIR, decodeURIComponent(pathname))
+    try {
+        const stat = fs.statSync(filePath)
+        if (stat.isDirectory()) filePath = path.join(filePath, 'index.html')
+    } catch {
+        // SPA fallback: unknown paths serve the app shell
+        filePath = path.join(DIST_DIR, 'index.html')
+    }
+    if (!filePath.startsWith(DIST_DIR) || !fs.existsSync(filePath)) return false
+    const ext = path.extname(filePath).toLowerCase()
+    res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] ?? 'application/octet-stream' })
+    fs.createReadStream(filePath).pipe(res)
+    return true
+}
+
+// Deterministic gcode seed for the file-browser e2e assertion.
 
 const PORT = process.env.MOCK_MOONRAKER_PORT ? Number(process.env.MOCK_MOONRAKER_PORT) : 7125
 const startTime = Date.now()
@@ -45,6 +90,7 @@ const httpServer = http.createServer((req, res) => {
 })
 
 function routeHttp(req, res, url, body) {
+    if (serveDist(req, res, url.pathname)) return
     if (url.pathname === '/server/info') {
         res.writeHead(200, { 'Content-Type': 'application/json' })
         res.end(
@@ -222,6 +268,8 @@ function routeHttp(req, res, url, body) {
 }
 
 const db = { mainsail: {}, maintenance: {} }
+
+const MOCK_GCODES = [{ filename: 'benchy_pla.gcode', modified: 1728000000, size: 2457813, permissions: 'rw' }]
 
 function unflatten(obj) {
     const out = {}
@@ -447,10 +495,26 @@ function handleMethod(method, params = {}) {
         case 'server.files.get_directory':
             return {
                 dirs: [],
-                files: [],
+                files: MOCK_GCODES,
                 disk_usage: { total: 0, used: 0, free: 0 },
                 root_info: { name: params.root ?? 'gcodes' },
             }
+        case 'server.files.metadata': {
+            const meta = MOCK_GCODES.find((f) => f.filename === params.filename)
+            if (!meta) return {}
+            return {
+                filename: meta.filename,
+                size: meta.size,
+                modified: meta.modified,
+                uuid: 'mock-uuid-benchy',
+                slicer: 'MockSlicer',
+                estimated_time: 3600,
+                filament_total: 5000,
+                first_layer_height: 0.2,
+                layer_height: 0.2,
+                object_height: 48,
+            }
+        }
         case 'printer.gcode.script':
             applyGcodeScript(params.script)
             return 'ok'
