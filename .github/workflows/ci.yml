@@ -117,7 +117,8 @@ jobs:
 
       # Boot the fake Moonraker, which also serves the built frontend from
       # dist/ same-origin (see mock-moonraker.cjs). The cnc-mock spec uses
-      # absolute URLs against :7125, so no baseUrl override is needed.
+      # absolute URLs against :7125; Cypress still verifies the configured
+      # baseUrl before running, so override it to the mock origin below.
       - name: Start mock Moonraker
         run: |
           node mock-moonraker.cjs > /tmp/mock-moonraker.log 2>&1 &
@@ -132,6 +133,7 @@ jobs:
         uses: cypress-io/github-action@v6
         with:
           config-file: cypress.config.ts
+          config: baseUrl=http://127.0.0.1:7125
           spec: cypress/e2e/cnc-mock.cy.ts
 
   vitest:
