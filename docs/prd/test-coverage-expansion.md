@@ -1,6 +1,8 @@
 # PRD: Test Coverage Expansion Beyond the CNC Layer
 
-- **Status:** Accepted
+- **Status:** Superseded by `docs/prd/full-coverage-closure.md` (2026-10-08),
+  which closed the remaining ~85% tail this PRD deferred. This document is
+  retained as history; do not extend it.
 - **Author:** Isaac Eliape (assisted)
 - **Date:** 2026-10-07
 - **Scope:** `tests/`, `cypress/`, `vite.config.ts`, `.github/workflows/ci.yml`, `docs/prd/ci-e2e-and-cnc-coverage.md`
@@ -195,3 +197,9 @@ _None — resolved 2026-10-07: scoped floors (R1), start with R1 gate fix, Phase
   needed `baseUrl` override; MDI input selector matched a hidden mirror
   textarea). CI run 37634493292: all 5 jobs green, 6/6 mock specs passing.
   All acceptance criteria met — PRD complete.
+- **2026-10-08 — Superseded:** `docs/prd/full-coverage-closure.md` proposed,
+  executed (R1–R6), and closed: store-logic closure, directives, CNC + 31
+  non-CNC component specs, per-page mock e2e smoke, CI green with no new
+  jobs. Suite 45 files / 317 tests → 147 files / 1559 tests (+4 bug-fix
+  tests), global lines 15.2% → 70.4%. See that PRD for floors, exclusion
+  lists, and the follow-up bug fixes.

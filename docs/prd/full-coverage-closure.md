@@ -306,11 +306,12 @@ mock-backed suite instead:
   69.16% -> 70.35%; global functions recalibrated 95 -> 85 (mounted SFCs
   contribute ~600 template functions — locked instead by per-directory R4b
   floors). 27 zero-logic components recorded in the exclusion list above.
-  New bug-shaped findings (specced as-is, src untouched):
-  HistoryListPanel drops all maintenance rows on the `.gcode` filter,
-  HistoryEntry `statusColor` returns an icon path, JobqueueEntry
-  `filamentWeight` kg branch throws on undefined `length`, Wcs manual
-  offsets are write-only, unused `clippedMin/Max`, unreachable 3-digit
+  New bug-shaped findings (all fixed 2026-10-08 in `b776eadf`, specs updated
+  to the corrected behavior — see the post-R6 entry below):
+  HistoryListPanel dropped all maintenance rows on the `.gcode` filter,
+  HistoryEntry `statusColor` returned an icon path, JobqueueEntry
+  `filamentWeight` kg branch threw on undefined `length`, Wcs manual
+  offsets were write-only, plus dead `clippedMin/Max` and unreachable 3-digit
   `hexToRgba`. Harness note: stubs that `$emit` a parent-listened event
   MUST declare `emits`, else the listener fires twice (native fallthrough).
 - **2026-10-08 — R5 done:** `cypress/e2e/cnc-mock.cy.ts` gains a 10-test
@@ -339,3 +340,16 @@ mock-backed suite instead:
   Docker harness all passed. The fix commit's run is fully green. PRD
   complete: R1 gate, R2 store, R3 directives, R4/R4b components, R5 pages,
   R6 CI green with no new jobs.
+- **2026-10-08 — Post-R6 bug fixes (`b776eadf`):** closed the four
+  bug-shaped findings from R4b, specs updated to corrected behavior (+4
+  tests, suite 1555 -> 1559 green, global lines 70.35% -> 70.37%, all gates
+  green): (1) HistoryListPanel `.gcode` filter no longer drops maintenance
+  rows (jobs still extension-filtered); (2) HistoryEntry `statusColor` uses
+  `convertPrintStatusIconColor`; (3) JobqueueEntry kg branch uses `weight`
+  (was a `ReferenceError` past 1000 g); (4) Wcs gains an Apply button
+  sending manual X/Y/Z via `selectCncWcs` `offsets` + refresh (mock
+  `wcs/select` honors `offsets`; verified live round-trip), dead
+  `clippedMin/Max` fields and 3-digit `hexToRgba` branch removed. E2E
+  re-run 16/16 green against rebuilt `dist/`. Remaining accepted gaps:
+  mid-tier components (neither unit nor e2e — see R4 decision), dead
+  `PageNotFound.vue` (candidate for deletion).
