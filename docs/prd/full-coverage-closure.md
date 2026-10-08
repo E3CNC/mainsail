@@ -332,3 +332,10 @@ mock-backed suite instead:
   X=100 and is order/state-sensitive: the jog test mutates shared mock
   state, so a spec run against a reused mock fails DRO with 101 — always
   run against a fresh mock (CI does). Next: R6 CI verification.
+- **2026-10-08 — R6 done:** all five CI jobs green on the current tree.
+  The R5 commit's run failed Code Style only (prettier-mangled `+ list`
+  line in this PRD — fixed in the follow-up commit); Build, Vitest
+  (coverage floors), E2E Mock CNC (incl. the 10 new smoke tests), and E2E
+  Docker harness all passed. The fix commit's run is fully green. PRD
+  complete: R1 gate, R2 store, R3 directives, R4/R4b components, R5 pages,
+  R6 CI green with no new jobs.
