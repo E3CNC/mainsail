@@ -321,14 +321,14 @@ mock-backed suite instead:
   and list vs zeroed mock totals), `/timelapse` (files + status panels),
   `/config` (.machine-configfiles-panel), plus `/settings/machine` ->
   `/config` redirect. Each asserts mount + seeded content + stubbed
-    `console.error` never called. Suite 6 -> 16 tests, all green locally
-    (45s headless) and added to the existing mock CI job (no new job, no
-    `ci.yml` change). `PageNotFound.vue` is dead code — no route references
-    it and there is no catch-all — recorded here as excluded, not visitable.
-    No vitest floor change (e2e does not move unit coverage). Harness notes:
-    (1) local headed runs flaked on `cy.screenshot()` timeouts masking real
-    errors — reran with `screenshotOnRunFailure=false` to see truth; CI uses
-    its own runner and is unaffected. (2) The pre-existing DRO test asserts
-    X=100 and is order/state-sensitive: the jog test mutates shared mock
-    state, so a spec run against a reused mock fails DRO with 101 — always
-    run against a fresh mock (CI does). Next: R6 CI verification.
+  `console.error` never called. Suite 6 -> 16 tests, all green locally
+  (45s headless) and added to the existing mock CI job (no new job, no
+  `ci.yml` change). `PageNotFound.vue` is dead code — no route references
+  it and there is no catch-all — recorded here as excluded, not visitable.
+  No vitest floor change (e2e does not move unit coverage). Harness notes:
+  (1) local headed runs flaked on `cy.screenshot()` timeouts masking real
+  errors — reran with `screenshotOnRunFailure=false` to see truth; CI uses
+  its own runner and is unaffected. (2) The pre-existing DRO test asserts
+  X=100 and is order/state-sensitive: the jog test mutates shared mock
+  state, so a spec run against a reused mock fails DRO with 101 — always
+  run against a fresh mock (CI does). Next: R6 CI verification.
