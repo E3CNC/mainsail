@@ -163,6 +163,31 @@ record it here (no silent deferral):
 - Zero-logic components (pure presentational, no handlers/computed) get a
   written exclusion list appended here during R4b, not an open gap.
 
+**Written exclusion list (27 zero-logic components, all <25 script lines
+and no emit/dispatch/socket/timer markers — covered by R5 e2e smoke, not
+unit mounts):** `panels/Status/Printstatus.vue`,
+`panels/Status/PrintstatusComplete.vue`, `dialogs/DevicesDialogCanDevice.vue`,
+`dialogs/DevicesDialogSerialDevice.vue`, `dialogs/DevicesDialogUsbDevice.vue`,
+`dialogs/DevicesDialogVideoDeviceLibcamera.vue`,
+`dialogs/DevicesDialogVideoDeviceV4l2.vue`, `dialogs/MacroPromptButtonGroup.vue`,
+`dialogs/MacroPromptText.vue`, `dialogs/AboutDialog.vue`,
+`panels/GcodefilesPanel.vue`, `panels/Machine/LogfilesPanel.vue`,
+`panels/Gcodefiles/GcodefilesPanelHeaderSettings.vue`,
+`panels/Gcodefiles/GcodefilesPanelHeaderPathSize.vue`,
+`panels/Gcodefiles/GcodefilesPanelListCardBack.vue`,
+`panels/Machine/SystemPanel.vue`, `panels/Machine/SystemPanelMcu.vue`,
+`panels/Machine/EndstopPanelItem.vue`, `panels/Status/Jobqueue.vue`,
+`panels/MinSettingsPanel.vue`, `panels/TemperaturePanel.vue`,
+`panels/Temperature/TemperaturePanelListItemAdditionalSensor.vue`,
+`panels/Miscellaneous/MiscellaneousSensor.vue`,
+`panels/Miscellaneous/MoonrakerSensor.vue`, `panels/MiscellaneousPanel.vue`,
+`panels/MacrosPanel.vue`, `inputs/CodemirrorAsync.vue`.
+
+**Mid-tier components** (25-100 script lines, few markers: JobqueueEntrySum/
+Rest, thumbnails, light groups, temp lists, CSV-adjacent helpers, log
+viewers, webcam/settings shells) default to R5 e2e smoke per the decision
+above; they are not unit-mounted in R4b.
+
 ### R5 — Phase 4: pages via mock-backed e2e
 
 Pages are thin (5-166 lines each). Do not unit-mount them; extend the
@@ -273,3 +298,20 @@ mock-backed suite instead:
   Non-CNC unit-vs-e2e decision recorded in R4 above; R4b (non-CNC
   behavior specs) is the remaining component work. Next: R5 pages via
   mock-backed e2e.
+- **2026-10-08 — R4b done:** 31 non-CNC behavior specs (32 files incl.
+  ConfigFilesPanel2) + HistoryListPanelExportCsv — 447 agent tests + 4
+  own tests. Targets: ConfigFilesPanel, history cluster (7), file-browser
+  cluster (8 + ExportCsv), inputs cluster (7 + neopixel dialog), status/misc
+  cluster (7). All targets >=70% lines (lowest: Codemirror 74.83).
+  Suite 114 -> 147 files, 1108 -> 1555 tests green. Global lines
+  69.16% -> 70.35%; global functions recalibrated 95 -> 85 (mounted SFCs
+  contribute ~600 template functions — locked instead by per-directory R4b
+  floors). 27 zero-logic components recorded in the exclusion list above.
+  New bug-shaped findings (specced as-is, src untouched):
+  HistoryListPanel drops all maintenance rows on the `.gcode` filter,
+  HistoryEntry `statusColor` returns an icon path, JobqueueEntry
+  `filamentWeight` kg branch throws on undefined `length`, Wcs manual
+  offsets are write-only, unused `clippedMin/Max`, unreachable 3-digit
+  `hexToRgba`. Harness note: stubs that `$emit` a parent-listened event
+  MUST declare `emits`, else the listener fires twice (native fallthrough).
+  Next: R5 pages via mock-backed e2e.

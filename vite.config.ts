@@ -223,12 +223,15 @@ export default defineConfig({
                 'src/store/variables.ts',
             ],
             thresholds: {
-                // Global backstop: tracks measured reality (68% lines after
-                // the store-logic closure). Ratchet upward as coverage phases
-                // land. See docs/prd/test-coverage-expansion.md R1 and
+                // Global backstop: tracks measured reality (70% lines after
+                // the R4b component push). Functions sit at 85 because
+                // mounted SFCs contribute ~600 template/render functions;
+                // per-area floors below lock the real gains. Ratchet upward
+                // as coverage phases land. See
+                // docs/prd/test-coverage-expansion.md R1 and
                 // docs/prd/full-coverage-closure.md R1.
                 lines: 65,
-                functions: 95,
+                functions: 85,
                 branches: 85,
                 statements: 65,
                 // Scoped floors: lock in the CNC-critical gains (all files
@@ -417,6 +420,77 @@ export default defineConfig({
                     functions: 70,
                     branches: 70,
                     statements: 90,
+                },
+                // Full-coverage-closure R4b: non-CNC behavior specs. Floors
+                // sit at the per-directory minima (functions run low on
+                // mounted SFCs: template/render callbacks). The 27
+                // zero-logic components are excluded by omission here and
+                // listed in docs/prd/full-coverage-closure.md R4.
+                'src/components/console/*.vue': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 95,
+                    statements: 95,
+                },
+                'src/components/dialogs/*.vue': {
+                    lines: 90,
+                    functions: 65,
+                    branches: 75,
+                    statements: 90,
+                },
+                'src/components/inputs/*.vue': {
+                    lines: 70,
+                    functions: 55,
+                    branches: 65,
+                    statements: 70,
+                },
+                'src/components/panels/*.vue': {
+                    lines: 80,
+                    functions: 35,
+                    branches: 65,
+                    statements: 80,
+                },
+                'src/components/panels/Gcodefiles/*.vue': {
+                    lines: 90,
+                    functions: 40,
+                    branches: 80,
+                    statements: 90,
+                },
+                'src/components/panels/History/*.vue': {
+                    lines: 90,
+                    functions: 65,
+                    branches: 80,
+                    statements: 90,
+                },
+                'src/components/panels/Machine/*.vue': {
+                    lines: 95,
+                    functions: 55,
+                    branches: 85,
+                    statements: 95,
+                },
+                'src/components/panels/Miscellaneous/*.vue': {
+                    lines: 95,
+                    functions: 70,
+                    branches: 85,
+                    statements: 95,
+                },
+                'src/components/panels/Status/*.vue': {
+                    lines: 80,
+                    functions: 45,
+                    branches: 70,
+                    statements: 80,
+                },
+                'src/components/panels/Temperature/*.vue': {
+                    lines: 85,
+                    functions: 95,
+                    branches: 95,
+                    statements: 85,
+                },
+                'src/components/panels/Timelapse/*.vue': {
+                    lines: 95,
+                    functions: 40,
+                    branches: 75,
+                    statements: 95,
                 },
             },
         },
