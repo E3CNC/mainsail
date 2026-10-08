@@ -257,6 +257,8 @@ describe('HistoryListPanel rows and filtering', () => {
         expect(names).toContain('benchy.gcode')
         expect(names).toContain('failed_part.gcode')
         expect(names).not.toContain('readme.txt')
+        // maintenance entries have no filename and survive the filter
+        expect(rowNames(wrapper, 'maintenance-row')).toContain('Clean lead screws')
         wrapper.unmount()
     })
 
@@ -264,10 +266,11 @@ describe('HistoryListPanel rows and filtering', () => {
         const { wrapper } = mountPanel()
         const table = wrapper.findComponent(VDataTable)
         const items = table.props('items') as Record<string, unknown>[]
-        expect(items).toHaveLength(2)
+        expect(items).toHaveLength(3)
         // default sort is start_time descending: job-2 started later
         expect(items[0]).toMatchObject({ job_id: 'job-2' })
         expect(items[1]).toMatchObject({ job_id: 'job-1' })
+        expect(items[2]).toMatchObject({ id: 'maint-1', type: 'maintenance' })
         wrapper.unmount()
     })
 
@@ -278,7 +281,7 @@ describe('HistoryListPanel rows and filtering', () => {
     })
 
     it('shows the empty state when no jobs match', () => {
-        const { wrapper } = mountPanel({ jobs: [] })
+        const { wrapper } = mountPanel({ jobs: [], maintenance: [] })
         expect(wrapper.text()).toContain('History.Empty')
         wrapper.unmount()
     })

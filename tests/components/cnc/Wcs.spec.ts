@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => {
     return {
         socketEmit: vi.fn(),
         setCncZero: vi.fn(),
+        selectCncWcs: vi.fn(),
         refreshWcs: vi.fn(),
         setActiveWcs: vi.fn(),
         toastError: vi.fn(),
@@ -34,6 +35,7 @@ vi.mock('@/store/runtime', () => ({
 
 vi.mock('@/store/files/cncApi', () => ({
     setCncZero: mocks.setCncZero,
+    selectCncWcs: mocks.selectCncWcs,
 }))
 
 vi.mock('vue-toast-notification', () => ({
@@ -150,6 +152,8 @@ beforeEach(() => {
     mocks.socketEmit.mockReset()
     mocks.setCncZero.mockReset()
     mocks.setCncZero.mockResolvedValue({})
+    mocks.selectCncWcs.mockReset()
+    mocks.selectCncWcs.mockResolvedValue({})
     mocks.refreshWcs.mockReset()
     mocks.refreshWcs.mockResolvedValue(undefined)
     mocks.setActiveWcs.mockReset()
@@ -412,11 +416,39 @@ describe('Wcs panel', () => {
         wrapper.unmount()
     })
 
+    it('Apply sends the manual offsets for the active WCS and refreshes', async () => {
+        const wrapper = createTestWrapper()
+        await flushPromises()
+        const inputs = wrapper.findAll('input')
+        await inputs[0].setValue('5')
+        await inputs[1].setValue('-2.5')
+        await inputs[2].setValue('0.5')
+        await findButtonByText(wrapper as never, 'Apply').trigger('click')
+        await flushPromises()
+        expect(mocks.selectCncWcs).toHaveBeenCalledWith(expect.any(String), {
+            wcs: 'G54',
+            offsets: { X: 5, Y: -2.5, Z: 0.5 },
+        })
+        expect(mocks.refreshWcs).toHaveBeenCalled()
+        wrapper.unmount()
+    })
+
+    it('surfaces a toast when applying manual offsets fails', async () => {
+        mocks.selectCncWcs.mockRejectedValueOnce(new Error('apply fail'))
+        const wrapper = createTestWrapper()
+        await flushPromises()
+        await findButtonByText(wrapper as never, 'Apply').trigger('click')
+        await flushPromises()
+        expect(mocks.toastError).toHaveBeenCalledWith('apply fail')
+        wrapper.unmount()
+    })
+
     it('disables offset actions when homing is required but axes are unhomed', async () => {
         const wrapper = createTestWrapper({ requireHoming: true, homedAxes: '' })
         await flushPromises()
         expect((findButtonByText(wrapper as never, 'Set X').element as HTMLButtonElement).disabled).toBe(true)
         expect((findButtonByText(wrapper as never, 'Reset').element as HTMLButtonElement).disabled).toBe(true)
+        expect((findButtonByText(wrapper as never, 'Apply').element as HTMLButtonElement).disabled).toBe(true)
         wrapper.unmount()
     })
 

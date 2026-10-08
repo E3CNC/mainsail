@@ -200,6 +200,13 @@ describe('HistoryEntry', () => {
         wrapper.unmount()
     })
 
+    it('colors the status icon with the status color, not the icon path', () => {
+        const { wrapper } = createTestWrapper({ status: 'completed' })
+        const colors = wrapper.findAllComponents({ name: 'VIcon' }).map((icon) => icon.props('color'))
+        expect(colors).toContain('success')
+        wrapper.unmount()
+    })
+
     it('builds thumbnail urls for small and big variants', () => {
         const thumbnails = [
             { width: 32, height: 32, size: 100, relative_path: 'thumb-32.png' },

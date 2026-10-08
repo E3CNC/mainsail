@@ -235,6 +235,12 @@ function routeHttp(req, res, url, body) {
             body.wcs in cncWcs.offsets
         ) {
             cncWcs.active = body.wcs
+            if (body.offsets && typeof body.offsets === 'object') {
+                for (const axis of ['X', 'Y', 'Z']) {
+                    const value = Number(body.offsets[axis])
+                    if (Number.isFinite(value)) cncWcs.offsets[body.wcs][axis] = value
+                }
+            }
         }
         if (cncPath === 'wcs/set-zero' && req.method === 'POST') {
             const pos = printerState.status.toolhead.position

@@ -101,7 +101,7 @@ import StartPrintDialog from '@/components/dialogs/StartPrintDialog.vue'
 import { mdiDelete, mdiFile, mdiPlaylistPlus, mdiPrinter } from '@mdi/js'
 import { defaultBigThumbnailBackground, thumbnailBigMin, thumbnailSmallMax, thumbnailSmallMin } from '@/store/variables'
 import type { ServerHistoryStateJobWithCount } from '@/store/server/history/types'
-import { convertPrintStatusIcon, escapePath, formatPrintTime } from '@/plugins/helpers'
+import { convertPrintStatusIcon, convertPrintStatusIconColor, escapePath, formatPrintTime } from '@/plugins/helpers'
 import { CLOSE_CONTEXT_MENU, EventBus } from '@/plugins/eventBus'
 
 const props = defineProps<{
@@ -154,7 +154,7 @@ const bigThumbnail = computed<string | undefined>(() => {
 
 const statusIcon = computed(() => convertPrintStatusIcon(props.job.status))
 
-const statusColor = computed(() => convertPrintStatusIcon(props.job.status))
+const statusColor = computed(() => convertPrintStatusIconColor(props.job.status))
 
 const statusName = computed(() => {
     const key = `History.StatusValues.${props.job.status}`

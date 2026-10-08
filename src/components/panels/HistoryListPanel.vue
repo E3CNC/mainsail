@@ -259,7 +259,9 @@ const entries = computed<HistoryListPanelRow[]>(() => {
     }
 
     entries = entries.filter((entry) => {
-        if (entry.type !== 'job') return false
+        // Maintenance entries have no filename; only print jobs are
+        // subject to the gcode-extension filter.
+        if (entry.type !== 'job') return true
         const ext = (entry as HistoryListRowJob).filename.split('.').pop()?.toLowerCase() ?? ''
         return ext === 'gcode'
     })

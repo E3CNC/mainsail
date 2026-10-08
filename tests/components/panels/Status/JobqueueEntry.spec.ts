@@ -117,6 +117,14 @@ describe('JobqueueEntry', () => {
         wrapper.unmount()
     })
 
+    it('formats heavy filament in kilograms', () => {
+        const { wrapper } = createTestWrapper({
+            metadata: { metadataPulled: true, filament_total: 10, filament_weight_total: 2500, estimated_time: 60 },
+        })
+        expect(wrapper.text()).toContain('2.5 kg')
+        wrapper.unmount()
+    })
+
     it('shows placeholders when metadata is not pulled', () => {
         const { wrapper } = createTestWrapper({ metadata: { metadataPulled: false } })
         expect(wrapper.text()).toContain('cube.gcode')

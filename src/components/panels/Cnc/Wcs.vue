@@ -458,7 +458,18 @@
                         <v-row
                             density="compact"
                             class="offset-preview-controls__row offset-preview-controls__row--actions">
-                            <v-col cols="12">
+                            <v-col cols="6">
+                                <v-btn
+                                    size="small"
+                                    block
+                                    variant="outlined"
+                                    :disabled="offsetActionsLocked"
+                                    @click="applyManualOffsets">
+                                    <v-icon size="small" start>{{ mdiCheck }}</v-icon>
+                                    Apply
+                                </v-btn>
+                            </v-col>
+                            <v-col cols="6">
                                 <v-btn
                                     size="small"
                                     block
@@ -622,10 +633,11 @@ import {
     mdiPencilPlusOutline,
     mdiAlert,
     mdiRestart,
+    mdiCheck,
 } from '@mdi/js'
 import ConfirmationDialog from '@/components/dialogs/ConfirmationDialog.vue'
 import { useCncOffsets, offsetNames } from '@/composables/useCncOffsets'
-import { setCncZero } from '@/store/files/cncApi'
+import { selectCncWcs, setCncZero } from '@/store/files/cncApi'
 import { getSocket } from '@/store/runtime'
 import { getCursorTooltipPosition, previewCursorStyle } from '@/components/panels/Cnc/wcsPreview'
 
@@ -802,14 +814,8 @@ const wcsOriginOffsetZ = computed(() => wcsOriginOffsets.value.Z ?? 0)
 const offsetColors = ['#42A5F5', '#66BB6A', '#FFA726', '#AB47BC', '#EF5350', '#26C6DA']
 
 function hexToRgba(hex: string, alpha: number): string {
-    const normalized = hex.replace('#', '')
-    const value =
-        normalized.length === 3
-            ? normalized
-                  .split('')
-                  .map((c) => c + c)
-                  .join('')
-            : normalized
+    // Callers only pass 6-digit colors from offsetColors.
+    const value = hex.replace('#', '')
     const int = Number.parseInt(value, 16)
     const r = (int >> 16) & 255
     const g = (int >> 8) & 255
@@ -880,10 +886,6 @@ interface OffsetEntry {
     offsetX: number
     offsetY: number
     offsetZ: number
-    clippedMinX: number
-    clippedMinY: number
-    clippedMaxX: number
-    clippedMaxY: number
 }
 
 const allOffsetEntries = computed<OffsetEntry[]>(() => {
@@ -898,10 +900,6 @@ const allOffsetEntries = computed<OffsetEntry[]>(() => {
             offsetX: ox,
             offsetY: oy,
             offsetZ: oz,
-            clippedMinX: Math.max(ox, machineMinX.value),
-            clippedMinY: Math.max(oy, machineMinY.value),
-            clippedMaxX: Math.min(machineMaxX.value, machineMaxX.value),
-            clippedMaxY: Math.min(machineMaxY.value, machineMaxY.value),
         }
     })
 })
@@ -981,6 +979,19 @@ function resetOffsets() {
     offsetInputX.value = 0
     offsetInputY.value = 0
     offsetInputZ.value = 0
+}
+
+async function applyManualOffsets() {
+    try {
+        await selectCncWcs(store.getters['socket/getUrl'], {
+            wcs: activeWcs.value,
+            offsets: { X: offsetInputX.value, Y: offsetInputY.value, Z: offsetInputZ.value },
+        })
+        await refreshWcs()
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to apply manual offsets'
+        toast.error(message)
+    }
 }
 
 const svgEl = ref<SVGSVGElement | null>(null)
