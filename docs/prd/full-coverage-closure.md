@@ -296,8 +296,7 @@ mock-backed suite instead:
   `src/components/panels/Cnc/*` added at 90/70/70/90. Suite 106 -> 114
   files, 947 -> 1108 tests green; global lines 68.22% -> 69.16%.
   Non-CNC unit-vs-e2e decision recorded in R4 above; R4b (non-CNC
-  behavior specs) is the remaining component work. Next: R5 pages via
-  mock-backed e2e.
+  behavior specs) is the remaining component work. Next: R4b.
 - **2026-10-08 — R4b done:** 31 non-CNC behavior specs (32 files incl.
   ConfigFilesPanel2) + HistoryListPanelExportCsv — 447 agent tests + 4
   own tests. Targets: ConfigFilesPanel, history cluster (7), file-browser
@@ -314,4 +313,22 @@ mock-backed suite instead:
   offsets are write-only, unused `clippedMin/Max`, unreachable 3-digit
   `hexToRgba`. Harness note: stubs that `$emit` a parent-listened event
   MUST declare `emits`, else the listener fires twice (native fallthrough).
-  Next: R5 pages via mock-backed e2e.
+- **2026-10-08 — R5 done:** `cypress/e2e/cnc-mock.cy.ts` gains a 10-test
+  "Page smoke pass" visiting every route in `src/routes/` against a fresh
+  `npm run mock`: `/` (dro-panel), `/allCncMachines` ("No machines
+  registered"), `/cam` (.webcam-panel), `/console` (MDI field), `/files`
+  (seeded benchy), `/viewer` (.gcode-viewer-panel), `/history` (statistics
+  and list vs zeroed mock totals), `/timelapse` (files + status panels),
+  `/config` (.machine-configfiles-panel), plus `/settings/machine` ->
+  `/config` redirect. Each asserts mount + seeded content + stubbed
+    `console.error` never called. Suite 6 -> 16 tests, all green locally
+    (45s headless) and added to the existing mock CI job (no new job, no
+    `ci.yml` change). `PageNotFound.vue` is dead code — no route references
+    it and there is no catch-all — recorded here as excluded, not visitable.
+    No vitest floor change (e2e does not move unit coverage). Harness notes:
+    (1) local headed runs flaked on `cy.screenshot()` timeouts masking real
+    errors — reran with `screenshotOnRunFailure=false` to see truth; CI uses
+    its own runner and is unaffected. (2) The pre-existing DRO test asserts
+    X=100 and is order/state-sensitive: the jog test mutates shared mock
+    state, so a spec run against a reused mock fails DRO with 101 — always
+    run against a fresh mock (CI does). Next: R6 CI verification.

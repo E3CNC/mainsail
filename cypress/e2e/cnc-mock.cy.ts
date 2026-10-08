@@ -78,3 +78,86 @@ describe('CNC mock — E3CNC fork', () => {
         cy.contains('.gcode-card__name', 'benchy_pla.gcode', { timeout: 20000 }).should('exist')
     })
 })
+
+// R5 (docs/prd/full-coverage-closure.md): per-page smoke pass over every
+// route in src/routes/. Pages are thin wrappers, so each test only asserts
+// mount + seeded content + no console errors against the mock.
+describe('Page smoke pass — every route', () => {
+    // Visits a route with console.error stubbed, then asserts the app shell
+    // mounted. Call expectNoConsoleErrors() last in each test.
+    function visitQuiet(path: string) {
+        cy.visit(`${MOCK}${path}`, {
+            onBeforeLoad(win) {
+                cy.stub(win.console, 'error').as('consoleError')
+            },
+        })
+        cy.get('#page-container', { timeout: 20000 }).should('exist')
+    }
+
+    function expectNoConsoleErrors() {
+        cy.get('@consoleError').should('not.have.been.called')
+    }
+
+    it('dashboard (/) renders the CNC layout', () => {
+        visitQuiet('/')
+        cy.get('.dro-panel', { timeout: 20000 }).should('exist')
+        expectNoConsoleErrors()
+    })
+
+    it('farm (/allCncMachines) renders the empty state', () => {
+        visitQuiet('/allCncMachines')
+        cy.contains('No machines registered', { timeout: 20000 }).should('exist')
+        expectNoConsoleErrors()
+    })
+
+    it('webcam (/cam) renders the panel shell with no cameras', () => {
+        visitQuiet('/cam')
+        cy.get('.webcam-panel', { timeout: 20000 }).should('exist')
+        expectNoConsoleErrors()
+    })
+
+    it('console (/console) renders the MDI field', () => {
+        visitQuiet('/console')
+        cy.get('.gcode-command-field', { timeout: 20000 }).should('exist')
+        expectNoConsoleErrors()
+    })
+
+    it('files (/files) renders the seeded gcodes', () => {
+        visitQuiet('/files')
+        cy.contains('.gcode-card__name', 'benchy_pla.gcode', { timeout: 20000 }).should('exist')
+        expectNoConsoleErrors()
+    })
+
+    it('viewer (/viewer) renders the gcode viewer', () => {
+        visitQuiet('/viewer')
+        cy.get('.gcode-viewer-panel', { timeout: 20000 }).should('exist')
+        expectNoConsoleErrors()
+    })
+
+    it('history (/history) renders statistics + list against mock totals', () => {
+        visitQuiet('/history')
+        cy.get('.history-statistics-panel', { timeout: 20000 }).should('exist')
+        cy.get('.history-list-panel').should('exist')
+        expectNoConsoleErrors()
+    })
+
+    it('timelapse (/timelapse) renders files + status panels', () => {
+        visitQuiet('/timelapse')
+        cy.get('.timelapse-files-panel', { timeout: 20000 }).should('exist')
+        cy.get('.timelapse-status-panel').should('exist')
+        expectNoConsoleErrors()
+    })
+
+    it('machine (/config) renders the config files panel', () => {
+        visitQuiet('/config')
+        cy.get('.machine-configfiles-panel', { timeout: 20000 }).should('exist')
+        expectNoConsoleErrors()
+    })
+
+    it('/settings/machine redirects to /config', () => {
+        visitQuiet('/settings/machine')
+        cy.location('pathname', { timeout: 20000 }).should('eq', '/config')
+        cy.get('.machine-configfiles-panel').should('exist')
+        expectNoConsoleErrors()
+    })
+})
