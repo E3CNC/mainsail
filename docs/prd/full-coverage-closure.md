@@ -150,6 +150,19 @@ record it here (no silent deferral):
 - Components with zero unit-testable logic get a written exclusion list in
   this PRD (same precedent as `useToast.ts`), not an open-ended gap.
 
+**Decision recorded 2026-10-08 (no silent deferral):**
+
+- `panels/` (non-CNC), `inputs/`, `console/`, `dialogs/` — behavior specs
+  where the component owns logic (command handlers, validation, formatting);
+  pure Vuetify layout wrappers go to e2e smoke. Executed as the R4b
+  follow-up, same `@vue/test-utils` + stubbed-Vuetify pattern as the CNC
+  specs.
+- `The*` chrome, `settings/`, `webcams/`, `charts/`, `ui/` — e2e smoke
+  (R5 mock suite) by default; unit-mount only where logic cannot be
+  observed externally.
+- Zero-logic components (pure presentational, no handlers/computed) get a
+  written exclusion list appended here during R4b, not an open gap.
+
 ### R5 — Phase 4: pages via mock-backed e2e
 
 Pages are thin (5-166 lines each). Do not unit-mount them; extend the
@@ -242,3 +255,21 @@ mock-backed suite instead:
   (lines 124-125), `farm/printer/index.ts` branches 50 (https ternary),
   `socket/index.ts` unfloored (deployment-env branches). Next: R3
   directives.
+- **2026-10-08 — R3 done:** `tests/directives/longpress.spec.ts` (10 tests:
+  handler forms, debounce, cancel paths, drag guard, selection lock,
+  cleanup) + `tests/directives/responsive-class.spec.ts` (2 tests: class
+  toggling, disconnect). Suite 104 -> 106 files, 935 -> 947 tests green.
+  Both directives at 100% lines (no threshold change needed). Next: R4
+  CNC components.
+- **2026-10-08 — R4 done:** CNC component behavior specs.
+  `tests/components/cnc/` gains DroPanel (16), CncStatusPanel (26),
+  JogPanel (33), MdiPanel (10), jogKeyboard (11), Wcs (29, incl.
+  wcsPreview), SpindleCoolantPanel (18), HostBashPanel (18) — 161 tests
+  asserting exact gcode payloads (G91/G1 jog, G28, M18, M112, M220,
+  G54-G59, spindle/coolant states), WCS select/zero flows, MDI echo, and
+  DRO/status rendering. All 9 Cnc files at 96-100% lines; scoped floor
+  `src/components/panels/Cnc/*` added at 90/70/70/90. Suite 106 -> 114
+  files, 947 -> 1108 tests green; global lines 68.22% -> 69.16%.
+  Non-CNC unit-vs-e2e decision recorded in R4 above; R4b (non-CNC
+  behavior specs) is the remaining component work. Next: R5 pages via
+  mock-backed e2e.

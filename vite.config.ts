@@ -410,6 +410,14 @@ export default defineConfig({
                     branches: 80,
                     statements: 95,
                 },
+                // Full-coverage-closure R4: CNC panels are the fork's
+                // differentiator (all files currently >=96% lines).
+                'src/components/panels/Cnc/*': {
+                    lines: 90,
+                    functions: 70,
+                    branches: 70,
+                    statements: 90,
+                },
             },
         },
     },
