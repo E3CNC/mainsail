@@ -223,13 +223,14 @@ export default defineConfig({
                 'src/store/variables.ts',
             ],
             thresholds: {
-                // Global backstop: matches current reality (~5% lines across
-                // 401 src files). Ratchet upward as coverage phases land.
-                // See docs/prd/test-coverage-expansion.md R1.
-                lines: 5,
-                functions: 50,
-                branches: 80,
-                statements: 5,
+                // Global backstop: tracks measured reality (68% lines after
+                // the store-logic closure). Ratchet upward as coverage phases
+                // land. See docs/prd/test-coverage-expansion.md R1 and
+                // docs/prd/full-coverage-closure.md R1.
+                lines: 65,
+                functions: 95,
+                branches: 85,
+                statements: 65,
                 // Scoped floors: lock in the CNC-critical gains (all files
                 // currently at or above these values). Prevents backsliding
                 // while the global floor stays low.
@@ -246,6 +247,164 @@ export default defineConfig({
                     statements: 85,
                 },
                 'src/utils/mockMoonrakerDb.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 80,
+                    statements: 95,
+                },
+                // Full-coverage-closure R1+R2: the server/* + printer/* layer
+                // and the store-logic tail closed in R2. Floors sit just below
+                // measured reality; later phases raise them. socket/index.ts
+                // is intentionally unfloored (import.meta.env/wss branches
+                // depend on the deployment environment, covered by
+                // tests/store/socket/index.spec.ts as far as jsdom allows).
+                // editor/actions.ts functions stay at 80 (axios
+                // upload/download progress callbacks need a heavier harness).
+                'src/store/*.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 80,
+                    statements: 95,
+                },
+                'src/store/socket/actions.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 95,
+                    statements: 95,
+                },
+                'src/store/socket/getters.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 95,
+                    statements: 95,
+                },
+                'src/store/socket/mutations.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 95,
+                    statements: 95,
+                },
+                'src/store/files/*.ts': {
+                    lines: 95,
+                    functions: 90,
+                    branches: 85,
+                    statements: 95,
+                },
+                'src/store/editor/*.ts': {
+                    lines: 90,
+                    functions: 80,
+                    branches: 95,
+                    statements: 90,
+                },
+                'src/store/farm/*.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 90,
+                    statements: 95,
+                },
+                'src/store/farm/printer/actions.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 90,
+                    statements: 95,
+                },
+                'src/store/farm/printer/getters.ts': {
+                    lines: 90,
+                    functions: 95,
+                    branches: 85,
+                    statements: 90,
+                },
+                'src/store/farm/printer/mutations.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 95,
+                    statements: 95,
+                },
+                'src/store/farm/printer/index.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 50,
+                    statements: 95,
+                },
+                'src/store/gui/*.ts': {
+                    lines: 90,
+                    functions: 95,
+                    branches: 85,
+                    statements: 90,
+                },
+                'src/store/gui/*/*.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 80,
+                    statements: 95,
+                },
+                'src/store/server/actions.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 95,
+                    statements: 95,
+                },
+                'src/store/server/getters.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 50,
+                    statements: 95,
+                },
+                'src/store/server/mutations.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 95,
+                    statements: 95,
+                },
+                'src/store/server/history/*.ts': {
+                    lines: 95,
+                    functions: 85,
+                    branches: 80,
+                    statements: 95,
+                },
+                'src/store/server/jobQueue/*.ts': {
+                    lines: 95,
+                    functions: 90,
+                    branches: 90,
+                    statements: 95,
+                },
+                'src/store/server/power/*.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 95,
+                    statements: 95,
+                },
+                'src/store/server/sensor/*.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 95,
+                    statements: 95,
+                },
+                'src/store/server/timelapse/*.ts': {
+                    lines: 90,
+                    functions: 85,
+                    branches: 65,
+                    statements: 90,
+                },
+                'src/store/printer/actions.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 90,
+                    statements: 95,
+                },
+                'src/store/printer/getters.ts': {
+                    lines: 95,
+                    functions: 95,
+                    branches: 90,
+                    statements: 95,
+                },
+                'src/store/printer/mutations.ts': {
+                    lines: 90,
+                    functions: 90,
+                    branches: 90,
+                    statements: 90,
+                },
+                'src/store/printer/tempHistory/*.ts': {
                     lines: 95,
                     functions: 95,
                     branches: 80,

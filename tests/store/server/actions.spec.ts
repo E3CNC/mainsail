@@ -18,7 +18,11 @@ vi.mock('@/store/runtime', () => ({
 }))
 
 vi.mock('@/plugins/router', () => ({
-    default: { currentRoute: { value: { path: '/console' } } },
+    default: {
+        get currentRoute() {
+            return { value: { path: mocks.routePath } }
+        },
+    },
 }))
 
 import { actions } from '@/store/server/actions'
@@ -39,6 +43,7 @@ describe('server/actions', () => {
         mocks.emit.mockReset()
         mocks.emitAndWait.mockReset()
         mocks.toastError.mockReset()
+        mocks.routePath = '/console'
         vi.useFakeTimers()
     })
 
@@ -200,5 +205,179 @@ describe('server/actions', () => {
         actions.addFailedInitComponent(c as never, 'spoolman')
         expect(c.commit).toHaveBeenCalledWith('removeComponent', 'spoolman')
         expect(c.commit).toHaveBeenCalledWith('addFailedInitComponent', 'spoolman')
+    })
+
+    it('init dispatches socket failure on Unauthorized', async () => {
+        const c = ctx({ rootState: {} })
+        const storeDispatch = vi.fn()
+        mocks.emitAndWait.mockRejectedValue(new Error('Unauthorized'))
+        await actions.init.call({ dispatch: storeDispatch } as never, c as never)
+        expect(storeDispatch).toHaveBeenCalledWith('socket/setConnectionFailed', 'Unauthorized')
+        expect(c.commit).not.toHaveBeenCalled()
+    })
+
+    it('init registers init modules on success', async () => {
+        const c = ctx({ rootState: { packageVersion: '1.0' } })
+        mocks.emitAndWait.mockResolvedValue({ connection_id: 'x' })
+        await actions.init(c as never)
+        expect(c.dispatch).toHaveBeenCalledWith('socket/addInitModule', 'server/info', { root: true })
+        expect(c.dispatch).toHaveBeenCalledWith('socket/addInitModule', 'server/databaseList', { root: true })
+    })
+
+    it('checkDatabases falls back to db init without namespaces', () => {
+        const c = ctx()
+        actions.checkDatabases(c as never, { namespaces: [] })
+        expect(c.dispatch).toHaveBeenCalledWith('gui/initDb', null, { root: true })
+        expect(c.dispatch).toHaveBeenCalledWith('gui/maintenance/initDb', null, { root: true })
+        expect(c.dispatch).toHaveBeenCalledWith('gui/webcams/init', null, { root: true })
+    })
+
+    it('checkDatabases handles missing namespaces', () => {
+        const c = ctx()
+        actions.checkDatabases(c as never, {})
+        expect(c.dispatch).toHaveBeenCalledWith('gui/initDb', null, { root: true })
+    })
+
+    it('initServerInfo strips failed plugins and skips unknown components', () => {
+        const c = ctx()
+        actions.initServerInfo(c as never, {
+            plugins: { a: 1 },
+            failed_plugins: { b: 2 },
+            components: ['unknown_thing'],
+            registered_directories: [],
+        })
+        expect(c.dispatch).not.toHaveBeenCalledWith('server/history/init', expect.anything(), expect.anything())
+        expect(c.commit).toHaveBeenCalledWith('setData', expect.not.objectContaining({ plugins: expect.anything() }))
+    })
+
+    it('initServerInfo handles empty payload', () => {
+        const c = ctx()
+        actions.initServerInfo(c as never, {})
+        expect(c.commit).toHaveBeenCalledWith('setData', {})
+    })
+
+    it('initProcStats skips null throttled state and missing uptime', () => {
+        const c = ctx()
+        actions.initProcStats(c as never, { throttled_state: null, system_uptime: 0 })
+        expect(c.commit).not.toHaveBeenCalledWith('setThrottledState', expect.anything())
+        expect(c.commit).not.toHaveBeenCalledWith('setSystemBootAt', expect.anything())
+        expect(c.dispatch).toHaveBeenCalledWith('socket/removeInitModule', 'server/procStats', { root: true })
+    })
+
+    it('updateProcStats commits moonraker and cpu stats', () => {
+        const c = ctx()
+        actions.updateProcStats(
+            c as never,
+            {
+                moonraker_stats: { time: 1 },
+                system_cpu_usage: { cpu: 5 },
+            } as never
+        )
+        expect(c.commit).toHaveBeenCalledWith('setMoonrakerStats', { time: 1 })
+        expect(c.commit).toHaveBeenCalledWith('setCpuStats', { cpu: 5 })
+    })
+
+    it('klippy state interval start is idempotent, stop clears', () => {
+        const c = ctx({ state: { klippy_state_timer: null } })
+        actions.startKlippyStateInterval(c as never)
+        expect(c.commit).toHaveBeenCalledWith('setKlippyStateTimer', expect.anything())
+        const withTimer = ctx({ state: { klippy_state_timer: 7 } })
+        actions.startKlippyStateInterval(withTimer as never)
+        expect(withTimer.commit).not.toHaveBeenCalled()
+        actions.stopKlippyStateInterval(withTimer as never)
+        expect(withTimer.commit).toHaveBeenCalledWith('setKlippyStateTimer', null)
+        actions.stopKlippyStateInterval(c as never)
+        expect(c.commit).toHaveBeenCalledTimes(1)
+    })
+
+    it('checkKlippyState commits state and message', () => {
+        const c = ctx()
+        actions.checkKlippyState(c as never, { state: 'ready', state_message: 'ok' })
+        expect(c.commit).toHaveBeenCalledWith('setKlippyState', 'ready')
+        expect(c.commit).toHaveBeenCalledWith('setKlippyMessage', 'ok')
+        expect(c.dispatch).toHaveBeenCalledWith('printer/init', null, { root: true })
+    })
+
+    it('getData commits through', () => {
+        const c = ctx()
+        actions.getData(c as never, { moonraker_version: 'v1' })
+        expect(c.commit).toHaveBeenCalledWith('setData', { moonraker_version: 'v1' })
+    })
+
+    it('getGcodeStore tolerates invalid filter regex', () => {
+        const c = ctx({
+            rootGetters: {
+                'gui/console/getConsolefilterRules': ['[invalid'],
+                'gui/console/getConsoleClearedSince': 0,
+            },
+        })
+        actions.getGcodeStore(c as never, {
+            gcode_store: [{ time: 1, type: 'response', message: 'hello' }],
+        })
+        expect(c.commit).toHaveBeenCalledWith('setGcodeStore', expect.any(Array))
+    })
+
+    it('getGcodeStore filters by date field', () => {
+        const since = Date.now()
+        const c = ctx({
+            rootGetters: {
+                'gui/console/getConsolefilterRules': [],
+                'gui/console/getConsoleClearedSince': since,
+            },
+        })
+        actions.getGcodeStore(c as never, {
+            gcode_store: [
+                { time: 1, type: 'response', message: 'old', date: new Date(since - 10000).toISOString() },
+                { time: since / 1000 + 10, type: 'response', message: 'new' },
+            ],
+        })
+        const stored = c.commit.mock.calls.find(([name]) => name === 'setGcodeStore')?.[1] as { message: string }[]
+        expect(stored.map((e) => e.message)).toEqual(['new'])
+    })
+
+    it('addEvent maps result and error payloads', () => {
+        const c = ctx({ rootGetters: { 'gui/console/getConsolefilterRules': [] } })
+        actions.addEvent(c as never, { result: 'done' })
+        expect(c.commit).toHaveBeenCalledWith('addEvent', expect.objectContaining({ message: 'done' }))
+        const e2 = ctx({ rootGetters: { 'gui/console/getConsolefilterRules': [] } })
+        actions.addEvent(e2 as never, { error: { message: 'fail' } })
+        expect(e2.commit).toHaveBeenCalledWith('addEvent', expect.objectContaining({ message: 'fail' }))
+    })
+
+    it('addEvent maps action and debug prefixes', () => {
+        const c = ctx({ rootGetters: { 'gui/console/getConsolefilterRules': [] } })
+        actions.addEvent(c as never, { type: 'response', message: '// action:pause' })
+        expect(c.commit).toHaveBeenCalledWith('addEvent', expect.objectContaining({ type: 'action' }))
+        const d = ctx({ rootGetters: { 'gui/console/getConsolefilterRules': [] } })
+        actions.addEvent(d as never, { type: 'response', message: '// debug:info' })
+        expect(d.commit).toHaveBeenCalledWith('addEvent', expect.objectContaining({ type: 'debug' }))
+    })
+
+    it('addEvent formats command messages', () => {
+        const c = ctx({ rootGetters: { 'gui/console/getConsolefilterRules': [] } })
+        actions.addEvent(c as never, { type: 'command', message: 'G28' })
+        const payload = c.commit.mock.calls.find(([name]) => name === 'addEvent')?.[1] as {
+            formatMessage: string
+        }
+        expect(payload.formatMessage).toContain('command text--blue')
+    })
+
+    it('addEvent tolerates invalid filter regex', () => {
+        const c = ctx({ rootGetters: { 'gui/console/getConsolefilterRules': ['[invalid'] } })
+        actions.addEvent(c as never, { type: 'response', message: 'hello' })
+        expect(c.commit).toHaveBeenCalled()
+    })
+
+    it('addEvent toasts errors when off-console', () => {
+        mocks.routePath = '/dashboard'
+        const c = ctx({ rootGetters: { 'gui/console/getConsolefilterRules': [] } })
+        actions.addEvent(c as never, { type: 'error', message: '!! heater fault' })
+        expect(mocks.toastError).toHaveBeenCalled()
+    })
+
+    it('addEvent skips toast on the console route', () => {
+        const c = ctx({ rootGetters: { 'gui/console/getConsolefilterRules': [] } })
+        actions.addEvent(c as never, { type: 'response', message: '!! heater fault' })
+        expect(mocks.toastError).not.toHaveBeenCalled()
     })
 })

@@ -155,6 +155,95 @@ describe('printer/tempHistory/getters', () => {
         const withSize = { 'server/getConfig': () => 600 }
         expect(getters.getTemperatureStoreSize(state(), undefined as never, rootState(), withSize)).toBe(600)
     })
+
+    it('getSelectedLegends hides mcu/host sensors when enabled', () => {
+        const s = state({
+            series: [
+                { name: 'mcu_temp-temperature' },
+                { name: 'extruder-temperature' },
+            ] as unknown as PrinterTempHistoryState['series'],
+        })
+        const rs = rootState({
+            printer: {
+                heaters: {
+                    available_sensors: ['mcu_temp', 'extruder'],
+                    available_monitors: [],
+                },
+                configfile: { settings: { mcu_temp: { sensor_type: 'temperature_mcu' } } },
+            },
+            gui: {
+                view: {
+                    tempchart: {
+                        datasetSettings: {},
+                        hideMcuHostSensors: true,
+                    },
+                },
+            },
+        })
+        const moduleGetters = {
+            getHostMcuSensors: ['mcu_temp'],
+        }
+        const selected = getters.getSelectedLegends(s, moduleGetters, rs, undefined as never)
+        expect(selected['mcu_temp-temperature']).toBe(false)
+        expect(selected['extruder-temperature']).toBe(true)
+    })
+
+    it('getSelectedLegends keeps mcu sensors when the option is off', () => {
+        const s = state({
+            series: [{ name: 'mcu_temp-temperature' }] as unknown as PrinterTempHistoryState['series'],
+        })
+        const rs = rootState({
+            printer: { heaters: { available_sensors: ['mcu_temp'], available_monitors: [] } },
+            gui: { view: { tempchart: { datasetSettings: {}, hideMcuHostSensors: false } } },
+        })
+        const selected = getters.getSelectedLegends(s, { getHostMcuSensors: ['mcu_temp'] }, rs, undefined as never)
+        expect(selected['mcu_temp-temperature']).toBe(true)
+    })
+
+    it('getSelectedLegends hides monitors when enabled', () => {
+        const s = state({
+            series: [
+                { name: 'mcu_temp-temperature' },
+                { name: 'extruder-temperature' },
+            ] as unknown as PrinterTempHistoryState['series'],
+        })
+        const rs = rootState({
+            printer: {
+                heaters: { available_sensors: ['extruder'], available_monitors: ['mcu_temp'] },
+            },
+            gui: {
+                view: {
+                    tempchart: {
+                        datasetSettings: { mcu_temp: { temperature: true }, extruder: { temperature: true } },
+                        hideMonitors: true,
+                    },
+                },
+            },
+        })
+        const selected = getters.getSelectedLegends(s, {}, rs, undefined as never)
+        expect(selected['mcu_temp-temperature']).toBe(false)
+        expect(selected['extruder-temperature']).toBe(true)
+    })
+
+    it('getSelectedLegends skips unknown sensors and dataset types', () => {
+        const s = state()
+        const rs = rootState({
+            printer: { heaters: { available_sensors: ['extruder'], available_monitors: [] } },
+            gui: {
+                view: {
+                    tempchart: {
+                        datasetSettings: {
+                            ghost: { temperature: true },
+                            extruder: { bogus: true },
+                        },
+                    },
+                },
+            },
+        })
+        const selected = getters.getSelectedLegends(s, {}, rs, undefined as never)
+        expect('ghost-temperature' in selected).toBe(false)
+        expect(selected['extruder-temperature']).toBe(true)
+    })
 })
 
 function vi_getAvg() {

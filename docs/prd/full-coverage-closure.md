@@ -225,3 +225,20 @@ mock-backed suite instead:
 
 - _None — PRD proposed 2026-10-08. Current baseline: 45 spec files,
   317 tests green, global 15.15% lines / 63.9% functions / 84.5% branches._
+- **2026-10-08 — R1 done:** global backstop 5 -> 15 (lines/statements) plus
+  scoped floors for the `server/*` + `printer/*` layer in `vite.config.ts`;
+  `test:coverage` passes.
+- **2026-10-08 — R2 done:** store-logic closure. 59 new spec files + 5
+  top-ups (socket/, files/ non-CNC, printer/getters via `getters2.spec.ts`,
+  gui/ root + 10 submodules, editor/, farm/ + farm/printer/, gcodeviewer/,
+  store root, tempHistory/server-actions/server-mutations top-ups,
+  power/sensor getters specs). Suite 45 -> 104 files, 317 -> 935 tests
+  green. Global lines 15.15% -> 68.22% (backstop raised to 65; functions 95,
+  branches 85). Every `src/store/**` logic file >=90% lines.
+  Written exclusions: `gui/presets/` (types-only) and all
+  `src/store/**/types.ts` (no executable code; zero-statement files do not
+  trip glob floors). Floors left intentionally low with cause: `editor/*`
+  functions 80 (axios progress callbacks), `server/getters.ts` branches 50
+  (lines 124-125), `farm/printer/index.ts` branches 50 (https ternary),
+  `socket/index.ts` unfloored (deployment-env branches). Next: R3
+  directives.

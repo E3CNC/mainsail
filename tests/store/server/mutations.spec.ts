@@ -121,4 +121,55 @@ describe('server/mutations', () => {
         mutations.updateServiceState(withInfo, { klipper: { active_state: 'active' } } as never)
         expect(withInfo.system_info?.service_state?.['klipper']).toEqual({ active_state: 'active' })
     })
+
+    it('timer, cpu and stats setters store values', () => {
+        const s = state()
+        mutations.setKlippyConnectedTimer(s, 7 as never)
+        expect(s.klippy_connected_timer).toBe(7 as never)
+        mutations.setKlippyStateTimer(s, 9 as never)
+        expect(s.klippy_state_timer).toBe(9 as never)
+        mutations.setCpuTemp(s, 51.2)
+        expect(s.cpu_temp).toBe(51.2)
+        mutations.setMoonrakerStats(s, { time: 1 } as never)
+        expect(s.moonraker_stats).toEqual({ time: 1 })
+        mutations.setNetworkStats(s, { eth0: {} } as never)
+        expect(s.network_stats).toEqual({ eth0: {} })
+        mutations.setCpuStats(s, { cpu: 12 } as never)
+        expect(s.system_cpu_usage).toEqual({ cpu: 12 })
+    })
+
+    it('setProcStats stores cpu and moonraker stats', () => {
+        const s = state()
+        mutations.setProcStats(s, { cpu_temp: 44, moonraker_stats: { t: 2 } } as never)
+        expect(s.cpu_temp).toBe(44)
+        expect(s.moonraker_stats).toEqual({ t: 2 })
+    })
+
+    it('connection, config and namespace setters', () => {
+        const s = state()
+        mutations.setConnectionId(s, 'conn-1')
+        expect(s.connection_id).toBe('conn-1')
+        mutations.setConfig(s, { config: { server: {} }, orig: {} } as never)
+        expect(s.config).toEqual({ config: { server: {} }, orig: {} })
+        mutations.saveDbNamespaces(s, ['mainsail'])
+        expect(s.dbNamespaces).toEqual(['mainsail'])
+        mutations.setData(s, { moonraker_version: 'v1' })
+        expect(s.moonraker_version).toBe('v1')
+    })
+
+    it('system info and boot time setters', () => {
+        const s = state()
+        mutations.setSystemInfo(s, { cpu_info: { cpu_count: 4 } } as never)
+        expect(s.system_info).toEqual({ cpu_info: { cpu_count: 4 } })
+        const boot = new Date('2024-01-01T00:00:00Z')
+        mutations.setSystemBootAt(s, boot)
+        expect(s.system_boot_at).toBe(boot)
+    })
+
+    it('setThrottledState ignores payloads without bits or flags', () => {
+        const s = state({ throttled_state: { bits: 1, flags: ['a'] } } as never)
+        mutations.setThrottledState(s, {} as never)
+        expect(s.throttled_state.bits).toBe(1)
+        expect(s.throttled_state.flags).toEqual(['a'])
+    })
 })

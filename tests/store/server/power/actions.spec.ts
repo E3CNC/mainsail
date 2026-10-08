@@ -19,6 +19,12 @@ describe('server/power/actions', () => {
         mocks.emit.mockReset()
     })
 
+    it('reset commits reset', () => {
+        const c = ctx()
+        actions.reset(c as never)
+        expect(c.commit).toHaveBeenCalledWith('reset')
+    })
+
     it('init requests the device list', () => {
         actions.init({} as never)
         expect(mocks.emit).toHaveBeenCalledWith(

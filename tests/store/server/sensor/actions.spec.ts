@@ -19,6 +19,12 @@ describe('server/sensor/actions', () => {
         mocks.emit.mockReset()
     })
 
+    it('reset commits reset', () => {
+        const c = ctx()
+        actions.reset(c as never)
+        expect(c.commit).toHaveBeenCalledWith('reset')
+    })
+
     it('init requests the sensor list', () => {
         actions.init({} as never)
         expect(mocks.emit).toHaveBeenCalledWith('server.sensors.list', {}, { action: 'server/sensor/getSensors' })
