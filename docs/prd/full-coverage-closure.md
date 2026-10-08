@@ -1,6 +1,6 @@
 # PRD: Full Coverage Closure for the Remaining 85%
 
-- **Status:** Proposed
+- **Status:** Done (2026-10-08 — all phases R1–R6 complete, CI green; see §10 progress log)
 - **Author:** Isaac Eliape (assisted)
 - **Date:** 2026-10-08
 - **Scope:** `tests/`, `cypress/`, `vite.config.ts`, `.github/workflows/ci.yml`, `src/store/`, `src/directives/`, `src/components/`, `src/pages/`
