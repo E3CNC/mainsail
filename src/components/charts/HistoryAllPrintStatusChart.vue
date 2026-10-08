@@ -16,6 +16,7 @@ import { useHistoryStats } from '@/composables/useHistoryStats'
 import type { ECBasicOption } from 'echarts/types/dist/shared.d'
 import type { ECharts } from 'echarts/core'
 import type { EChartRef } from '@/types/echarts'
+import EChart from '@/components/charts/echarts-setup'
 import { formatPrintTime } from '@/plugins/helpers'
 import { HistoryStatsValueNames, ServerHistoryStateAllPrintStatusEntry } from '@/store/server/history/types'
 

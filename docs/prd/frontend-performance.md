@@ -251,5 +251,26 @@ lighthouse http://127.0.0.1:7125/ --preset=desktop \
   (88 KB vs 4.7 MB), Ndot loads on demand, zero console/page errors.
   Re-run (§4 command): perf **36 → 44**, FCP 4.9s → 3.3s, LCP/TTI
   7.3s → 3.9s, total **7.9 MB → 3.3 MB**; a11y unchanged at 72 (R5's job).
-  `lint` 0 errors, `typecheck` clean, `prettier --check .` clean. Next: R2
+  `lint` 0 errors, `typecheck` clean, `prettier --check .` clean. Pushed as
+  `7eba7942`; CI green (Build, Vitest, Code Style, both E2E). Next: R2
   (ECharts lazy-load — the largest remaining unused-JS chunk).
+- **2026-10-08 — R2 done:** ECharts out of the critical path. New
+  `src/components/charts/echarts-setup.ts` owns the `use([...])`
+  registration and re-exports `EChart`; `main.ts` no longer imports
+  echarts or registers a global `EChart`, and the three chart components
+  (`TempChart`, `HistoryAllPrintStatusChart`, `HistoryPrinttimeAvg` — whose
+  only echarts imports were `import type`) import it locally. `TemperaturePanel`
+  loads `TempChart` via `defineAsyncComponent` when `boolTempchart` is true;
+  `History.vue` loads the whole `HistoryStatisticsPanel` the same way on
+  route enter; both show a `VSkeletonLoader` placeholder past the 200ms
+  loading delay (TempChart's reserves `tempchartHeight` to avoid CLS).
+  Build emits `echarts-*.js` (529 KB) as an async chunk alongside tiny
+  `TempChart`/`HistoryStatisticsPanel`/`echarts-setup` chunks. Verified in
+  headless Chromium: dashboard requests zero chart chunks; History route
+  loads panel + echarts chunks and renders charts with no errors. New spec
+  `tests/components/panels/TemperaturePanelAsyncChart.spec.ts` proves the
+  async boundary (chart renders incl. real EChart; nothing loads when
+  disabled) — full suite 148 files / 1561 tests green. Re-run (§4 command):
+  perf **44 → 51**, FCP 3.3s → 2.8s, LCP/TTI 3.9s → 3.35s, TBT 407 → 339ms,
+  total **3.3 MB → 2.7 MB**. a11y still 72 (R5). Next: R3 (vuetify
+  tree-shaking — the largest remaining chunk at ~1.2 MB index JS).

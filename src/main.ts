@@ -6,13 +6,8 @@ import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as vuetifyDirectives from 'vuetify/directives'
 import { aliases as mdiAliases, mdi } from 'vuetify/iconsets/mdi-svg'
-import { use } from 'echarts/core'
-import { SVGRenderer } from 'echarts/renderers'
-import { BarChart, LineChart, PieChart } from 'echarts/charts'
-import { DatasetComponent, GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
 import VueToast from 'vue-toast-notification'
 import VueLoadImage from '@/components/ui/VueLoadImage.vue'
-import EChart from 'vue-echarts'
 import { ObserveVisibility } from 'vue-observe-visibility'
 import 'vue-toast-notification/dist/theme-sugar.css'
 import 'vuetify/styles'
@@ -29,8 +24,6 @@ import { setAndLoadLocale } from '@/plugins/i18n'
 import router from '@/plugins/router'
 import store from '@/store'
 import i18n from '@/plugins/i18n'
-
-use([SVGRenderer, BarChart, LineChart, PieChart, DatasetComponent, GridComponent, LegendComponent, TooltipComponent])
 
 const vuetify = createVuetify({
     components,
@@ -97,7 +90,6 @@ app.directive('longpress', vLongpress)
 app.directive('responsive-class', vResponsiveClass)
 app.directive('observe-visibility', ObserveVisibility)
 app.component('VueLoadImage', VueLoadImage)
-app.component('EChart', EChart)
 
 initLoad()
     .then(() => {

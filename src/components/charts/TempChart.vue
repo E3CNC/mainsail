@@ -24,6 +24,7 @@ import { PrinterTempHistoryStateSerie, PrinterTempHistoryStateSourceEntry } from
 import type { ECharts } from 'echarts/core'
 import type { ECBasicOption, TopLevelFormatterParams, TooltipPositionCallback } from 'echarts/types/dist/shared.d'
 import type { EChartRef } from '@/types/echarts'
+import EChart from '@/components/charts/echarts-setup'
 import { mdiClock } from '@mdi/js'
 import { datasetTypesInPercents } from '@/store/variables'
 

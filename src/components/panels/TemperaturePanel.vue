@@ -19,11 +19,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, defineAsyncComponent, defineComponent, h } from 'vue'
 import { useStore } from 'vuex'
 import { useBase } from '@/composables/useBase'
 import { useControl } from '@/composables/useControl'
-import TempChart from '@/components/charts/TempChart.vue'
+import { VSkeletonLoader } from 'vuetify/components'
 import Panel from '@/components/ui/Panel.vue'
 import { mdiThermometerLines } from '@mdi/js'
 
@@ -33,4 +33,19 @@ useControl()
 const store = useStore()
 
 const boolTempchart = computed(() => store.state.gui.view.tempchart.boolTempchart ?? false)
+
+// TempChart (and the echarts vendor chunk) loads only when the chart is
+// enabled. The skeleton reserves the chart height to avoid layout shift.
+const TempChart = defineAsyncComponent({
+    loader: () => import('@/components/charts/TempChart.vue'),
+    loadingComponent: defineComponent({
+        setup() {
+            const skeletonHeight = computed(() => store.state.gui.uiSettings.tempchartHeight ?? 250)
+            return () =>
+                h('div', { style: { height: `${skeletonHeight.value}px` } }, [
+                    h(VSkeletonLoader, { type: 'image', class: 'h-100' }),
+                ])
+        },
+    }),
+})
 </script>
