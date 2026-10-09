@@ -272,5 +272,28 @@ lighthouse http://127.0.0.1:7125/ --preset=desktop \
   async boundary (chart renders incl. real EChart; nothing loads when
   disabled) — full suite 148 files / 1561 tests green. Re-run (§4 command):
   perf **44 → 51**, FCP 3.3s → 2.8s, LCP/TTI 3.9s → 3.35s, TBT 407 → 339ms,
-  total **3.3 MB → 2.7 MB**. a11y still 72 (R5). Next: R3 (vuetify
+  total **3.3 MB → 2.7 MB**. a11y still 72 (R5). Pushed as `90e3e004`;
+  CI green (Build, Vitest, Code Style, both E2E). Next: R3 (vuetify
   tree-shaking — the largest remaining chunk at ~1.2 MB index JS).
+- **2026-10-09 — R3 done (JS-only):** dropped `import * as components`,
+  `* as vuetifyDirectives`, and the global `EChart`-era leftovers from
+  `main.ts`. Template components were already auto-imported by
+  `unplugin-vue-components`/`Vuetify3Resolver`; render-fn usages import
+  explicitly; directives narrowed to explicit `{ Ripple, Scroll, Touch }`
+  (audit: only `v-ripple`/`v-scroll`/`v-touch` used as directives — all
+  `v-tooltip` hits are the component). vuetify JS **561 → 376 KB**.
+  CSS investigated and deliberately left global: per-component `css` flavor
+  self-imports duplicate shared rules (used-components CSS alone measured
+  264 KB), the global reset/utilities layers exist only as sass sources
+  (336 KB compiled — larger than the 248 KB a split would save), and the
+  project itself has zero sass files (already vanilla CSS + vars), so there
+  is nothing of ours to convert. `vite-plugin-vuetify` was trialled for
+  `styles: 'css'` + `autoImport: false` and removed again — that combination
+  is a no-op in the plugin (neither sub-plugin activates). Verified in
+  headless Chromium over dashboard/history/console: utilities (`pa-0`,
+  `text-center`, `d-flex`), component styles (card elevation), and app
+  overrides (`rounded-0`) all apply; zero console/page errors. Gates:
+  typecheck clean, lint 0 errors, prettier clean, full suite 148 files /
+  1561 tests green. Re-run (§4 command): perf **51 → 53**, total
+  **2.7 MB → 2.56 MB**. Next: R4 (route-level code-splitting — index.js
+  still 1.2 MB).

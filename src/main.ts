@@ -3,8 +3,7 @@ import 'resize-observer-polyfill'
 import { createApp } from 'vue'
 import App from '@/App.vue'
 import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as vuetifyDirectives from 'vuetify/directives'
+import { Ripple, Scroll, Touch } from 'vuetify/directives'
 import { aliases as mdiAliases, mdi } from 'vuetify/iconsets/mdi-svg'
 import VueToast from 'vue-toast-notification'
 import VueLoadImage from '@/components/ui/VueLoadImage.vue'
@@ -26,8 +25,7 @@ import store from '@/store'
 import i18n from '@/plugins/i18n'
 
 const vuetify = createVuetify({
-    components,
-    directives: vuetifyDirectives,
+    directives: { Ripple, Scroll, Touch },
     icons: {
         defaultSet: 'mdi',
         sets: { mdi },
