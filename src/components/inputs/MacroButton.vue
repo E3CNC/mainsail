@@ -1,6 +1,9 @@
 <template>
     <v-item-group class="d-inline-flex">
-        <v-tooltip :disabled="!hasDescription" top>
+        <!-- The tooltip (and its overlay shell) only exists when there is a
+             description to show: a disabled tooltip still renders an empty
+             overlay that fails the aria-tooltip-name audit. -->
+        <v-tooltip v-if="hasDescription" top>
             <template #activator="{ props: tooltipProps }">
                 <v-btn
                     size="small"
@@ -17,6 +20,18 @@
             </template>
             <span>{{ klipperMacro.description }}</span>
         </v-tooltip>
+        <v-btn
+            v-else
+            size="small"
+            :color="color"
+            :class="paramArray.length ? 'macroWithParameters' : ''"
+            :loading="loadings.includes('macro_' + macro.name)"
+            :disabled="disabled"
+            class="flex-grow-1"
+            @click="doSendMacro(macro.name)">
+            <v-icon v-if="icon" size="small" start>{{ icon }}</v-icon>
+            {{ alias ? alias : macro.name.replace(/_/g, ' ') }}
+        </v-btn>
         <template v-if="paramArray.length">
             <v-menu v-if="!isMobile" offset-y :close-on-content-click="false">
                 <template #activator="{ props: menuProps }">

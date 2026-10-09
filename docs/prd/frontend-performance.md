@@ -315,3 +315,35 @@ lighthouse http://127.0.0.1:7125/ --preset=desktop \
   34–56 across runs with box load (TBT 1795/806/312) — best run: perf
   **53 → 56**, LCP/TTI ~3.0s, TBT 312ms. Next: R5 (a11y — the three
   `link-name`/`button-name`/`label` failures).
+- **2026-10-09 — R4 CI red:** the Vitest job failed on coverage floors
+  (global lines 64.86% < 65%, plus dialogs/Gcodefiles/Machine/Timelapse
+  folder floors) with all 1561 tests passing. Root cause: route-splitting
+  removed the import cascade — `useNavigation.ts` imports `@/routes`, which
+  used to pull all 8 pages (and their panels/dialogs) into module-level
+  execution during unit tests. Fix: new `tests/routes.spec.ts` resolves
+  every route component (also guards lazy chunks at CI time) plus a
+  `@sindarius/gcodeviewer` test stub aliased in `vite.config.ts` (that
+  package has no resolvable entry for vitest). Floors green again
+  (74.67% lines). Lesson logged: lazy-split anything and the coverage
+  cascade needs a loader spec.
+- **2026-10-09 — R5 done:** a11y **72 → 92**. All 22 icon-only buttons +
+  1 icon link + 3 sliders named via new localized keys (`Buttons.Collapse`/
+  `Expand`, `App.TopBar.Home/OpenNavigation`, `App.TopCornerMenu.ControlMenu`,
+  `Machine.Jog.*` ×8, `Machine.Wcs.SnapToGrid/ShowOffset/HideOffset`,
+  `Panels.MiniconsolePanel.ClearConsole`, `Panels.StatusPanel.Tab*` ×4,
+  `About.Versions`; reused existing keys where they fit). Jog feed captions
+  switched to the same keys (were hardcoded English). Siblings fixed in
+  passing: all 4 StatusPanel tabs, topbar conditional-icon buttons,
+  dialog/snackbar close buttons, CommandHelpModal both variants. Bonus finds
+  fixed: `document-title` (blank tab — `getTitle` returned `''` via `??`
+  on empty printername; `||` fallback + regression spec), `aria-command-name`
+  (WCS legend eye toggles), `aria-tooltip-name` (SidebarItem + MacroButton
+  only rendered tooltips when they have content — a disabled `v-tooltip`
+  still emits an empty overlay shell), About version icon exposed as
+  labeled img. Deliberately left: `aria-required-children` (nav `v-list`
+  with router-link children is stock Vuetify markup; "fixing" roles would
+  harm real screen-reader semantics) and temperature-sensor tooltips (same
+  Vuetify pattern, not renderable in mock). Verified zero unnamed controls
+  in headless Chromium; `link-name`, `button-name`, `label`,
+  `aria-command-name`, `document-title` all PASS (remaining: 1 tooltip
+  shell + 1 list item). Side effect: SEO 82 → 91 via the title fix.

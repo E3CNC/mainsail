@@ -7,14 +7,22 @@
         card-class="miniconsole-panel"
         :hide-buttons-on-collapse="true">
         <template #buttons>
-            <v-btn :icon="mdiTrashCan" rounded="0" @click="clearConsole" />
+            <v-btn
+                :icon="mdiTrashCan"
+                rounded="0"
+                :aria-label="$t('Panels.MiniconsolePanel.ClearConsole')"
+                @click="clearConsole" />
             <command-help-modal :in-toolbar="true" @on-command="commandClick($event)" />
             <v-menu
                 :offset-y="true"
                 :close-on-content-click="false"
                 :title="$t('Panels.MiniconsolePanel.SetupConsole')">
                 <template #activator="{ props }">
-                    <v-btn :icon="mdiCog" rounded="0" v-bind="props" />
+                    <v-btn
+                        :icon="mdiCog"
+                        rounded="0"
+                        :aria-label="$t('Panels.MiniconsolePanel.SetupConsole')"
+                        v-bind="props" />
                 </template>
                 <v-list>
                     <v-list-item v-if="consoleDirection === 'shell'" class="minHeight36">

@@ -379,7 +379,7 @@ describe('JogPanel step and feedrate selection', () => {
 
     it('persists feedrate edits through the CNC settings API', async () => {
         const { wrapper } = createTestWrapper()
-        await setTextFieldByLabel(wrapper, 'XY Feed', '800')
+        await setTextFieldByLabel(wrapper, 'Machine.Jog.FeedXY', '800')
         expect(mocks.updateCncSettings).toHaveBeenCalledWith(SOCKET_URL, {
             feedrateXY: 800,
             feedrateZ: 100,
@@ -390,7 +390,7 @@ describe('JogPanel step and feedrate selection', () => {
     it('toasts when persisting feedrates fails', async () => {
         const { wrapper } = createTestWrapper()
         mocks.updateCncSettings.mockRejectedValueOnce(new Error('nope'))
-        await setTextFieldByLabel(wrapper, 'Z Feed', '150')
+        await setTextFieldByLabel(wrapper, 'Machine.Jog.FeedZ', '150')
         await new Promise((resolve) => setTimeout(resolve, 0))
         expect(mocks.toastError).toHaveBeenCalledWith('nope')
         wrapper.unmount()

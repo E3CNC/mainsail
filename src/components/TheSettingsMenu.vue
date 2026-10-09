@@ -1,6 +1,6 @@
 <template>
     <div>
-        <v-btn :icon="mdiCogs" rounded="0" @click="openSettingsMenu" />
+        <v-btn :icon="mdiCogs" rounded="0" :aria-label="$t('Settings.InterfaceSettings')" @click="openSettingsMenu" />
         <v-dialog
             v-model="showSettings"
             width="900"
@@ -14,7 +14,11 @@
                     <v-icon start :icon="mdiCogs" />
                     <v-toolbar-title>{{ $t('Settings.InterfaceSettings') }}</v-toolbar-title>
                     <v-spacer />
-                    <v-btn :icon="mdiCloseThick" rounded="0" @click="closeSettingsMenu" />
+                    <v-btn
+                        :icon="mdiCloseThick"
+                        rounded="0"
+                        :aria-label="$t('Buttons.Close')"
+                        @click="closeSettingsMenu" />
                 </v-toolbar>
                 <v-card-text>
                     <template v-if="isMobile">

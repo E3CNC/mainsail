@@ -1,8 +1,11 @@
 <template>
     <div>
         <v-app-bar app elevate-on-scroll :height="topbarHeight" class="topbar pa-0" clipped-left>
-            <v-app-bar-nav-icon rounded="0" @click.stop="naviDrawer = !naviDrawer" />
-            <router-link to="/">
+            <v-app-bar-nav-icon
+                rounded="0"
+                :aria-label="$t('App.TopBar.OpenNavigation')"
+                @click.stop="naviDrawer = !naviDrawer" />
+            <router-link to="/" :aria-label="$t('App.TopBar.Home')">
                 <inline-svg v-if="sidebarLogo && isSvgLogo" :src="sidebarLogo" :class="logoClasses" />
                 <img v-else-if="sidebarLogo" :src="sidebarLogo" :class="logoClasses" alt="Logo" />
                 <mainsail-logo v-else :color="logoColor" :class="logoClasses" router to="/" :ripple="false" />
@@ -41,6 +44,7 @@
                 class="button-min-width-auto px-3 d-none d-sm-flex save-config-button"
                 :disabled="printerIsPrinting"
                 :loading="loadings.includes('topbarSaveConfig')"
+                :aria-label="$t('App.TopBar.SAVE_CONFIG')"
                 @click="saveConfig">
                 <v-icon class="d-md-none">{{ mdiContentSave }}</v-icon>
                 <span class="d-none d-md-inline">{{ $t('App.TopBar.SAVE_CONFIG') }}</span>
@@ -53,6 +57,7 @@
                 color="primary"
                 class="button-min-width-auto px-3 d-none d-sm-flex upload-and-start-button"
                 :loading="loadings.includes('btnUploadAndStart')"
+                :aria-label="$t('App.TopBar.UploadPrint')"
                 @click="btnUploadAndStart">
                 <v-icon class="mr-md-2">{{ mdiFileUpload }}</v-icon>
                 <span class="d-none d-md-inline">{{ $t('App.TopBar.UploadPrint') }}</span>
@@ -65,6 +70,7 @@
                 color="error"
                 class="button-min-width-auto px-3 emergency-button"
                 :loading="loadings.includes('topbarEmergencyStop')"
+                :aria-label="$t('App.TopBar.EmergencyStop')"
                 @click="btnEmergencyStop">
                 <v-icon class="mr-md-2">{{ mdiAlertOctagonOutline }}</v-icon>
                 <span class="d-none d-md-inline">{{ $t('App.TopBar.EmergencyStop') }}</span>
@@ -80,7 +86,13 @@
             <br />
             <v-progress-linear class="mt-2" :model-value="uploadSnackbar.percent"></v-progress-linear>
             <template #actions>
-                <v-btn :icon="mdiClose" color="error" variant="text" style="min-width: auto" @click="cancelUpload" />
+                <v-btn
+                    :icon="mdiClose"
+                    color="error"
+                    variant="text"
+                    style="min-width: auto"
+                    :aria-label="$t('Buttons.Close')"
+                    @click="cancelUpload" />
             </template>
         </v-snackbar>
         <emergency-stop-dialog v-model="showEmergencyStopDialog" />

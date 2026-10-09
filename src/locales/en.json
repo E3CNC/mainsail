@@ -1,4 +1,7 @@
 {
+    "About": {
+        "Versions": "Software versions"
+    },
     "App": {
         "Notifications": {
             "BrowserWarnings": {
@@ -84,6 +87,8 @@
         "TopBar": {
             "CannotUploadTheFile": "Cannot upload the file!",
             "EmergencyStop": "Emergency Stop",
+            "Home": "Home",
+            "OpenNavigation": "Open navigation",
             "SAVE_CONFIG": "SAVE CONFIG",
             "Uploading": "Uploading",
             "UploadOfFileSuccessful": "Upload of {file} successful!",
@@ -111,6 +116,7 @@
                     "ServiceStop": "Service Stop"
                 }
             },
+            "ControlMenu": "Control menu",
             "HostControl": "Host Control",
             "KlipperControl": "Klipper Control",
             "KlipperFirmwareRestart": "Firmware Restart",
@@ -145,8 +151,10 @@
     "Buttons": {
         "Cancel": "Cancel",
         "Close": "Close",
+        "Collapse": "Collapse panel",
         "Confirm": "Confirm",
         "Delete": "Delete",
+        "Expand": "Expand panel",
         "No": "No",
         "Save": "Save",
         "Yes": "Yes"
@@ -526,6 +534,16 @@
             "open": "OPEN",
             "TRIGGERED": "TRIGGERED"
         },
+        "Jog": {
+            "FeedOverride": "Feedrate Override",
+            "FeedXY": "XY Feed",
+            "FeedZ": "Z Feed",
+            "JogStop": "Stop jog",
+            "JogXMinus": "Jog X negative",
+            "JogXPlus": "Jog X positive",
+            "JogYMinus": "Jog Y negative",
+            "JogYPlus": "Jog Y positive"
+        },
         "LogfilesPanel": {
             "Accept": "accept",
             "Logfiles": "Log Files",
@@ -602,6 +620,11 @@
             "UpgradeableSystemPackages": "Upgradeable System Packages",
             "UpToDate": "up-to-date",
             "WebClientUpdateQuestion": "In some cases updating the web client could have changes that may cause incompatibility. See the release notes for more information."
+        },
+        "Wcs": {
+            "HideOffset": "Hide {name} offset",
+            "ShowOffset": "Show {name} offset",
+            "SnapToGrid": "Snap to grid"
         }
     },
     "ManualProbe": {
@@ -650,6 +673,7 @@
         },
         "MiniconsolePanel": {
             "Autoscroll": "Autoscroll",
+            "ClearConsole": "Clear console",
             "Headline": "Console",
             "HideTemperatures": "Hide temperatures",
             "HideTimelapse": "Hide Timelapse",
@@ -725,6 +749,10 @@
             "ResumePrint": "Resume job",
             "Slicer": "CAM",
             "Speed": "Speed",
+            "TabFiles": "Files",
+            "TabHistory": "History",
+            "TabJobqueue": "Job queue",
+            "TabStatus": "Status",
             "Toolchange": "Toolchange",
             "Total": "Total",
             "TotalTime": "Total Time",

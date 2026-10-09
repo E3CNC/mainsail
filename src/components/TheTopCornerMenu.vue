@@ -2,7 +2,11 @@
     <div>
         <v-menu v-model="showMenu" location="bottom end" :close-on-content-click="false">
             <template #activator="{ props }">
-                <v-btn :icon="mdiPowerStandby" rounded="0" v-bind="props" />
+                <v-btn
+                    :icon="mdiPowerStandby"
+                    rounded="0"
+                    :aria-label="$t('App.TopCornerMenu.ControlMenu')"
+                    v-bind="props" />
             </template>
             <v-list density="compact">
                 <!-- E3CNC Instance Info -->

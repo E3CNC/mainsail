@@ -151,6 +151,14 @@ describe('store/getters', () => {
             gui: { general: {} },
         })
         expect(getters.getTitle(bare, {}, undefined as never, undefined as never)).toBe('E3CNC')
+
+        const unnamed = rootState({
+            socket: { isConnected: true },
+            server: { klippy_state: 'ready' },
+            printer: { print_stats: { state: 'standby' }, hostname: 'h.local' },
+            gui: { general: { printername: '' } },
+        })
+        expect(getters.getTitle(unnamed, {}, undefined as never, undefined as never)).toBe('h.local')
     })
 
     it('getDependencies flags outdated klipper and moonraker', () => {

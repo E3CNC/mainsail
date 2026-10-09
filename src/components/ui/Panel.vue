@@ -42,6 +42,7 @@
                         icon
                         class="btn-collapsible"
                         :ripple="true"
+                        :aria-label="expand ? $t('Buttons.Collapse') : $t('Buttons.Expand')"
                         @click="expand = !expand">
                         <v-icon :class="expand ? '' : 'icon-rotate-90'">{{ mdiChevronDown }}</v-icon>
                     </v-btn>

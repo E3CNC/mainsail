@@ -72,16 +72,16 @@
                 <v-divider class="mt-0 mb-0" />
             </template>
             <v-tabs v-model="activeTab" fixed-tabs>
-                <v-tab v-if="current_filename" value="status">
+                <v-tab v-if="current_filename" value="status" :aria-label="$t('Panels.StatusPanel.TabStatus')">
                     <v-icon>{{ mdiSpeedometer }}</v-icon>
                 </v-tab>
-                <v-tab v-if="displayFilesTab" value="files">
+                <v-tab v-if="displayFilesTab" value="files" :aria-label="$t('Panels.StatusPanel.TabFiles')">
                     <v-icon>{{ mdiFileDocumentMultipleOutline }}</v-icon>
                 </v-tab>
-                <v-tab v-if="displayHistoryTab" value="history">
+                <v-tab v-if="displayHistoryTab" value="history" :aria-label="$t('Panels.StatusPanel.TabHistory')">
                     <v-icon>{{ mdiHistory }}</v-icon>
                 </v-tab>
-                <v-tab value="jobqueue">
+                <v-tab value="jobqueue" :aria-label="$t('Panels.StatusPanel.TabJobqueue')">
                     <v-badge :color="jobQueueBadgeColor" :content="jobsCount.toString()" :inline="true">
                         <v-icon color="disabled">{{ mdiTrayFull }}</v-icon>
                     </v-badge>

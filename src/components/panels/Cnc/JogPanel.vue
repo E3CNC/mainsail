@@ -71,7 +71,7 @@
                 <v-col cols="6">
                     <v-text-field
                         v-model.number="feedrateXY"
-                        label="XY Feed"
+                        :label="$t('Machine.Jog.FeedXY')"
                         type="number"
                         :min="feedMin"
                         :max="feedMax"
@@ -83,7 +83,7 @@
                 <v-col cols="6">
                     <v-text-field
                         v-model.number="feedrateZ"
-                        label="Z Feed"
+                        :label="$t('Machine.Jog.FeedZ')"
                         type="number"
                         :min="feedMin"
                         :max="feedMax"
@@ -103,6 +103,7 @@
                         :max="feedMax"
                         :step="feedStep"
                         :disabled="isFeedSliderDisabled"
+                        :aria-label="$t('Machine.Jog.FeedXY')"
                         class="feed-slider"
                         @input="feedrateXY = Number(($event.target as HTMLInputElement).value)"
                         @change="saveFeedrates" />
@@ -115,6 +116,7 @@
                         :max="feedMax"
                         :step="feedStep"
                         :disabled="isFeedSliderDisabled"
+                        :aria-label="$t('Machine.Jog.FeedZ')"
                         class="feed-slider"
                         @input="feedrateZ = Number(($event.target as HTMLInputElement).value)"
                         @change="saveFeedrates" />
@@ -124,7 +126,7 @@
             <v-row density="compact" class="mb-3">
                 <v-col cols="12">
                     <div class="d-flex align-center mb-1">
-                        <span class="text-caption font-weight-bold mr-2">Feedrate Override</span>
+                        <span class="text-caption font-weight-bold mr-2">{{ $t('Machine.Jog.FeedOverride') }}</span>
                         <v-chip size="x-small" :color="isPrinting ? 'primary' : 'disabled'" variant="tonal">
                             {{ feedOverrideStore }}%
                         </v-chip>
@@ -137,6 +139,7 @@
                         min="10"
                         max="300"
                         step="5"
+                        :aria-label="$t('Machine.Jog.FeedOverride')"
                         class="feed-slider"
                         @input="onFeedOverrideInput(Number(($event.target as HTMLInputElement).value))" />
                 </v-col>
@@ -226,6 +229,7 @@
                             class="jog-panel__xy-btn"
                             size="large"
                             :disabled="['printing'].includes(printer_state) || !xyHomed"
+                            :aria-label="$t('Machine.Jog.JogYPlus')"
                             @click="jog('Y', currentStep)">
                             <v-icon>{{ mdiChevronUp }}</v-icon>
                         </v-btn>
@@ -233,6 +237,7 @@
                             class="jog-panel__xy-btn"
                             size="large"
                             :disabled="['printing'].includes(printer_state) || !xyHomed"
+                            :aria-label="$t('Machine.Jog.JogXMinus')"
                             @click="jog('X', -currentStep)">
                             <v-icon>{{ mdiChevronLeft }}</v-icon>
                         </v-btn>
@@ -241,6 +246,7 @@
                             size="large"
                             variant="outlined"
                             :disabled="['printing'].includes(printer_state) || !xyHomed"
+                            :aria-label="$t('Machine.Jog.JogStop')"
                             @click="jogStop">
                             <v-icon>{{ mdiStop }}</v-icon>
                         </v-btn>
@@ -248,6 +254,7 @@
                             class="jog-panel__xy-btn"
                             size="large"
                             :disabled="['printing'].includes(printer_state) || !xyHomed"
+                            :aria-label="$t('Machine.Jog.JogXPlus')"
                             @click="jog('X', currentStep)">
                             <v-icon>{{ mdiChevronRight }}</v-icon>
                         </v-btn>
@@ -255,6 +262,7 @@
                             class="jog-panel__xy-btn"
                             size="large"
                             :disabled="['printing'].includes(printer_state) || !xyHomed"
+                            :aria-label="$t('Machine.Jog.JogYMinus')"
                             @click="jog('Y', -currentStep)">
                             <v-icon>{{ mdiChevronDown }}</v-icon>
                         </v-btn>

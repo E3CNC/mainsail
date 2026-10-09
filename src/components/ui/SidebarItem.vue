@@ -1,6 +1,9 @@
 <template>
     <div>
-        <v-tooltip location="right" :open-delay="500" :disabled="navigationStyle !== 'iconsOnly'">
+        <!-- The tooltip (and its overlay shell) only exists in icons-only mode:
+             a disabled tooltip still renders an empty overlay that fails the
+             aria-tooltip-name audit. -->
+        <v-tooltip v-if="navigationStyle === 'iconsOnly'" location="right" :open-delay="500">
             <template #activator="{ props: activatorProps }">
                 <v-list-item
                     :router="to !== undefined"
@@ -19,6 +22,14 @@
             </template>
             <span>{{ title }}</span>
         </v-tooltip>
+        <v-list-item v-else :router="to !== undefined" :to="to" :href="href" :target="target" :class="itemClass">
+            <template #prepend>
+                <v-icon class="menu-item-icon">{{ icon }}</v-icon>
+            </template>
+            <template #title>
+                <span class="menu-item-title">{{ title }}</span>
+            </template>
+        </v-list-item>
         <v-divider v-if="borderBottom" class="my-1" />
     </div>
 </template>

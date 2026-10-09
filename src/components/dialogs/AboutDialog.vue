@@ -1,7 +1,7 @@
 <template>
     <v-tooltip location="right" color="panel">
         <template #activator="{ props }">
-            <v-icon v-bind="props">
+            <v-icon v-bind="props" role="img" :aria-hidden="false" :aria-label="$t('About.Versions')">
                 {{ mdiHelpCircleOutline }}
             </v-icon>
         </template>

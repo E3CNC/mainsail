@@ -12,6 +12,7 @@
                 variant="text"
                 size="small"
                 :color="snapToGrid ? 'primary' : undefined"
+                :aria-label="$t('Machine.Wcs.SnapToGrid')"
                 @click="snapToGrid = !snapToGrid">
                 <v-icon>{{ mdiMagnet }}</v-icon>
             </v-btn>
@@ -282,6 +283,14 @@
                                         color: isOffsetVisible(entry.name) ? 'rgb(var(--v-theme-primary))' : undefined,
                                         opacity: isOffsetVisible(entry.name) ? 1 : 0.5,
                                     }"
+                                    :aria-label="
+                                        $t(
+                                            isOffsetVisible(entry.name)
+                                                ? 'Machine.Wcs.HideOffset'
+                                                : 'Machine.Wcs.ShowOffset',
+                                            { name: entry.name }
+                                        )
+                                    "
                                     @click.stop="toggleOffsetVisibility(entry.name)">
                                     {{ isOffsetVisible(entry.name) ? mdiEye : mdiEyeOff }}
                                 </v-icon>
