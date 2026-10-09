@@ -295,5 +295,23 @@ lighthouse http://127.0.0.1:7125/ --preset=desktop \
   overrides (`rounded-0`) all apply; zero console/page errors. Gates:
   typecheck clean, lint 0 errors, prettier clean, full suite 148 files /
   1561 tests green. Re-run (§4 command): perf **51 → 53**, total
-  **2.7 MB → 2.56 MB**. Next: R4 (route-level code-splitting — index.js
+  **2.7 MB → 2.56 MB**. Pushed as `d5c0a75e`; CI green (Build, Vitest,
+  Code Style, both E2E). Next: R4 (route-level code-splitting — index.js
   still 1.2 MB).
+- **2026-10-09 — R4 done:** all routes except dashboard are now lazy
+  (`() => import('../pages/….vue')`, Viewer pattern; dashboard stays eager
+  as the landing route; no preloading, no route placeholder — both voted
+  down). 7 new page chunks (Console/Farm/Files/History/Machine/Timelapse/
+  Webcam); index.js **1.22 → 1.06 MB (−13%)** — less than the −40% estimate
+  because pages share panels/components with the dashboard via common
+  chunks and the heavy deps were already split. Verified in headless
+  Chromium: all 9 routes render with zero page/console errors (dashboard
+  shows brief "Initializing" on cold first visit — boot timing, also true
+  pre-R4); dashboard fetches zero lazy chunks. The two 404s for
+  `benchy_pla.gcode.cnc-meta.json` on /files reproduce on the pre-R4 build
+  (mock-moonraker gap, unrelated). Gates: typecheck clean, lint 0 errors,
+  prettier clean, full suite 148 files / 1561 tests green. Re-runs (§4
+  command): total **2.56 → 2.40 MB**, FCP ~2590 → ~2430ms; scores varied
+  34–56 across runs with box load (TBT 1795/806/312) — best run: perf
+  **53 → 56**, LCP/TTI ~3.0s, TBT 312ms. Next: R5 (a11y — the three
+  `link-name`/`button-name`/`label` failures).
