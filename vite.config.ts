@@ -195,6 +195,10 @@ export default defineConfig({
         include: ['tests/**/*.spec.ts'],
         globals: true,
         setupFiles: ['tests/setup.ts'],
+        alias: {
+            // @sindarius/gcodeviewer has no resolvable entry for vitest
+            '@sindarius/gcodeviewer': path.resolve(__dirname, './tests/stubs/gcodeviewer.ts'),
+        },
         pool: 'threads',
         poolOptions: {
             threads: {
