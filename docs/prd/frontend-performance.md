@@ -1,6 +1,6 @@
 # PRD: Frontend Performance (Lighthouse follow-up)
 
-- **Status:** Proposed
+- **Status:** Done (2026-10-09 — R1–R6 complete, CI green)
 - **Author:** Isaac Eliape (assisted)
 - **Date:** 2026-10-08
 - **Scope:** `public/fonts/`, `src/assets/styles/fonts.css`, `src/main.ts`, `src/components/charts/`, `src/plugins/router.ts` / `src/routes/`, `package.json`, icon-only controls (a11y)
@@ -347,3 +347,21 @@ lighthouse http://127.0.0.1:7125/ --preset=desktop \
   in headless Chromium; `link-name`, `button-name`, `label`,
   `aria-command-name`, `document-title` all PASS (remaining: 1 tooltip
   shell + 1 list item). Side effect: SEO 82 → 91 via the title fix.
+  Pushed as `fecc9c94` (coverage) + `9950c7ad` (R5); CI green on both
+  (Build, Vitest incl. floors, Code Style, both E2E).
+- **2026-10-09 — R5 lint guard + R6 gate done:** `eslint-plugin-
+vuejs-accessibility` enabled warn-first for `src/**/*.vue` (51-warning
+  baseline logged in `eslint.config.mjs`, mostly click/keyboard parity on
+  legacy clickable divs; the guard caught one missed R5 control — the
+  hidden file-upload input in `TheTopbar` — now labeled). `npm run perf`
+  encodes the §4 reference run (`build` + `start-server-and-test` serving
+  the mock + desktop Lighthouse to `/tmp/mainsail-lh.report.{json,html}`;
+  `lighthouse` added as devDependency, needs `CHROME_PATH` where no system
+  Chrome exists). Wiring the gate exposed a real mock gap: `wait-on`
+  probes with HEAD and `serveDist` 404'd it — the mock now answers HEAD
+  with headers-only 200s. Final `npm run perf` numbers (loaded-box run:
+  perf 25, TBT 8.6s — same variance as the 25–56 range all day, which is
+  why the gate stays local per Non-Goals): **a11y 92, BP 100, SEO 91,
+  total 2,399 KiB**, `link-name`/`button-name`/`label`/`aria-command-name`/
+  `document-title` PASS. Scoreboard baseline → final: perf 36 → 56 (best),
+  a11y 72 → 92, total 7.9 MB → 2.4 MB, SEO 82 → 91. PRD status → Done.

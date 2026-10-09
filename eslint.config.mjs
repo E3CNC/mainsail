@@ -1,5 +1,6 @@
 import eslint from '@eslint/js'
 import pluginVue from 'eslint-plugin-vue'
+import pluginVuejsAccessibility from 'eslint-plugin-vuejs-accessibility'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 import eslintConfigPrettier from 'eslint-config-prettier'
 import pluginJsonc from 'eslint-plugin-jsonc'
@@ -76,6 +77,22 @@ export default defineConfigWithVueTs(
                 },
             ],
         },
+    },
+
+    // R5 a11y ratchet (frontend-performance PRD) — warn-first. Guards the
+    // R5 named-control fixes (form-control-has-label, anchor-has-content)
+    // plus the rest of the plugin's recommended set. Warnings must never
+    // grow; promote to error once the legacy backlog is cleared.
+    // Baseline 2026-10-09: 51 warnings — mostly click/keyboard-handler
+    // parity on legacy clickable divs (no-static-element-interactions,
+    // click-events-have-key-events); form/label/media backlog lives in
+    // TheEditor, Viewer/CodeStream, Gcodefiles header, Endstop items.
+    {
+        files: ['src/**/*.vue'],
+        plugins: { 'vuejs-accessibility': pluginVuejsAccessibility },
+        rules: Object.fromEntries(
+            Object.keys(pluginVuejsAccessibility.rules).map((rule) => [`vuejs-accessibility/${rule}`, 'warn'])
+        ),
     },
 
     // Router pages are single-word by convention (route component names).

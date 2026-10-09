@@ -34,6 +34,7 @@
                 type="file"
                 :accept="gcodeInputFileAccept.join(', ')"
                 style="display: none"
+                :aria-label="$t('App.TopBar.UploadPrint')"
                 @change="uploadAndStart" />
             <v-btn
                 v-if="showSaveConfigButton"

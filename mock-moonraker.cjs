@@ -29,7 +29,9 @@ const MIME_TYPES = {
 }
 
 function serveDist(req, res, pathname) {
-    if (req.method !== 'GET') return false
+    // HEAD is answered with headers only so readiness probers (wait-on /
+    // start-server-and-test) see the same 200 a browser GET would.
+    if (req.method !== 'GET' && req.method !== 'HEAD') return false
     if (!fs.existsSync(DIST_DIR)) return false
     if (API_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return false
 
@@ -44,6 +46,10 @@ function serveDist(req, res, pathname) {
     if (!filePath.startsWith(DIST_DIR) || !fs.existsSync(filePath)) return false
     const ext = path.extname(filePath).toLowerCase()
     res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] ?? 'application/octet-stream' })
+    if (req.method === 'HEAD') {
+        res.end()
+        return true
+    }
     fs.createReadStream(filePath).pipe(res)
     return true
 }
@@ -68,7 +74,7 @@ const cncWcs = {
 
 const httpServer = http.createServer((req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS')
+    res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,POST,DELETE,OPTIONS')
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
     if (req.method === 'OPTIONS') {
         res.writeHead(204)
