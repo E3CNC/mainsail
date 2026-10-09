@@ -365,3 +365,9 @@ vuejs-accessibility` enabled warn-first for `src/**/*.vue` (51-warning
   total 2,399 KiB**, `link-name`/`button-name`/`label`/`aria-command-name`/
   `document-title` PASS. Scoreboard baseline → final: perf 36 → 56 (best),
   a11y 72 → 92, total 7.9 MB → 2.4 MB, SEO 82 → 91. PRD status → Done.
+- **2026-10-09 — R6 CI flake:** the R6 push first ran red on E2E (Mock
+  CNC) only — all 10 page-smoke tests failed on a missing `@consoleError`
+  alias while the other 6 passed. Local repro of the same spec against
+  the same tree: 16/16 green. Re-ran the failed CI job: all 5 green.
+  Verdict: cold-runner flake (page never reached `onBeforeLoad`), not a
+  regression from the mock HEAD handling or the Topbar label.
