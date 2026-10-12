@@ -4,8 +4,9 @@
 # Takes the full 0xProto Nerd Font Mono TTFs in scripts/font-sources/ and emits,
 # per weight, a `latin` subset (always downloaded) and a `symbols` subset
 # (Nerd Font icon glyphs — downloaded only when rendered text needs them),
-# each as woff2 + subset-ttf fallback with matching unicode-ranges declared in
-# src/assets/styles/fonts.css.
+# each as woff2 only (all supported browsers speak woff2; the old subset-ttf
+# fallbacks were removed to keep dist/ small) with matching unicode-ranges
+# declared in src/assets/styles/fonts.css.
 #
 # Prerequisite: pip install fonttools brotli
 set -euo pipefail
@@ -61,15 +62,13 @@ for weight in ("Regular", "Bold"):
     symbols_spec = to_ranges(full - latin)
     print(f"SYMBOLS_RANGE={symbols_spec}")
     for name, spec in (("latin", latin_spec), ("symbols", symbols_spec)):
-        for flavor, ext in (("woff2", "woff2"), (None, "ttf")):
-            opts = subset.Options()
-            if flavor:
-                opts.flavor = flavor
-            ss = subset.Subsetter(opts)
-            ss.populate(unicodes=subset.parse_unicodes(spec))
-            font = TTFont(src)
-            ss.subset(font)
-            out = os.path.join(fontdir, f"0xProtoNerdFontMono-{weight}-{name}.{ext}")
-            subset.save_font(font, out, opts)
-            print(f"{os.path.basename(out)}: {os.path.getsize(out) // 1024}KB")
+        opts = subset.Options()
+        opts.flavor = "woff2"
+        ss = subset.Subsetter(opts)
+        ss.populate(unicodes=subset.parse_unicodes(spec))
+        font = TTFont(src)
+        ss.subset(font)
+        out = os.path.join(fontdir, f"0xProtoNerdFontMono-{weight}-{name}.woff2")
+        subset.save_font(font, out, opts)
+        print(f"{os.path.basename(out)}: {os.path.getsize(out) // 1024}KB")
 EOF
