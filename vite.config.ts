@@ -227,17 +227,18 @@ export default defineConfig({
                 'src/store/variables.ts',
             ],
             thresholds: {
-                // Global backstop: tracks measured reality (70% lines after
-                // the R4b component push). Functions sit at 85 because
-                // mounted SFCs contribute ~600 template/render functions;
-                // per-area floors below lock the real gains. Ratchet upward
-                // as coverage phases land. See
+                // Global backstop: lines/statements 70 (measured ~74.7%
+                // after the woff2-only + PageNotFound cleanup). Functions sit
+                // at 85 because mounted SFCs contribute ~600 template/render
+                // functions (measured 86.2% — too thin to ratchet); branches
+                // stay at 85 (measured 87.5%). Per-area floors below lock the
+                // real gains. Ratchet upward as coverage phases land. See
                 // docs/prd/test-coverage-expansion.md R1 and
                 // docs/prd/full-coverage-closure.md R1.
-                lines: 65,
+                lines: 70,
                 functions: 85,
                 branches: 85,
-                statements: 65,
+                statements: 70,
                 // Scoped floors: lock in the CNC-critical gains (all files
                 // currently at or above these values). Prevents backsliding
                 // while the global floor stays low.
