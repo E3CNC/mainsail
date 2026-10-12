@@ -35,6 +35,43 @@ Before dispatching the "E3CNC Release" workflow, confirm:
 
 See `docs/prd/release-version-drift-guard.md` for the guard's full spec.
 
+## [e3cnc-mainsail-v0.10.8] - 2026-10-12
+
+### Performance (Lighthouse desktop, mock-backed prod build)
+
+- First-load transfer 7.9 MB -> 2.4 MB; accessibility 72 -> 92; SEO 82 -> 91
+- Fonts subsetted to woff2 (latin + symbols via `unicode-range`), Ndot 57
+  self-hosted, TTF fallbacks dropped (`7eba7942`, `b658deea`)
+- ECharts lazy-loaded off the critical path; Vuetify JS treeshaken;
+  non-dashboard routes code-split (`90e3e004`, `d5c0a75e`, `0f484608`)
+- Icon-only controls labeled; a11y eslint guard; `npm run perf` local gate
+  (`9950c7ad`, `def2688a`)
+
+### Bug Fixes
+
+- History list `.gcode` filter no longer drops maintenance rows; HistoryEntry
+  status color; JobqueueEntry kg-weight crash; WCS manual offsets now apply
+  (`b776eadf`)
+- MDI e2e input scoped to the visible console textarea (`8b5d4db7`)
+
+### Testing & CI
+
+- Unit suite 317 -> 1562 tests across 149 files; global lines 15% -> 75%;
+  coverage backstop ratcheted to 70 (`0e83221e`)
+- Mock-backed CNC e2e (jog/MDI/WCS/files) plus per-page smoke pass; Docker
+  harness e2e; vitest job gates on coverage (`867984e8`, `24b7851e`)
+- Code-style gate (lint + prettier + typecheck) moved onto push to master;
+  dead PR-only workflows removed (`72bcf249`)
+- Release tag<->version drift guard in the release workflow (`72bcf249`)
+
+### Tooling & Docs
+
+- Committed Docker dev harness (Moonraker 0.11.0 pinned); fixed package.json
+  repo/bugs/homepage URLs (`b44f4596`, `3d22e61c`)
+- Deleted dead PageNotFound.vue (`a6bfc5b9`)
+- Closed frontend-performance + full-coverage-closure PRDs; proposed
+  Lighthouse CI budgets follow-up (`f7ea02c2`)
+
 ## [e3cnc-mainsail-v0.10.7] - 2026-10-01
 
 ### Bug Fixes

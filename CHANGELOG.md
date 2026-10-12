@@ -3,6 +3,38 @@
 All notable changes to Mainsail will be documented in this file.
 
 
+## [0.10.8](https://github.com/E3CNC/mainsail/releases/tag/e3cnc-mainsail-v0.10.8) - 2026-10-12
+### Performance
+
+- Subset webfonts to woff2 and self-host Ndot 57 (7.9 MB -> 3.3 MB first load)
+- Lazy-load ECharts, treeshake Vuetify JS, code-split non-dashboard routes
+  (3.3 MB -> 2.4 MB)
+- Drop subset-TTF fallbacks, ship woff2 only
+- Label icon-only controls (a11y 72 -> 92, SEO 82 -> 91) with eslint guard
+
+### Bug Fixes and Improvements
+
+- **history**: Keep maintenance rows on the `.gcode` filter; fix entry
+  status color
+- **jobqueue**: Fix kg-weight crash on undefined length
+- **wcs**: Manual offsets now apply via select + refresh
+- **e2e**: Scope MDI input to the visible console textarea
+- Delete dead PageNotFound.vue (no route referenced it)
+
+### Testing and CI
+
+- Expand unit suite to 149 files / 1562 tests; ratchet coverage backstop to 70
+- Add mock-backed CNC e2e and Docker-harness e2e jobs; gate vitest on coverage
+- Move code-style gate onto push to master; remove dead PR-only workflows
+- Guard release tag<->version drift in the release workflow
+- Commit Docker dev harness; fix package.json repository metadata
+
+### Documentation
+
+- Close frontend-performance and full-coverage-closure PRDs
+- Propose Lighthouse CI budgets follow-up PRD
+
+
 ## [0.10.7](https://github.com/E3CNC/mainsail/releases/tag/e3cnc-mainsail-v0.10.7) - 2026-10-01
 ### Bug Fixes and Improvements
 
