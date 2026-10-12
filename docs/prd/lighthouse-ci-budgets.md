@@ -99,12 +99,12 @@ close — one point of headroom is not a gate).
 
 ## 6. Deliverables
 
-| File                                 | Change                                              |
-| ------------------------------------ | --------------------------------------------------- |
-| `.github/workflows/ci.yml`           | new Lighthouse-budgets job (R1)                     |
-| `lighthouserc.*` / budgets config    | byte + audit assertions (R2)                        |
-| `docs/prd/frontend-performance.md`   | flip deferred-CI note to Done (R4)                  |
-| this PRD                             | Proposed → Done with closing numbers on green run   |
+| File                               | Change                                            |
+| ---------------------------------- | ------------------------------------------------- |
+| `.github/workflows/ci.yml`         | new Lighthouse-budgets job (R1)                   |
+| `lighthouserc.*` / budgets config  | byte + audit assertions (R2)                      |
+| `docs/prd/frontend-performance.md` | flip deferred-CI note to Done (R4)                |
+| this PRD                           | Proposed → Done with closing numbers on green run |
 
 ## 7. Acceptance Criteria
 
