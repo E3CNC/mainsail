@@ -50,6 +50,7 @@ npm run format        # prettier (check with `npm run format:check`)
 npm run lint          # eslint src
 npm run typecheck     # vue-tsc
 npm run test:unit     # vitest
+npm run test:coverage # vitest with coverage floors (what the CI vitest job gates on)
 ```
 
 Note: CI enforces style (`eslint .`, `prettier --check .`, `npm run typecheck`)

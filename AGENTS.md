@@ -12,9 +12,11 @@ Mainsail is a Vue 3.5 + TypeScript web interface for Klipper-based CNC machines,
 - `npm run build` - Production build (produces `dist/mainsail.zip`)
 - Docker dev harness - `npm run build` then `cd docker && docker compose up -d` to serve the frontend against a containerized Moonraker (see [docker/README.md](docker/README.md))
 - `npm run lint` / `npm run lint:fix` - ESLint on `src`
-- `npm run format` / `npm run format:check` - Prettier (repo-wide `--check` has pre-existing failures; verify only the files you touch)
+- `npm run format` / `npm run format:check` - Prettier (must pass clean repo-wide)
 - `npm run typecheck` - vue-tsc
 - `npm run test:unit` - Unit tests (Vitest, `tests/**/*.spec.ts`)
+- `npm run test:coverage` - Unit tests with coverage floors (this is what the CI vitest job gates on)
+- `npm run perf` - Local Lighthouse gate (desktop preset vs mock-backed prod build; see `docs/prd/frontend-performance.md`)
 - `npm run test:ui` - E2E tests (Cypress)
 
 ## Git Workflow
@@ -25,7 +27,7 @@ mainsail-crew/mainsail is Vue 2.7: do NOT merge or cherry-pick it;
 re-implement upstream fixes in Composition API style. Commits need DCO
 sign-off (`git commit -s`) and Conventional Commits titles. Before pushing,
 run the full gate locally: `npm run lint` (0 errors), `npm run format:check`,
-`npm run typecheck`, `npm run test:unit`.
+`npm run typecheck`, `npm run test:unit`, and `npm run test:coverage`.
 
 ## Guidelines
 
