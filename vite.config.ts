@@ -227,18 +227,18 @@ export default defineConfig({
                 'src/store/variables.ts',
             ],
             thresholds: {
-                // Global backstop: lines/statements 70 (measured ~74.7%
-                // after the woff2-only + PageNotFound cleanup). Functions sit
-                // at 85 because mounted SFCs contribute ~600 template/render
-                // functions (measured 86.2% — too thin to ratchet); branches
-                // stay at 85 (measured 87.5%). Per-area floors below lock the
-                // real gains. Ratchet upward as coverage phases land. See
+                // Global backstop: lines/statements 74 (measured 74.66%
+                // 2026-10-27). Functions sit at 85 because mounted SFCs
+                // contribute ~600 template/render functions (measured 86.16%
+                // — too thin to ratchet); branches at 87 (measured 87.54%).
+                // Per-area floors below lock the real gains. Ratchet upward
+                // as coverage phases land. See
                 // docs/prd/test-coverage-expansion.md R1 and
                 // docs/prd/full-coverage-closure.md R1.
-                lines: 70,
+                lines: 74,
                 functions: 85,
-                branches: 85,
-                statements: 70,
+                branches: 87,
+                statements: 74,
                 // Scoped floors: lock in the CNC-critical gains (all files
                 // currently at or above these values). Prevents backsliding
                 // while the global floor stays low.
