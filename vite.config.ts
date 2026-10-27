@@ -227,18 +227,20 @@ export default defineConfig({
                 'src/store/variables.ts',
             ],
             thresholds: {
-                // Global backstop: lines/statements 74 (measured 74.66%
-                // 2026-10-27). Functions sit at 85 because mounted SFCs
+                // Global backstop: lines/statements 75 (measured 75.8%
+                // 2026-10-27, mid-tier M1 batch: DynamicCamLoader + MoveToInput
+                // + CheckboxList + EmergencyStopDialog +
+                // StartPrintDialogTimelapse specs). Functions sit at 85 because mounted SFCs
                 // contribute ~600 template/render functions (measured 86.16%
                 // — too thin to ratchet); branches at 87 (measured 87.54%).
                 // Per-area floors below lock the real gains. Ratchet upward
                 // as coverage phases land. See
                 // docs/prd/test-coverage-expansion.md R1 and
                 // docs/prd/full-coverage-closure.md R1.
-                lines: 74,
+                lines: 75,
                 functions: 85,
                 branches: 87,
-                statements: 74,
+                statements: 75,
                 // Scoped floors: lock in the CNC-critical gains (all files
                 // currently at or above these values). Prevents backsliding
                 // while the global floor stays low.
